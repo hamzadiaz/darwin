@@ -132,7 +132,8 @@ export default function Dashboard() {
         await fetchStatus();
 
         // Trigger AI breeding every 5 generations
-        if (stepResult.currentGeneration > 0 && stepResult.currentGeneration % 5 === 0) {
+        const gen = stepResult.snapshot?.currentGeneration ?? stepResult.currentGeneration ?? 0;
+        if (gen > 0 && gen % 5 === 0) {
           fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
         }
 

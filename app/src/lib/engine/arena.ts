@@ -7,6 +7,8 @@ import { runStrategy, Trade } from './strategy';
 import { createRandomGenome, evolveGeneration, AgentResult, mutate } from './genetics';
 import { AgentGenome, Generation } from '@/types';
 import { AIBreedingResult, applyMutationBias, getLatestBreedingResult } from './ai-breeder';
+import { BATTLE_TEST_PERIODS, PeriodId } from './periods';
+import { crossover } from './genetics';
 
 export interface ArenaState {
   status: 'idle' | 'running' | 'paused' | 'complete';
@@ -393,4 +395,111 @@ export function getArenaSnapshot() {
     totalDeaths: arena.agents.filter(a => !a.isAlive).length,
     period: arena.period,
   };
+}
+
+// ============================================================
+// Battle Evolution — train across ALL market periods
+// Fitness = average performance across multiple periods
+// ============================================================
+
+
+let battleCandles: Map<string, OHLCV[]> = new Map();
+
+export async function startBattleEvolution(
+  populationSize: number = 20,
+  maxGenerations: number = 50,
+  symbol: TradingPair = 'SOLUSDT',
+): Promise<void> {
+  // Pre-fetch all period candles
+  battleCandles = new Map();
+  for (const periodId of BATTLE_TEST_PERIODS) {
+    try {
+      const candles = await fetchCandlesForPeriod(symbol, periodId, '4h');
+      if (candles.length >= 20) {
+        battleCandles.set(periodId, candles);
+      }
+    } catch (e) {
+      console.warn(`Battle evolution: skip ${periodId}:`, (e as Error).message);
+    }
+  }
+
+  const state = initArena(populationSize, maxGenerations, symbol, 'battle');
+  // Use first period candles as default display
+  const firstPeriod = [...battleCandles.values()][0];
+  if (firstPeriod) state.candles = firstPeriod;
+  arena = state;
+}
+
+/** Override runGeneration for battle mode: evaluate across all periods */
+export async function stepBattleEvolution(): Promise<boolean> {
+  if (!arena || !arena.period?.includes('battle')) {
+    return stepEvolution();
+  }
+
+  const state = arena;
+  if (state.currentGeneration >= state.maxGenerations) return true;
+
+  const aliveAgents = state.agents.filter(a => a.isAlive);
+
+  // Evaluate each agent across ALL periods
+  for (const agent of aliveAgents) {
+    let totalFitness = 0;
+    let periodCount = 0;
+
+    for (const [periodId, candles] of battleCandles) {
+      const result = runStrategy(agent.genome, candles);
+      totalFitness += result.totalPnlPct;
+      periodCount++;
+    }
+
+    // Average fitness across all periods (in basis points)
+    agent.totalPnl = periodCount > 0 ? Math.round((totalFitness / periodCount) * 100) : -10000;
+    agent.totalTrades = periodCount; // repurpose as period count for display
+    agent.winRate = periodCount > 0 ? Math.round((battleCandles.size / periodCount) * 10000) : 0;
+  }
+
+  // Use standard selection/breeding from here
+  const fitness = (a: AgentGenome) => a.totalPnl;
+  const sorted = [...aliveAgents].sort((a, b) => fitness(b) - fitness(a));
+  const best = sorted[0];
+
+  if (best && best.totalPnl > state.bestEverPnl) {
+    state.bestEverPnl = best.totalPnl;
+    state.bestEverAgentId = best.id;
+  }
+
+  // Kill bottom 75%
+  const keepCount = Math.max(Math.ceil(sorted.length * 0.25), 2);
+  for (let i = keepCount; i < sorted.length; i++) {
+    sorted[i].isAlive = false;
+    sorted[i].diedAt = Date.now();
+  }
+
+  // Breed survivors
+  const survivors = sorted.slice(0, keepCount);
+  const popSize = state.agents.length;
+  while (state.agents.filter(a => a.isAlive).length < popSize) {
+    const p1 = survivors[Math.floor(Math.random() * survivors.length)];
+    const p2 = survivors[Math.floor(Math.random() * survivors.length)];
+    const childGenome = crossover(p1.genome, p2.genome);
+    mutate(childGenome);
+    state.nextAgentId++;
+    state.agents.push({
+      id: state.nextAgentId,
+      genome: childGenome,
+      parentA: p1.id,
+      parentB: p2.id,
+      generation: state.currentGeneration + 1,
+      bornAt: Date.now(),
+      diedAt: null,
+      owner: '11111111111111111111111111111111',
+      isAlive: true,
+      totalPnl: 0,
+      totalTrades: 0,
+      winRate: 0,
+    });
+  }
+
+  state.currentGeneration++;
+  return state.currentGeneration >= state.maxGenerations;
 }

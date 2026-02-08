@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest } from '@/lib/engine/arena';
+import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest, startBattleEvolution, stepBattleEvolution } from '@/lib/engine/arena';
 import { TradingPair, SUPPORTED_PAIRS } from '@/lib/engine/market';
 import { runBattleTest } from '@/lib/engine/battle-test';
 import { MARKET_PERIODS } from '@/lib/engine/periods';
@@ -104,9 +104,23 @@ export async function POST(req: NextRequest) {
     const snapshot = getArenaSnapshot();
     return NextResponse.json({
       status: complete ? 'complete' : 'running',
-      currentGeneration: snapshot?.currentGeneration ?? 0,
-      maxGenerations: snapshot?.maxGenerations ?? 0,
+      snapshot,
     });
+  }
+
+  if (action === 'battle-evolve') {
+    const populationSize = body.populationSize ?? 20;
+    const generations = body.generations ?? 50;
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
+    await startBattleEvolution(populationSize, generations, symbol);
+    return NextResponse.json({ status: 'started', mode: 'battle-evolve', populationSize, generations, symbol });
+  }
+
+  if (action === 'battle-step') {
+    const complete = await stepBattleEvolution();
+    const snapshot = getArenaSnapshot();
+    return NextResponse.json({ status: complete ? 'complete' : 'running', snapshot });
   }
 
   if (action === 'battle-test') {
