@@ -2,9 +2,11 @@
  * Genetic Algorithm — selection, crossover, mutation, immigration
  */
 
+import { GENOME_SIZE } from '@/types';
+
 export interface AgentResult {
   id: number;
-  genome: number[];       // 12 genes, 0-1000
+  genome: number[];       // 20 genes, 0-1000
   totalPnlPct: number;
   winRate: number;
   totalTrades: number;
@@ -16,9 +18,9 @@ export interface NewGeneration {
   parentage: { parentA: number; parentB: number }[];
 }
 
-/** Create a random genome (12 genes, each 0-1000) */
+/** Create a random genome (20 genes, each 0-1000) */
 export function createRandomGenome(): number[] {
-  return Array.from({ length: 12 }, () => Math.floor(Math.random() * 1001));
+  return Array.from({ length: GENOME_SIZE }, () => Math.floor(Math.random() * 1001));
 }
 
 /** Tournament selection: pick `tournamentSize` random agents, return the best */
@@ -61,9 +63,9 @@ export function mutate(genome: number[], rate = 0.20): number[] {
 
 /**
  * Evolve a new generation from results.
- * - Keep top 25% as elite (carried forward)
+ * - Keep top 20% as elite (carried forward)
  * - Breed children from tournament-selected parents
- * - Add a few random immigrants to prevent local optima
+ * - Add 15% random immigrants to prevent local optima
  */
 export function evolveGeneration(
   agents: AgentResult[],
@@ -71,7 +73,7 @@ export function evolveGeneration(
 ): NewGeneration {
   const elite = selectElite(agents, 0.20);
   const eliteCount = elite.length;
-  const immigrantCount = Math.max(2, Math.round(populationSize * 0.15)); // 15% immigrants
+  const immigrantCount = Math.max(2, Math.round(populationSize * 0.15));
   const childCount = populationSize - eliteCount - immigrantCount;
 
   const genomes: number[][] = [];
@@ -87,7 +89,6 @@ export function evolveGeneration(
   for (let i = 0; i < childCount; i++) {
     const pA = tournamentSelect(agents);
     let pB = tournamentSelect(agents);
-    // Ensure different parents when possible
     let attempts = 0;
     while (pB.id === pA.id && attempts < 5) {
       pB = tournamentSelect(agents);

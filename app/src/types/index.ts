@@ -1,10 +1,10 @@
-/** 12-gene genome encoding a trading strategy */
+/** Expanded genome encoding a trading strategy (20 genes) */
 export interface AgentGenome {
   id: number;
   generation: number;
   parentA: number | null;
   parentB: number | null;
-  genome: number[]; // 12 genes, each 0-1000 (scaled)
+  genome: number[]; // 20 genes, each 0-1000 (scaled)
   bornAt: number;
   diedAt: number | null;
   totalPnl: number; // basis points
@@ -12,10 +12,12 @@ export interface AgentGenome {
   winRate: number; // basis points (0-10000)
   isAlive: boolean;
   owner: string;
+  aiAnalysis?: string; // AI analyst commentary
 }
 
 /** Decoded genome with human-readable gene names */
 export interface DecodedGenome {
+  // Original genes
   donchianPeriod: number;     // 10-50
   emaFast: number;            // 5-20
   emaSlow: number;            // 20-100
@@ -28,7 +30,19 @@ export interface DecodedGenome {
   tradeCooldown: number;      // 1-24 hours
   volatilityFilter: number;   // 0-1
   momentumWeight: number;     // 0-1
+  // New genes
+  macdFast: number;           // 8-16
+  macdSlow: number;           // 20-32
+  macdSignal: number;         // 6-12
+  bbPeriod: number;           // 10-30
+  bbStd: number;              // 1.5-3.0
+  stochK: number;             // 5-21
+  stochD: number;             // 3-9
+  signalThreshold: number;    // 0.2-0.8 (aggressiveness)
 }
+
+/** Number of genes in the genome */
+export const GENOME_SIZE = 20;
 
 /** Gene metadata for display */
 export const GENE_NAMES: readonly string[] = [
@@ -44,12 +58,20 @@ export const GENE_NAMES: readonly string[] = [
   'Trade Cooldown',
   'Volatility Filter',
   'Momentum Weight',
+  'MACD Fast',
+  'MACD Slow',
+  'MACD Signal',
+  'BB Period',
+  'BB Std Dev',
+  'Stoch K',
+  'Stoch D',
+  'Aggressiveness',
 ] as const;
 
 /** Decode raw genome (0-1000) to actual parameter ranges */
 export function decodeGenome(raw: number[]): DecodedGenome {
   const scale = (val: number, min: number, max: number) =>
-    min + (val / 1000) * (max - min);
+    min + ((val ?? 500) / 1000) * (max - min);
 
   return {
     donchianPeriod: Math.round(scale(raw[0], 10, 50)),
@@ -64,6 +86,14 @@ export function decodeGenome(raw: number[]): DecodedGenome {
     tradeCooldown: Math.round(scale(raw[9], 1, 24)),
     volatilityFilter: scale(raw[10], 0, 1),
     momentumWeight: scale(raw[11], 0, 1),
+    macdFast: Math.round(scale(raw[12], 8, 16)),
+    macdSlow: Math.round(scale(raw[13], 20, 32)),
+    macdSignal: Math.round(scale(raw[14], 6, 12)),
+    bbPeriod: Math.round(scale(raw[15], 10, 30)),
+    bbStd: +scale(raw[16], 1.5, 3.0).toFixed(2),
+    stochK: Math.round(scale(raw[17], 5, 21)),
+    stochD: Math.round(scale(raw[18], 3, 9)),
+    signalThreshold: +scale(raw[19], 0.2, 0.8).toFixed(2),
   };
 }
 
@@ -77,6 +107,7 @@ export interface Generation {
   avgPnl: number;
   agentsBorn: number;
   agentsDied: number;
+  aiAnalysis?: string;
 }
 
 /** Protocol state */

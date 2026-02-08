@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Skull, Heart, TrendingUp, TrendingDown, Dna, Clock } from 'lucide-react';
-import { AgentGenome, GENE_NAMES, decodeGenome } from '@/types';
+import { AgentGenome, decodeGenome } from '@/types';
 import { formatBps } from '@/lib/utils';
 import { GenomeRadar } from './GenomeRadar';
 
@@ -94,6 +94,13 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
         <div className="flex items-center gap-1 text-[10px] text-text-muted font-mono">
           <Dna className="w-3 h-3" />
           <span>Parents: #{agent.parentA} × #{agent.parentB}</span>
+        </div>
+      )}
+
+      {/* AI Analysis */}
+      {agent.aiAnalysis && !compact && (
+        <div className="mt-2 p-2 rounded-lg bg-evolution-purple/5 border border-evolution-purple/10">
+          <p className="text-[10px] text-text-muted leading-relaxed line-clamp-3">{agent.aiAnalysis}</p>
         </div>
       )}
     </motion.div>

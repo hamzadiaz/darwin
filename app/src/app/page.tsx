@@ -11,7 +11,8 @@ import { BreedingView } from '@/components/BreedingView';
 import { DnaHelix } from '@/components/DnaHelix';
 import { Graveyard } from '@/components/Graveyard';
 import { AgentCard } from '@/components/AgentCard';
-import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight } from 'lucide-react';
+import { AiAnalyst } from '@/components/AiAnalyst';
+import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain } from 'lucide-react';
 import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
 
@@ -35,17 +36,18 @@ interface EvolutionData {
 const TABS = [
   { id: 'arena', label: 'Arena', icon: Swords },
   { id: 'lab', label: 'Lab', icon: FlaskConical },
+  { id: 'analyst', label: 'AI Analyst', icon: Brain },
   { id: 'tree', label: 'Family Tree', icon: GitFork },
   { id: 'graveyard', label: 'Graveyard', icon: Skull },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
 
-// Sample genome for the hero section
-const SAMPLE_GENOME = [720, 350, 680, 500, 300, 750, 250, 600, 450, 200, 550, 800];
+// Sample genome for the hero section (20 genes)
+const SAMPLE_GENOME = [720, 350, 680, 500, 300, 750, 250, 600, 450, 200, 550, 800, 400, 600, 500, 650, 450, 550, 400, 350];
 
 const FEATURES = [
-  { icon: '🧬', title: '12-Gene Genome', desc: 'Each agent encodes a full trading strategy in 12 genes' },
+  { icon: '🧬', title: '20-Gene Genome', desc: 'Each agent encodes a full trading strategy in 20 genes with 9 indicators' },
   { icon: '⚔️', title: 'Arena Battles', desc: 'Agents compete on real SOL/USDC market data' },
   { icon: '🔀', title: 'Crossover & Mutation', desc: 'Top agents breed; random mutations prevent local optima' },
   { icon: '💀', title: 'Natural Selection', desc: 'Bottom 80% die each generation — only the fittest survive' },
@@ -403,6 +405,26 @@ export default function Dashboard() {
                   }>
                     <FamilyTree agents={allAgents.length > 0 ? allAgents : agents} onSelectAgent={setSelectedAgent} />
                   </Suspense>
+                )}
+
+                {activeTab === 'analyst' && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <AiAnalyst
+                      genome={agents[0]?.genome ?? SAMPLE_GENOME}
+                      generation={generation}
+                      totalPnl={agents[0]?.totalPnl ?? 0}
+                      winRate={agents[0]?.winRate ?? 0}
+                      totalTrades={agents[0]?.totalTrades ?? 0}
+                      avgPnl={generations.length > 0 ? generations[generations.length - 1].avgPnl : 0}
+                      bestPnl={bestPnl}
+                      populationSize={data?.populationSize ?? 20}
+                      candles={candles}
+                      autoAnalyze={evStatus === 'running'}
+                    />
+                    {agents[0] && (
+                      <AgentCard agent={agents[0]} highlight />
+                    )}
+                  </div>
                 )}
 
                 {activeTab === 'graveyard' && (

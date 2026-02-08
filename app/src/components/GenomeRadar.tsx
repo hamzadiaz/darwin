@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { GENE_NAMES } from '@/types';
+import { GENE_NAMES, GENOME_SIZE } from '@/types';
 
 interface GenomeRadarProps {
   genome: number[];
@@ -14,22 +14,26 @@ interface GenomeRadarProps {
 export function GenomeRadar({ genome, compareGenome, size = 200, label, compareLabel }: GenomeRadarProps) {
   const cx = size / 2;
   const cy = size / 2;
-  const r = size * 0.38;
+  const r = size * 0.36;
   const levels = 4;
-  const n = 12;
+  const n = Math.min(genome.length, GENOME_SIZE);
 
   const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
   const point = (i: number, val: number) => ({
-    x: cx + Math.cos(angle(i)) * r * (val / 1000),
-    y: cy + Math.sin(angle(i)) * r * (val / 1000),
+    x: cx + Math.cos(angle(i)) * r * ((val ?? 500) / 1000),
+    y: cy + Math.sin(angle(i)) * r * ((val ?? 500) / 1000),
   });
 
   const toPath = (values: number[]) =>
-    values.map((v, i) => point(i, v)).map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ') + ' Z';
+    Array.from({ length: n }, (_, i) => values[i] ?? 500)
+      .map((v, i) => point(i, v))
+      .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
+      .join(' ') + ' Z';
 
-  const shortNames = GENE_NAMES.map(n => {
-    const parts = n.split(' ');
-    return parts.length > 1 ? parts.map(p => p[0]).join('') : n.slice(0, 3);
+  const shortNames = GENE_NAMES.slice(0, n).map(name => {
+    const parts = name.split(' ');
+    if (parts.length > 1) return parts.map(p => p[0]).join('');
+    return name.slice(0, 3);
   });
 
   return (
@@ -53,7 +57,7 @@ export function GenomeRadar({ genome, compareGenome, size = 200, label, compareL
       {Array.from({ length: n }, (_, i) => {
         const lp = { x: cx + Math.cos(angle(i)) * (r + 14), y: cy + Math.sin(angle(i)) * (r + 14) };
         return (
-          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="fill-text-muted" style={{ fontSize: size > 150 ? 7 : 5, fontFamily: 'var(--font-mono)' }}>
+          <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle" className="fill-text-muted" style={{ fontSize: size > 150 ? 6 : 4, fontFamily: 'var(--font-mono)' }}>
             {shortNames[i]}
           </text>
         );
@@ -84,8 +88,8 @@ export function GenomeRadar({ genome, compareGenome, size = 200, label, compareL
       />
 
       {/* Dots */}
-      {genome.map((v, i) => {
-        const p = point(i, v);
+      {Array.from({ length: n }, (_, i) => {
+        const p = point(i, genome[i] ?? 500);
         return (
           <motion.circle
             key={i}
@@ -95,7 +99,7 @@ export function GenomeRadar({ genome, compareGenome, size = 200, label, compareL
             fill="#3B82F6"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            transition={{ delay: i * 0.05, duration: 0.3 }}
+            transition={{ delay: i * 0.03, duration: 0.3 }}
           />
         );
       })}

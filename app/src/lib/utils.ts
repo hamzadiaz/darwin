@@ -25,7 +25,7 @@ export function generateMockAgents(count: number, generation: number) {
     generation,
     parentA: generation > 0 ? Math.floor(Math.random() * count) + 1 : null,
     parentB: generation > 0 ? Math.floor(Math.random() * count) + 1 : null,
-    genome: Array.from({ length: 12 }, () => Math.floor(Math.random() * 1000)),
+    genome: Array.from({ length: 20 }, () => Math.floor(Math.random() * 1000)),
     bornAt: Date.now() - Math.random() * 86400000,
     diedAt: Math.random() > 0.75 ? Date.now() : null,
     totalPnl: Math.floor((Math.random() - 0.4) * 5000), // skew slightly negative
