@@ -107,17 +107,13 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }: { value: number; s
 
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.6 }}
+    <div
       className="text-center mb-12 lg:mb-16"
     >
       <p className="text-[10px] uppercase tracking-[0.4em] text-accent-primary font-bold mb-3">{eyebrow}</p>
       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight mb-4">{title}</h2>
       <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed">{description}</p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -132,11 +128,11 @@ const BENTO_FEATURES = [
   { icon: Dna, title: '22-Gene Genome', desc: 'Full strategy encoded in DNA — entry/exit rules, risk params, indicator weights', size: 'lg' },
   { icon: Activity, title: '9 Technical Indicators', desc: 'RSI, MACD, Bollinger, ATR, Stochastic, EMA, SMA, VWAP, OBV', size: 'sm' },
   { icon: LineChart, title: 'Multi-Pair Trading', desc: 'SOL/BTC/ETH with real Binance data', size: 'sm' },
-  { icon: Brain, title: 'AI Analyst', desc: 'Gemini 2.5 Flash guides breeding decisions and analyzes genome fitness', size: 'sm' },
+  { icon: Brain, title: 'AI Analyst', desc: 'Gemini 3 Flash guides breeding decisions and analyzes genome fitness', size: 'sm' },
   { icon: Target, title: 'Battle Testing', desc: 'Forward-test winners against unseen market periods', size: 'sm' },
   { icon: Shield, title: 'On-Chain Ready', desc: 'Deploy strategies to Solana via Jupiter DEX aggregator', size: 'lg' },
   { icon: Crosshair, title: 'Realistic Fees', desc: '0.1% taker + 0.05% slippage per trade', size: 'sm' },
-  { icon: Zap, title: 'Leverage & Shorts', desc: 'Up to 3x leverage with short selling support', size: 'sm' },
+  { icon: Zap, title: 'Leverage & Shorts', desc: 'Up to 15x leverage with short selling support', size: 'sm' },
 ];
 
 function LandingPage({ 
@@ -271,7 +267,7 @@ function LandingPage({
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1, ease: 'easeOut' }}
-            className="hidden lg:flex justify-center items-center relative"
+            className="hidden lg:flex justify-center items-center relative mx-auto max-w-[400px]"
           >
             <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/10 via-transparent to-transparent rounded-full blur-2xl" />
             <div className="relative">
@@ -299,12 +295,7 @@ function LandingPage({
       </section>
 
       {/* ─── LIVE STATS BAR ─── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="py-8 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6"
-      >
+      <section className="py-8 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
         <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: 'Best PnL', value: <AnimatedCounter value={2341} suffix="%" prefix="+" />, color: 'text-success' },
@@ -312,20 +303,16 @@ function LandingPage({
             { label: 'Win Rate (Best)', value: <AnimatedCounter value={67} suffix="%" />, color: 'text-evolution-purple' },
             { label: 'Generations Run', value: <AnimatedCounter value={5200} />, color: 'text-accent-tertiary' },
           ].map((stat, i) => (
-            <motion.div
+            <div
               key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
               className="glass-card rounded-xl p-4 text-center group hover:border-white/10 transition-all duration-500"
             >
               <p className="text-[9px] uppercase tracking-[0.3em] text-text-muted font-bold mb-1">{stat.label}</p>
               <p className={`text-2xl sm:text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
-      </motion.section>
+      </section>
 
       {/* ─── WHAT IS DARWIN ─── */}
       <section className="py-16 lg:py-24 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
@@ -340,14 +327,10 @@ function LandingPage({
             {[
               { icon: '🧬', title: 'Genetic Encoding', desc: 'Every trading strategy is encoded as a genome — 22 genes controlling indicators, thresholds, risk parameters, and position sizing. Each agent is unique.', gradient: 'from-accent-primary/20 to-evolution-purple/20' },
               { icon: '⚔️', title: 'Survival of the Fittest', desc: 'Agents trade real market data with realistic fees and slippage. Bottom 80% are eliminated each generation. Only profitable strategies pass on their genes.', gradient: 'from-evolution-purple/20 to-accent-tertiary/20' },
-              { icon: '🤖', title: 'AI-Guided Breeding', desc: 'Gemini 2.5 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-accent-tertiary/20 to-success/20' },
+              { icon: '🤖', title: 'AI-Guided Breeding', desc: 'Gemini 3 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-accent-tertiary/20 to-success/20' },
             ].map((card, i) => (
-              <motion.div
+              <div
                 key={card.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
                 className={`group relative glass-card rounded-2xl p-6 lg:p-8 overflow-hidden transition-all duration-500 hover:border-white/15 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)]`}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -356,7 +339,7 @@ function LandingPage({
                   <h3 className="text-base font-bold text-text-primary mb-3">{card.title}</h3>
                   <p className="text-sm text-text-secondary leading-relaxed">{card.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -374,12 +357,8 @@ function LandingPage({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {HOW_IT_WORKS.map((step, i) => (
-              <motion.div
+              <div
                 key={step.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ delay: i * 0.12, duration: 0.5 }}
                 className="group relative"
               >
                 <div className="glass-card rounded-2xl p-6 h-full transition-all duration-500 hover:border-white/15 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] hover:-translate-y-1">
@@ -395,7 +374,7 @@ function LandingPage({
                 {i < HOW_IT_WORKS.length - 1 && (
                   <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-white/10 to-transparent" />
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -412,12 +391,8 @@ function LandingPage({
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {BENTO_FEATURES.map((feature, i) => (
-              <motion.div
+              <div
                 key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-30px' }}
-                transition={{ delay: i * 0.06, duration: 0.4 }}
                 className={`group glass-card rounded-2xl p-5 transition-all duration-500 hover:border-white/15 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 ${
                   feature.size === 'lg' ? 'lg:col-span-2' : ''
                 }`}
@@ -431,7 +406,7 @@ function LandingPage({
                     <p className="text-[11px] text-text-muted leading-relaxed">{feature.desc}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -449,10 +424,7 @@ function LandingPage({
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {/* Big stat card */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
+            <div
               className="lg:col-span-2 glass-card rounded-2xl p-8 relative overflow-hidden group hover:border-success/20 transition-all duration-500"
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-success/5 rounded-full blur-3xl group-hover:bg-success/10 transition-colors duration-500" />
@@ -465,7 +437,7 @@ function LandingPage({
                   <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">142 Trades</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Smaller stats */}
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -477,18 +449,14 @@ function LandingPage({
                 { label: 'Sharpe Ratio', value: '2.4', sub: 'Best evolved agent', color: 'text-success' },
                 { label: 'Total Strategies Tested', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
               ].map((stat, i) => (
-                <motion.div
+                <div
                   key={stat.label}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
                   className="glass-card rounded-xl p-4 hover:border-white/10 transition-all duration-500"
                 >
                   <p className="text-[8px] uppercase tracking-[0.2em] text-text-muted font-bold mb-1 leading-tight">{stat.label}</p>
                   <p className={`text-xl font-bold font-mono ${stat.color} mb-0.5`}>{stat.value}</p>
                   <p className="text-[10px] text-text-muted">{stat.sub}</p>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -497,10 +465,7 @@ function LandingPage({
 
       {/* ─── FINAL CTA ─── */}
       <section className="py-20 lg:py-28 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
           className="max-w-[900px] mx-auto text-center relative"
         >
           <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/5 via-transparent to-transparent blur-3xl pointer-events-none" />
@@ -527,7 +492,7 @@ function LandingPage({
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
             </button>
           </div>
-        </motion.div>
+        </div>
       </section>
     </div>
   );
