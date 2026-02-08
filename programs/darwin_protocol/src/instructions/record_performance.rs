@@ -9,6 +9,7 @@ pub struct RecordPerformance<'info> {
     pub authority: Signer<'info>,
 
     #[account(
+        mut,
         seeds = [ProtocolState::SEED_PREFIX],
         bump = protocol_state.bump,
         has_one = authority @ DarwinError::Unauthorized,

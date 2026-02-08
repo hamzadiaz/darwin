@@ -33,7 +33,7 @@ pub struct SpawnAgent<'info> {
 
 pub fn handler(ctx: Context<SpawnAgent>, genome: [u16; 12]) -> Result<()> {
     // Validate all genes are in range 0-1000
-    for (i, &gene) in genome.iter().enumerate() {
+    for &gene in genome.iter() {
         require!(gene <= 1000, DarwinError::GeneOutOfRange);
     }
 
