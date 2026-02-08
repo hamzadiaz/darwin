@@ -33,7 +33,13 @@ export async function POST(req: NextRequest) {
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
 
-    await startEvolution(populationSize, generations);
+    try {
+      await startEvolution(populationSize, generations);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('startEvolution failed:', message);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
 
     return NextResponse.json({
       status: 'started',

@@ -196,7 +196,7 @@ export async function startEvolution(
   state.status = 'running';
 
   // Fetch real market data upfront
-  state.candles = await fetchCandles('SOL', '4h', 30);
+  state.candles = await fetchCandles('SOLUSDT', '4h', 500);
 
   // Run first generation immediately
   await runGeneration(state);
