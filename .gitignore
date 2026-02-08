@@ -1,0 +1,23 @@
+# Dependencies
+app/node_modules/
+node_modules/
+
+# Build
+app/.next/
+target/
+
+# Env
+.env
+.env.local
+.env.hackathon
+
+# IDE
+.idea/
+.vscode/
+
+# Anchor
+.anchor/
+test-ledger/
+
+# OS
+.DS_Store

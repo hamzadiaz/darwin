@@ -1,0 +1,179 @@
+@import 'tailwindcss';
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-bg-primary: #0A0E1A;
+  --color-bg-secondary: #151B2E;
+  --color-bg-elevated: #1E2638;
+  --color-bg-card: #252D42;
+  
+  --color-accent-primary: #3B82F6;
+  --color-accent-secondary: #8B5CF6;
+  --color-accent-tertiary: #06B6D4;
+  
+  --color-success: #10B981;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #3B82F6;
+  
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  
+  --color-border: rgba(148, 163, 184, 0.1);
+  --color-border-focus: rgba(59, 130, 246, 0.3);
+
+  --color-dna-green: #10B981;
+  --color-mutation-red: #EF4444;
+  --color-evolution-purple: #8B5CF6;
+
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  --animate-dna-spin: dna-spin 8s linear infinite;
+  
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px var(--color-success)); }
+    50% { opacity: 0.7; filter: drop-shadow(0 0 15px var(--color-success)); }
+  }
+
+  @keyframes dna-spin {
+    from { transform: rotateY(0deg); }
+    to { transform: rotateY(360deg); }
+  }
+
+  @keyframes slideInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #0A0E1A;
+  --foreground: #F8FAFC;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-accent-primary/50;
+  }
+  body {
+    @apply bg-background text-foreground selection:bg-accent-primary/30;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-bg-secondary/80 backdrop-blur-xl border border-white/5 shadow-2xl;
+  }
+  
+  .glass-card-elevated {
+    @apply bg-bg-elevated/80 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)];
+  }
+
+  .glass-panel {
+    @apply bg-bg-primary/40 backdrop-blur-md border border-white/5;
+  }
+
+  .metric-value {
+    @apply font-mono font-bold tracking-tight;
+  }
+
+  .metric-label {
+    @apply text-xs uppercase tracking-widest text-text-muted font-semibold;
+  }
+
+  .gradient-success {
+    @apply bg-gradient-to-br from-success to-success/70;
+  }
+
+  .gradient-danger {
+    @apply bg-gradient-to-br from-danger to-danger/70;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-br from-accent-primary to-accent-secondary;
+  }
+
+  .gradient-evolution {
+    @apply bg-gradient-to-br from-evolution-purple to-accent-tertiary;
+  }
+
+  .glow-success {
+    @apply shadow-[0_0_20px_rgba(16,185,129,0.15)];
+  }
+
+  .glow-danger {
+    @apply shadow-[0_0_20px_rgba(239,68,68,0.15)];
+  }
+
+  .glow-primary {
+    @apply shadow-[0_0_20px_rgba(59,130,246,0.15)];
+  }
+
+  .glow-evolution {
+    @apply shadow-[0_0_20px_rgba(139,92,246,0.15)];
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] hover:border-white/20;
+  }
+
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-bg-elevated) transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    @apply bg-bg-elevated rounded-full hover:bg-bg-card;
+  }
+
+  .dna-strand {
+    background: linear-gradient(135deg, var(--color-evolution-purple), var(--color-accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
