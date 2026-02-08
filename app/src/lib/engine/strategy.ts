@@ -25,6 +25,9 @@ export interface StrategyResult {
   totalTrades: number;
   maxDrawdownPct: number;
   sharpeApprox: number;
+  leverage?: number;
+  simplePnlPct?: number;
+  finalBalance?: number;
 }
 
 // ─── Indicator calculations ───
@@ -305,22 +308,50 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
     });
   }
 
-  // Calculate results
+  // Calculate results with LEVERAGE + COMPOUNDING (Donchian-style)
+  const leverage = g.leverage; // 1-15x
+  const riskPerTrade = g.riskPerTrade / 100; // fraction of balance to risk per trade (5-30%)
+
   const wins = trades.filter((t) => t.pnlPct > 0).length;
-  const totalPnlPct = trades.reduce((sum, t) => sum + t.pnlPct, 0);
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
 
-  // Max drawdown
-  let peak = 0, maxDD = 0, cumPnl = 0;
+  // Simple sum PnL (unleveraged, for reference)
+  const simplePnl = trades.reduce((sum, t) => sum + t.pnlPct, 0);
+
+  // Compounded leveraged PnL — simulates actual account growth
+  // Start with $10,000 account
+  let balance = 10000;
+  let peakBalance = 10000;
+  let maxDD = 0;
+
   for (const t of trades) {
-    cumPnl += t.pnlPct;
-    if (cumPnl > peak) peak = cumPnl;
-    const dd = peak - cumPnl;
+    // Position size = balance * riskPerTrade (capped at balance)
+    const posSize = Math.min(balance, balance * riskPerTrade);
+    // Leveraged PnL on this trade
+    const tradePnl = posSize * leverage * (t.pnlPct / 100);
+
+    // Liquidation check: if loss exceeds margin (posSize), cap at -posSize
+    // This prevents balance going negative — like having a stop at liquidation price
+    const cappedPnl = Math.max(tradePnl, -posSize);
+    balance += cappedPnl;
+
+    // Track drawdown
+    if (balance > peakBalance) peakBalance = balance;
+    const dd = ((peakBalance - balance) / peakBalance) * 100;
     if (dd > maxDD) maxDD = dd;
+
+    // Account blown — stop trading
+    if (balance <= 0) {
+      balance = 0;
+      break;
+    }
   }
 
+  // Total PnL as percentage of starting balance
+  const totalPnlPct = ((balance - 10000) / 10000) * 100;
+
   // Sharpe approximation
-  const returns = trades.map((t) => t.pnlPct);
+  const returns = trades.map((t) => t.pnlPct * leverage);
   const mean = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
   const variance = returns.length > 1
     ? returns.reduce((s, r) => s + (r - mean) ** 2, 0) / (returns.length - 1)
@@ -334,6 +365,9 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
     totalTrades: trades.length,
     maxDrawdownPct: maxDD,
     sharpeApprox: sharpe,
+    leverage,
+    simplePnlPct: simplePnl,
+    finalBalance: Math.round(balance),
   };
 }
 

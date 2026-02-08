@@ -96,8 +96,15 @@ async function runGeneration(state: ArenaState): Promise<void> {
     state.agentTrades.set(agent.id, result.trades);
   }
 
-  // Fitness function: agents must trade to survive. Cowards (0 trades) get punished.
-  const fitness = (a: AgentGenome) => a.totalTrades === 0 ? -10000 : a.totalPnl;
+  // Fitness function: multi-objective — PnL + win rate bonus + trade count bonus
+  // Agents must trade to survive. Cowards (0 trades) get punished.
+  // Win rate bonus: agents with >60% WR get a boost
+  const fitness = (a: AgentGenome) => {
+    if (a.totalTrades === 0) return -10000;
+    const wrBonus = a.winRate > 6000 ? (a.winRate - 6000) / 100 : 0; // bonus for >60% WR (winRate stored as bps)
+    const tradeBonus = Math.min(a.totalTrades, 10) * 5; // reward active traders (up to 50 bps bonus)
+    return a.totalPnl + wrBonus + tradeBonus;
+  };
 
   // Find best agent this generation
   const sorted = [...aliveAgents].sort((a, b) => fitness(b) - fitness(a));
@@ -135,8 +142,13 @@ function evolvePopulation(state: ArenaState): void {
     state.lastAIBreedingResult = aiResult;
   }
 
-  // Fitness: penalize non-traders
-  const fit = (a: AgentGenome) => a.totalTrades === 0 ? -10000 : a.totalPnl;
+  // Fitness: penalize non-traders, reward win rate + trade activity
+  const fit = (a: AgentGenome) => {
+    if (a.totalTrades === 0) return -10000;
+    const wrBonus = a.winRate > 6000 ? (a.winRate - 6000) / 100 : 0;
+    const tradeBonus = Math.min(a.totalTrades, 10) * 5;
+    return a.totalPnl + wrBonus + tradeBonus;
+  };
 
   const agentResults: AgentResult[] = aliveAgents.map((a) => ({
     id: a.id,
@@ -367,5 +379,6 @@ export function getArenaSnapshot() {
     bestEverAgentId: arena.bestEverAgentId,
     aiGuidedEvolution: arena.aiGuidedEvolution,
     lastAIBreedingResult: arena.lastAIBreedingResult,
+    totalDeaths: arena.agents.filter(a => !a.isAlive).length,
   };
 }
