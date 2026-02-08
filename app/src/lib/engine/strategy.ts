@@ -246,31 +246,31 @@ function generateSignal(
   volThreshold: number,
 ): Signal {
   // Volatility filter: skip if ATR% is below threshold (market too quiet)
-  // volThreshold 0-1 maps to 0-5% ATR threshold
-  if (volThreshold > 0 && atrPct < volThreshold * 0.05) return 'HOLD';
+  // volThreshold 0-1 maps to 0-3% ATR threshold
+  if (volThreshold > 0.1 && atrPct < volThreshold * 0.03) return 'HOLD';
 
   let bullScore = 0;
   let bearScore = 0;
   const mw = g.momentumWeight; // 0-1: higher = more momentum, lower = more mean reversion
 
-  // EMA crossover (momentum)
-  if (emaFast[i] > emaSlow[i] && emaFast[i - 1] <= emaSlow[i - 1]) bullScore += mw;
-  if (emaFast[i] < emaSlow[i] && emaFast[i - 1] >= emaSlow[i - 1]) bearScore += mw;
-  // EMA trend
-  if (emaFast[i] > emaSlow[i]) bullScore += mw * 0.3;
-  if (emaFast[i] < emaSlow[i]) bearScore += mw * 0.3;
+  // EMA crossover (momentum) — strong signal
+  if (emaFast[i] > emaSlow[i] && emaFast[i - 1] <= emaSlow[i - 1]) bullScore += 0.6;
+  if (emaFast[i] < emaSlow[i] && emaFast[i - 1] >= emaSlow[i - 1]) bearScore += 0.6;
+  // EMA trend (continuous) — weighted by momentum preference
+  if (emaFast[i] > emaSlow[i]) bullScore += mw * 0.4;
+  if (emaFast[i] < emaSlow[i]) bearScore += mw * 0.4;
 
-  // RSI (mean reversion component)
+  // RSI (mean reversion component) — weighted by (1-momentum)
   const mrWeight = 1 - mw;
-  if (rsi[i] < g.rsiOversold) bullScore += mrWeight;
-  if (rsi[i] > g.rsiOverbought) bearScore += mrWeight;
+  if (rsi[i] < g.rsiOversold) bullScore += 0.3 + mrWeight * 0.4;
+  if (rsi[i] > g.rsiOverbought) bearScore += 0.3 + mrWeight * 0.4;
 
   // Donchian breakout (momentum)
-  if (closes[i] >= donchian.upper[i - 1]) bullScore += mw * 0.5;
-  if (closes[i] <= donchian.lower[i - 1]) bearScore += mw * 0.5;
+  if (closes[i] >= donchian.upper[i - 1]) bullScore += 0.3 + mw * 0.3;
+  if (closes[i] <= donchian.lower[i - 1]) bearScore += 0.3 + mw * 0.3;
 
-  // Thresholds
-  if (bullScore > 0.5) return 'BUY';
-  if (bearScore > 0.5) return 'SELL';
+  // Signal threshold: 0.5
+  if (bullScore >= 0.5) return 'BUY';
+  if (bearScore >= 0.5) return 'SELL';
   return 'HOLD';
 }
