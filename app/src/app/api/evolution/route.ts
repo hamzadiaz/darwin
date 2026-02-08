@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   if (action === 'start') {
     const populationSize = body.populationSize || 20;
-    const generations = body.generations || 10;
+    const generations = body.generations || 50;
 
     // Start evolution in background (don't await)
     startEvolution(populationSize, generations);

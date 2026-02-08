@@ -28,7 +28,7 @@ export function getArenaState(): ArenaState | null {
   return arena;
 }
 
-export function initArena(populationSize = 20, maxGenerations = 10): ArenaState {
+export function initArena(populationSize = 20, maxGenerations = 50): ArenaState {
   const agents: AgentGenome[] = [];
   for (let i = 0; i < populationSize; i++) {
     agents.push({
@@ -64,22 +64,37 @@ export function initArena(populationSize = 20, maxGenerations = 10): ArenaState 
   return arena;
 }
 
+/** Get a candle slice for this generation (rolling window for diversity) */
+function getCandleSlice(candles: OHLCV[], generation: number): OHLCV[] {
+  const minWindow = Math.min(100, candles.length);
+  // Shift the window by a few candles each generation to test on different market conditions
+  const shift = (generation * 7) % Math.max(1, candles.length - minWindow);
+  const start = Math.min(shift, candles.length - minWindow);
+  return candles.slice(start, start + minWindow);
+}
+
 /** Run a single generation: backtest all agents, record results */
 async function runGeneration(state: ArenaState): Promise<void> {
   const genStart = Date.now();
   const aliveAgents = state.agents.filter((a) => a.isAlive);
 
+  // Use a rolling candle window so same genome can get different results
+  const candleSlice = getCandleSlice(state.candles, state.currentGeneration);
+
   // Run each agent's strategy against candle data
   for (const agent of aliveAgents) {
-    const result = runStrategy(agent.genome, state.candles);
+    const result = runStrategy(agent.genome, candleSlice);
     agent.totalPnl = Math.round(result.totalPnlPct * 100); // store as basis points
     agent.totalTrades = result.totalTrades;
     agent.winRate = Math.round(result.winRate * 100); // store as basis points
     state.agentTrades.set(agent.id, result.trades);
   }
 
+  // Fitness function: agents must trade to survive. Cowards (0 trades) get punished.
+  const fitness = (a: AgentGenome) => a.totalTrades === 0 ? -10000 : a.totalPnl;
+
   // Find best agent this generation
-  const sorted = [...aliveAgents].sort((a, b) => b.totalPnl - a.totalPnl);
+  const sorted = [...aliveAgents].sort((a, b) => fitness(b) - fitness(a));
   const best = sorted[0];
 
   if (best && best.totalPnl > state.bestEverPnl) {
@@ -169,7 +184,7 @@ function evolvePopulation(state: ArenaState): void {
 /** Start the full evolution loop */
 export async function startEvolution(
   populationSize = 20,
-  maxGenerations = 10,
+  maxGenerations = 50,
 ): Promise<void> {
   if (arena?.status === 'running') return;
 
@@ -178,8 +193,8 @@ export async function startEvolution(
 
   runningPromise = (async () => {
     try {
-      // Fetch real market data
-      state.candles = await fetchCandles('SOL', '4h', 30);
+      // Fetch real market data (90 days for diverse rolling windows)
+      state.candles = await fetchCandles('SOL', '4h', 90);
 
       for (let gen = 0; gen < maxGenerations; gen++) {
         if (state.status !== 'running') break;

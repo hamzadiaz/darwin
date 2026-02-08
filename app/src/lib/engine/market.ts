@@ -30,10 +30,14 @@ export async function fetchCandles(
 
   try {
     const url = `https://api.coingecko.com/api/v3/coins/solana/ohlc?vs_currency=usd&days=${days}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    
     const res = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      next: { revalidate: 300 },
+      headers: { Accept: 'application/json', 'User-Agent': 'Darwin/1.0' },
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     if (!res.ok) throw new Error(`CoinGecko ${res.status}`);
 

@@ -45,11 +45,14 @@ export function crossover(parentA: number[], parentB: number[]): number[] {
   return parentA.map((gene, i) => (Math.random() < 0.5 ? gene : parentB[i]));
 }
 
-/** Mutate a genome: each gene has `rate` chance of being mutated by ±10-20% */
-export function mutate(genome: number[], rate = 0.15): number[] {
+/** Mutate a genome: each gene has `rate` chance of being mutated */
+export function mutate(genome: number[], rate = 0.20): number[] {
   return genome.map((gene) => {
     if (Math.random() > rate) return gene;
-    const magnitude = 0.1 + Math.random() * 0.1; // 10-20%
+    // 10% chance of complete randomization (macro mutation)
+    if (Math.random() < 0.10) return Math.floor(Math.random() * 1001);
+    // Otherwise ±15-35%
+    const magnitude = 0.15 + Math.random() * 0.20;
     const direction = Math.random() < 0.5 ? -1 : 1;
     const mutated = gene + gene * magnitude * direction;
     return Math.max(0, Math.min(1000, Math.round(mutated)));
@@ -66,9 +69,9 @@ export function evolveGeneration(
   agents: AgentResult[],
   populationSize = 20,
 ): NewGeneration {
-  const elite = selectElite(agents, 0.25);
+  const elite = selectElite(agents, 0.20);
   const eliteCount = elite.length;
-  const immigrantCount = Math.max(1, Math.round(populationSize * 0.1)); // 10% immigrants
+  const immigrantCount = Math.max(2, Math.round(populationSize * 0.15)); // 15% immigrants
   const childCount = populationSize - eliteCount - immigrantCount;
 
   const genomes: number[][] = [];
