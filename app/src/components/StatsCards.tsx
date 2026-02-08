@@ -15,7 +15,7 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
   const cards = [
     {
       label: 'Best PnL Ever',
-      value: `+${(bestPnl / 100).toFixed(2)}%`,
+      value: bestPnl <= -9999 ? '—' : `${bestPnl >= 0 ? '+' : ''}${(bestPnl / 100).toFixed(2)}%`,
       icon: <Target className="w-5 h-5" />,
       color: 'success' as const,
       glow: 'glow-success',
