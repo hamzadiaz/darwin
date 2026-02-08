@@ -234,6 +234,40 @@ Darwin was built for the [Colosseum Agent Hackathon](https://colosseum.com/agent
 
 ---
 
+## 🤖 For Agents
+
+Darwin exposes its evolved strategies via API, making them consumable by any trading agent or bot.
+
+### `/api/strategy` (GET)
+Returns the best evolved genome decoded as human-readable JSON:
+- **Raw genome** + **decoded parameters** (EMA periods, RSI thresholds, MACD settings, etc.)
+- **Performance metrics**: PnL%, win rate, trade count, backtest period
+- **Current signal**: LONG/SHORT with confidence score
+- **Fee-adjusted**: All results include 0.1% taker fee + 0.05% slippage per trade
+
+### `/api/paper-trade` (GET/POST)
+Forward-test any genome against live Binance candles:
+- **GET**: Returns current paper trade state (auto-starts with best genome)
+- **POST**: Start paper trading with a custom genome `{ "genome": [0-1000 x 22], "symbol": "SOLUSDT" }`
+- Simulates $10,000 starting balance with realistic fees
+
+### Example Agent Workflow
+```bash
+# 1. Fetch the best evolved SOL/USDT strategy
+curl https://your-darwin-instance.com/api/strategy
+
+# 2. Extract indicator thresholds (emaFast: 12, rsiOversold: 30, etc.)
+# 3. Execute those exact parameters on any exchange via your trading bot
+
+# 4. Forward-test first
+curl https://your-darwin-instance.com/api/paper-trade
+```
+
+### Why This Matters
+Evolution finds trading strategies humans wouldn't think of. Agents can consume and execute them 24/7. The genome encodes 22 genes across 9 technical indicators — a search space too large for manual optimization but perfect for evolutionary algorithms.
+
+---
+
 ## 📄 License
 
 MIT

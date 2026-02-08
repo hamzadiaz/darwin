@@ -12,7 +12,7 @@ import { DnaHelix } from '@/components/DnaHelix';
 import { Graveyard } from '@/components/Graveyard';
 import { AgentCard } from '@/components/AgentCard';
 import { AiAnalyst } from '@/components/AiAnalyst';
-import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket } from 'lucide-react';
+import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket, Download, BarChart3 } from 'lucide-react';
 import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
 import { LiveTrading } from '@/components/LiveTrading';
@@ -80,6 +80,10 @@ export default function Dashboard() {
   const [selectedAgent, setSelectedAgent] = useState<AgentGenome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPair, setSelectedPair] = useState<TradingPair>('SOLUSDT');
+  const [strategyJson, setStrategyJson] = useState<string | null>(null);
+  const [paperTradeData, setPaperTradeData] = useState<Record<string, unknown> | null>(null);
+  const [loadingStrategy, setLoadingStrategy] = useState(false);
+  const [loadingPaperTrade, setLoadingPaperTrade] = useState(false);
 
   const evolutionRef = useRef(false);
 
@@ -189,6 +193,26 @@ export default function Dashboard() {
         body: JSON.stringify({ action: 'stop' }),
       });
     } catch { /* ignore */ }
+  };
+
+  const exportStrategy = async () => {
+    setLoadingStrategy(true);
+    try {
+      const res = await fetch('/api/strategy');
+      const json = await res.json();
+      setStrategyJson(JSON.stringify(json, null, 2));
+    } catch { setStrategyJson('{"error": "Failed to fetch strategy"}'); }
+    setLoadingStrategy(false);
+  };
+
+  const fetchPaperTrade = async () => {
+    setLoadingPaperTrade(true);
+    try {
+      const res = await fetch('/api/paper-trade');
+      const json = await res.json();
+      setPaperTradeData(json);
+    } catch { setPaperTradeData({ error: 'Failed to fetch paper trade data' }); }
+    setLoadingPaperTrade(false);
   };
 
   const agents = data?.agents ?? [];
@@ -540,7 +564,74 @@ export default function Dashboard() {
                 )}
 
                 {activeTab === 'live' && (
-                  <LiveTrading hasEvolutionData={agents.length > 0} />
+                  <div className="space-y-4">
+                    <LiveTrading hasEvolutionData={agents.length > 0} />
+
+                    {/* Fee Info Badge */}
+                    <div className="glass-card rounded-xl p-3 border-accent-primary/20 bg-accent-primary/5 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-accent-primary" />
+                      <span className="text-[11px] font-bold text-accent-primary">📊 Includes 0.1% taker fee + 0.05% slippage per trade (0.30% round trip)</span>
+                    </div>
+
+                    {/* Export Strategy */}
+                    <div className="glass-card rounded-2xl p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Export Best Strategy</h3>
+                        <button
+                          onClick={exportStrategy}
+                          disabled={loadingStrategy || agents.length === 0}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50"
+                        >
+                          {loadingStrategy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                          Export Strategy
+                        </button>
+                      </div>
+                      {strategyJson && (
+                        <pre className="bg-bg-primary/80 rounded-xl p-4 text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[400px] overflow-y-auto border border-white/5">
+                          {strategyJson}
+                        </pre>
+                      )}
+                    </div>
+
+                    {/* Paper Trade */}
+                    <div className="glass-card rounded-2xl p-5">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Paper Trade (Forward Test)</h3>
+                        <button
+                          onClick={fetchPaperTrade}
+                          disabled={loadingPaperTrade || agents.length === 0}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/20 border border-success/30 text-success text-xs font-bold hover:bg-success/30 transition-all disabled:opacity-50"
+                        >
+                          {loadingPaperTrade ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
+                          Run Paper Trade
+                        </button>
+                      </div>
+                      {paperTradeData && (
+                        <div className="space-y-3">
+                          {paperTradeData.error ? (
+                            <p className="text-xs text-danger">{String(paperTradeData.error)}</p>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {[
+                                  { label: 'Balance', value: `$${Number(paperTradeData.currentBalance ?? 0).toLocaleString()}`, color: 'text-text-primary' },
+                                  { label: 'PnL', value: `${Number(paperTradeData.pnlPct ?? 0) > 0 ? '+' : ''}${Number(paperTradeData.pnlPct ?? 0).toFixed(2)}%`, color: Number(paperTradeData.pnlPct ?? 0) >= 0 ? 'text-success' : 'text-danger' },
+                                  { label: 'Win Rate', value: `${Number(paperTradeData.winRate ?? 0).toFixed(1)}%`, color: 'text-accent-primary' },
+                                  { label: 'Trades', value: String(paperTradeData.totalTrades ?? 0), color: 'text-text-secondary' },
+                                ].map(s => (
+                                  <div key={s.label} className="bg-bg-primary/60 rounded-lg p-2.5 border border-white/5">
+                                    <p className="text-[9px] uppercase tracking-wider text-text-muted mb-0.5">{s.label}</p>
+                                    <p className={`text-sm font-bold font-mono ${s.color}`}>{s.value}</p>
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="text-[10px] text-text-muted">{String(paperTradeData.feesNote ?? '')}</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {activeTab === 'graveyard' && (
