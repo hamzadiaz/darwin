@@ -6,6 +6,7 @@ import { OHLCV, fetchCandles } from './market';
 import { runStrategy, Trade } from './strategy';
 import { createRandomGenome, evolveGeneration, AgentResult } from './genetics';
 import { AgentGenome, Generation } from '@/types';
+import { AIBreedingResult, applyMutationBias, getLatestBreedingResult } from './ai-breeder';
 
 export interface ArenaState {
   status: 'idle' | 'running' | 'paused' | 'complete';
@@ -19,6 +20,8 @@ export interface ArenaState {
   bestEverPnl: number;
   bestEverAgentId: number;
   nextAgentId: number;
+  aiGuidedEvolution: boolean;
+  lastAIBreedingResult: AIBreedingResult | null;
 }
 
 let arena: ArenaState | null = null;
@@ -59,6 +62,8 @@ export function initArena(populationSize = 20, maxGenerations = 50): ArenaState 
     bestEverPnl: -Infinity,
     bestEverAgentId: 0,
     nextAgentId: populationSize + 1,
+    aiGuidedEvolution: true,
+    lastAIBreedingResult: null,
   };
 
   return arena;
@@ -124,6 +129,12 @@ async function runGeneration(state: ArenaState): Promise<void> {
 function evolvePopulation(state: ArenaState): void {
   const aliveAgents = state.agents.filter((a) => a.isAlive);
 
+  // Check for AI breeding guidance
+  const aiResult = state.aiGuidedEvolution ? getLatestBreedingResult() : null;
+  if (aiResult) {
+    state.lastAIBreedingResult = aiResult;
+  }
+
   // Fitness: penalize non-traders
   const fit = (a: AgentGenome) => a.totalTrades === 0 ? -10000 : a.totalPnl;
 
@@ -158,14 +169,21 @@ function evolvePopulation(state: ArenaState): void {
   }
 
   // Create new agents (skip elite which carry forward)
+  // Apply AI mutation bias if available
+  const aiBias = aiResult?.decisions?.[0]?.mutationBias ?? {};
   state.currentGeneration++;
   for (let i = eliteCount; i < newGen.genomes.length; i++) {
+    // Apply AI-guided mutation bias to children (not immigrants)
+    let genome = newGen.genomes[i];
+    if (Object.keys(aiBias).length > 0 && newGen.parentage[i].parentA > 0) {
+      genome = applyMutationBias(genome, aiBias, 0.15);
+    }
     const newAgent: AgentGenome = {
       id: state.nextAgentId++,
       generation: state.currentGeneration,
       parentA: newGen.parentage[i].parentA > 0 ? newGen.parentage[i].parentA : null,
       parentB: newGen.parentage[i].parentB > 0 ? newGen.parentage[i].parentB : null,
-      genome: newGen.genomes[i],
+      genome,
       bornAt: Date.now(),
       diedAt: null,
       totalPnl: 0,
@@ -276,5 +294,7 @@ export function getArenaSnapshot() {
     trades: tradesMap,
     bestEverPnl: arena.bestEverPnl,
     bestEverAgentId: arena.bestEverAgentId,
+    aiGuidedEvolution: arena.aiGuidedEvolution,
+    lastAIBreedingResult: arena.lastAIBreedingResult,
   };
 }

@@ -12,9 +12,11 @@ import { DnaHelix } from '@/components/DnaHelix';
 import { Graveyard } from '@/components/Graveyard';
 import { AgentCard } from '@/components/AgentCard';
 import { AiAnalyst } from '@/components/AiAnalyst';
-import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain } from 'lucide-react';
+import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket } from 'lucide-react';
 import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
+import { LiveTrading } from '@/components/LiveTrading';
+import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
 
 // Lazy load heavy components
 const FamilyTree = lazy(() => import('@/components/FamilyTree').then(m => ({ default: m.FamilyTree })));
@@ -31,12 +33,15 @@ interface EvolutionData {
   trades: Record<number, { entryIdx: number; entryPrice: number; exitIdx: number; exitPrice: number; pnlPct: number; side: string; exitReason: string }[]>;
   bestEverPnl: number;
   bestEverAgentId: number;
+  aiGuidedEvolution?: boolean;
+  lastAIBreedingResult?: AIBreedingResult | null;
 }
 
 const TABS = [
   { id: 'arena', label: 'Arena', icon: Swords },
   { id: 'lab', label: 'Lab', icon: FlaskConical },
   { id: 'analyst', label: 'AI Analyst', icon: Brain },
+  { id: 'live', label: 'Live', icon: Rocket },
   { id: 'tree', label: 'Family Tree', icon: GitFork },
   { id: 'graveyard', label: 'Graveyard', icon: Skull },
 ] as const;
@@ -47,9 +52,9 @@ type TabId = typeof TABS[number]['id'];
 const SAMPLE_GENOME = [720, 350, 680, 500, 300, 750, 250, 600, 450, 200, 550, 800, 400, 600, 500, 650, 450, 550, 400, 350];
 
 const FEATURES = [
+  { icon: '🧠', title: 'AI-Guided Evolution', desc: 'Gemini AI drives breeding decisions — intelligent crossover, not random' },
+  { icon: '⚡', title: 'Live Trading', desc: 'Deploy evolved strategies against live SOL prices via Jupiter DEX' },
   { icon: '🧬', title: '20-Gene Genome', desc: 'Each agent encodes a full trading strategy in 20 genes with 9 indicators' },
-  { icon: '⚔️', title: 'Arena Battles', desc: 'Agents compete on real SOL/USDC market data' },
-  { icon: '🔀', title: 'Crossover & Mutation', desc: 'Top agents breed; random mutations prevent local optima' },
   { icon: '💀', title: 'Natural Selection', desc: 'Bottom 80% die each generation — only the fittest survive' },
 ];
 
@@ -91,6 +96,11 @@ export default function Dashboard() {
         retries = 0;
 
         await fetchStatus();
+
+        // Trigger AI breeding every 5 generations
+        if (stepResult.currentGeneration > 0 && stepResult.currentGeneration % 5 === 0) {
+          fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+        }
 
         if (stepResult.status === 'complete') {
           evolutionRef.current = false;
@@ -248,6 +258,17 @@ export default function Dashboard() {
                     <div className="flex items-center gap-2 text-xs text-text-muted">
                       <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                       <span className="font-mono">20 agents · 50 generations · ~30s</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <span className="text-[9px] px-2 py-1 rounded-full bg-evolution-purple/20 text-evolution-purple font-bold border border-evolution-purple/30">
+                        🧠 AI-Guided Evolution
+                      </span>
+                      <span className="text-[9px] px-2 py-1 rounded-full bg-success/20 text-success font-bold border border-success/30">
+                        ⚡ Live Trading Ready
+                      </span>
+                      <span className="text-[9px] px-2 py-1 rounded-full bg-accent-secondary/20 text-accent-secondary font-bold border border-accent-secondary/30">
+                        🪐 Jupiter DEX
+                      </span>
                     </div>
                   </motion.div>
                 </div>
@@ -420,11 +441,16 @@ export default function Dashboard() {
                       populationSize={data?.populationSize ?? 20}
                       candles={candles}
                       autoAnalyze={evStatus === 'running'}
+                      aiBreedingResult={data?.lastAIBreedingResult}
                     />
                     {agents[0] && (
                       <AgentCard agent={agents[0]} highlight />
                     )}
                   </div>
+                )}
+
+                {activeTab === 'live' && (
+                  <LiveTrading hasEvolutionData={agents.length > 0} />
                 )}
 
                 {activeTab === 'graveyard' && (
