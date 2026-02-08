@@ -52,7 +52,7 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
       {cards.map((card, i) => (
         <motion.div
           key={card.label}
@@ -60,18 +60,18 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 + i * 0.08 }}
           className={cn(
-            'glass-card rounded-2xl p-5 relative overflow-hidden group transition-all duration-500 hover:scale-[1.02] hover:border-white/10',
+            'glass-card rounded-xl sm:rounded-2xl p-3 sm:p-5 relative overflow-hidden group transition-all duration-500 hover:scale-[1.02] hover:border-white/10',
             card.glow,
           )}
         >
           <div className={cn('absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl opacity-50 group-hover:scale-150 transition-all duration-500', card.bg)} />
 
           <div className="relative z-10">
-            <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-white mb-4', card.iconBg)}>
+            <div className={cn('w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white mb-2 sm:mb-4', card.iconBg)}>
               {card.icon}
             </div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-bold mb-1">{card.label}</p>
-            <p className="text-2xl font-mono font-bold text-text-primary tracking-tighter">{card.value}</p>
+            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-text-muted font-bold mb-0.5 sm:mb-1">{card.label}</p>
+            <p className="text-lg sm:text-2xl font-mono font-bold text-text-primary tracking-tighter">{card.value}</p>
           </div>
         </motion.div>
       ))}

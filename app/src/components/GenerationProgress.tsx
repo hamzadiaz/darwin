@@ -95,22 +95,22 @@ export function GenerationProgress({ currentGeneration, maxGenerations, generati
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div>
           <div className="metric-label mb-1">Best PnL</div>
-          <div className={`metric-value text-sm ${bestPnl >= 0 ? 'text-success' : 'text-danger'}`}>
+          <div className={`metric-value text-xs sm:text-sm ${bestPnl >= 0 ? 'text-success' : 'text-danger'}`}>
             {formatBps(bestPnl)}
           </div>
         </div>
         <div>
           <div className="metric-label mb-1">Avg PnL</div>
-          <div className={`metric-value text-sm ${avgPnl >= 0 ? 'text-success' : 'text-danger'}`}>
+          <div className={`metric-value text-xs sm:text-sm ${avgPnl >= 0 ? 'text-success' : 'text-danger'}`}>
             {formatBps(avgPnl)}
           </div>
         </div>
         <div>
           <div className="metric-label mb-1">Alive</div>
-          <div className="metric-value text-sm text-accent-primary flex items-center gap-1">
+          <div className="metric-value text-xs sm:text-sm text-accent-primary flex items-center gap-1">
             <Users className="w-3 h-3" /> {aliveCount}
           </div>
         </div>

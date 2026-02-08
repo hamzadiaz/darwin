@@ -183,7 +183,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 max-w-[1600px] mx-auto">
+    <div className="min-h-screen p-2.5 sm:p-4 lg:p-6 max-w-[1600px] mx-auto">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 lg:space-y-6">
         <Header generation={generation} agentCount={data?.populationSize ?? 20} aliveCount={aliveAgents.length} />
 
@@ -211,7 +211,7 @@ export default function Dashboard() {
             className="space-y-6"
           >
             {/* Hero Card */}
-            <div className="glass-card rounded-3xl p-8 lg:p-12 relative overflow-hidden">
+            <div className="glass-card rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-12 relative overflow-hidden">
               {/* Background glow */}
               <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-evolution-purple/20 via-accent-tertiary/10 to-transparent rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-success/10 to-transparent rounded-full blur-3xl" />
@@ -226,11 +226,11 @@ export default function Dashboard() {
                     <p className="text-[10px] uppercase tracking-[0.3em] text-evolution-purple font-bold mb-2">
                       Evolutionary Finance on Solana
                     </p>
-                    <h2 className="text-3xl lg:text-4xl font-bold text-text-primary tracking-tight mb-4 leading-tight">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight mb-3 sm:mb-4 leading-tight">
                       🧬 Trading Agents That
                       <span className="dna-strand"> Evolve</span>
                     </h2>
-                    <p className="text-sm text-text-secondary leading-relaxed mb-6 max-w-md">
+                    <p className="text-xs sm:text-sm text-text-secondary leading-relaxed mb-4 sm:mb-6 max-w-md">
                       Spawn 20 AI agents with random trading strategies. Watch them compete on real SOL market data.
                       The fittest breed. The weak die. After 50 generations, only the strongest strategy survives.
                     </p>
@@ -245,7 +245,7 @@ export default function Dashboard() {
                     <button
                       onClick={startEvolution}
                       disabled={isStarting}
-                      className="group flex items-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-success/90 to-success/70 text-white text-sm font-bold hover:from-success hover:to-success/80 transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] disabled:opacity-50"
+                      className="group flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-success/90 to-success/70 text-white text-xs sm:text-sm font-bold hover:from-success hover:to-success/80 transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] hover:shadow-[0_0_40px_rgba(16,185,129,0.5)] disabled:opacity-50"
                     >
                       {isStarting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -278,7 +278,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.3, duration: 0.8 }}
-                  className="flex justify-center"
+                  className="hidden lg:flex justify-center"
                 >
                   <DnaHelix genome={SAMPLE_GENOME} height={320} />
                 </motion.div>
@@ -286,18 +286,18 @@ export default function Dashboard() {
             </div>
 
             {/* Feature cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
               {FEATURES.map((f, i) => (
                 <motion.div
                   key={f.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + i * 0.1 }}
-                  className="glass-card rounded-2xl p-4 card-hover"
+                  className="glass-card rounded-xl sm:rounded-2xl p-3 sm:p-4 card-hover"
                 >
-                  <div className="text-2xl mb-2">{f.icon}</div>
-                  <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider mb-1">{f.title}</h4>
-                  <p className="text-[11px] text-text-muted leading-relaxed">{f.desc}</p>
+                  <div className="text-xl sm:text-2xl mb-1.5 sm:mb-2">{f.icon}</div>
+                  <h4 className="text-[10px] sm:text-xs font-bold text-text-primary uppercase tracking-wider mb-0.5 sm:mb-1">{f.title}</h4>
+                  <p className="text-[10px] sm:text-[11px] text-text-muted leading-relaxed">{f.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -349,12 +349,12 @@ export default function Dashboard() {
             <StatsCards bestPnl={bestPnl} avgWinRate={avgWinRate} totalGenerations={generations.length} totalDeaths={totalDeaths} />
 
             {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-xl bg-bg-secondary/80 backdrop-blur-xl border border-white/5 w-fit overflow-x-auto scrollbar-custom">
+            <div className="flex gap-1 p-1 rounded-xl bg-bg-secondary/80 backdrop-blur-xl border border-white/5 w-full sm:w-fit overflow-x-auto scrollbar-custom -mx-1 px-1">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
                     activeTab === tab.id
                       ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30'
                       : 'text-text-muted hover:text-text-secondary hover:bg-white/5'
@@ -377,18 +377,18 @@ export default function Dashboard() {
               >
                 {activeTab === 'arena' && (
                   <div className="space-y-4 lg:space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
                       <div className="lg:col-span-2">
                         <CandleChart candles={candles} markers={tradeMarkers} />
                       </div>
-                      <div className="lg:col-span-1">
+                      <div className="lg:col-span-1 max-h-[400px] sm:max-h-none overflow-y-auto">
                         <Leaderboard agents={agents} />
                       </div>
                     </div>
                     {agents.length > 0 && (
                       <div>
                         <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-3">Top Agents</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
                           {[...agents].filter(a => a.isAlive).sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 5).map(agent => (
                             <AgentCard key={agent.id} agent={agent} compact onSelect={setSelectedAgent} />
                           ))}

@@ -152,7 +152,7 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2 }}
-      className="glass-card rounded-2xl p-6 h-full min-h-[400px] relative overflow-hidden flex flex-col"
+      className="glass-card rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full min-h-[300px] sm:min-h-[400px] relative overflow-hidden flex flex-col"
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4 relative z-10">

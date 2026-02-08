@@ -47,54 +47,61 @@ export function Header({ generation, agentCount, aliveCount }: HeaderProps) {
     <motion.header
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-4 flex items-center justify-between"
+      className="glass-card rounded-2xl p-3 sm:p-4"
     >
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl gradient-evolution flex items-center justify-center glow-evolution">
-          <Dna className="w-5 h-5 text-white" />
+      {/* Top row: Logo + Wallet */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl gradient-evolution flex items-center justify-center glow-evolution flex-shrink-0">
+            <Dna className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-text-primary flex items-center gap-2">
+              DARWIN
+              <span className="text-[10px] sm:text-xs font-mono text-accent-tertiary bg-accent-tertiary/10 px-1.5 sm:px-2 py-0.5 rounded-full">
+                v0.2
+              </span>
+            </h1>
+            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-text-muted font-bold hidden sm:block">
+              Evolutionary AI Trading Agents
+            </p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-text-primary flex items-center gap-2">
-            DARWIN
-            <span className="text-xs font-mono text-accent-tertiary bg-accent-tertiary/10 px-2 py-0.5 rounded-full">
-              v0.2
-            </span>
-          </h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-text-muted font-bold">
-            Evolutionary AI Trading Agents
-          </p>
+
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Wallet Connect */}
+          {walletAddress ? (
+            <button
+              onClick={copyAddress}
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-success/10 border border-success/20 text-success text-[10px] sm:text-[11px] font-mono hover:bg-success/20 transition-all"
+            >
+              {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+              {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+            </button>
+          ) : (
+            <button
+              onClick={connectWallet}
+              disabled={connecting}
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-accent-secondary/20 border border-accent-secondary/30 text-accent-secondary text-[10px] sm:text-[11px] font-bold hover:bg-accent-secondary/30 transition-all disabled:opacity-50"
+            >
+              <Wallet className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span className="hidden sm:inline">{connecting ? 'Connecting...' : 'Connect Wallet'}</span>
+              <span className="sm:hidden">{connecting ? '...' : 'Wallet'}</span>
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 text-xs">
+            <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+            <span className="text-success font-bold uppercase tracking-widest text-[9px] sm:text-[10px]">Live</span>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
-        <Stat icon={<Zap className="w-3.5 h-3.5 text-evolution-purple" />} label="Generation" value={`#${generation}`} />
-        <Stat icon={<Users className="w-3.5 h-3.5 text-accent-tertiary" />} label="Agents" value={String(agentCount)} />
-        <Stat icon={<Activity className="w-3.5 h-3.5 text-success" />} label="Alive" value={String(aliveCount)} />
-
-        {/* Wallet Connect */}
-        {walletAddress ? (
-          <button
-            onClick={copyAddress}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20 text-success text-[11px] font-mono hover:bg-success/20 transition-all"
-          >
-            {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
-          </button>
-        ) : (
-          <button
-            onClick={connectWallet}
-            disabled={connecting}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-secondary/20 border border-accent-secondary/30 text-accent-secondary text-[11px] font-bold hover:bg-accent-secondary/30 transition-all disabled:opacity-50"
-          >
-            <Wallet className="w-3.5 h-3.5" />
-            {connecting ? 'Connecting...' : 'Connect Wallet'}
-          </button>
-        )}
-
-        <div className="flex items-center gap-2 text-xs">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-success font-bold uppercase tracking-widest text-[10px]">Live</span>
-        </div>
+      {/* Bottom row: Stats — always visible */}
+      <div className="flex items-center justify-center gap-4 sm:gap-6 mt-2.5 pt-2.5 border-t border-white/5">
+        <Stat icon={<Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-evolution-purple" />} label="Gen" value={`#${generation}`} />
+        <Stat icon={<Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-accent-tertiary" />} label="Agents" value={String(agentCount)} />
+        <Stat icon={<Activity className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success" />} label="Alive" value={String(aliveCount)} />
       </div>
     </motion.header>
   );
