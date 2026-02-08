@@ -21,7 +21,7 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
   const [child, setChild] = useState<AgentGenome | null>(null);
   const [mutations, setMutations] = useState<number[]>([]);
 
-  const simulateBreeding = () => {
+  const simulateBreeding = async () => {
     const sorted = [...agents].filter(a => a.isAlive).sort((a, b) => b.totalPnl - a.totalPnl);
     if (sorted.length < 2) return;
 
@@ -32,30 +32,61 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
     setStage('parents');
 
     setTimeout(() => setStage('merge'), 1500);
-    setTimeout(() => {
-      // Simulate crossover + mutation
-      const childGenome = pA.genome.map((g, i) => {
-        const crossed = Math.random() > 0.5 ? g : pB.genome[i];
-        return Math.random() < 0.1 ? Math.min(1000, Math.max(0, crossed + (Math.random() - 0.5) * 200)) : crossed;
+
+    // Call real breed-and-test API
+    try {
+      const res = await fetch('/api/evolution', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'breed', parentA: pA.id, parentB: pB.id }),
       });
-      const muts = childGenome.map((g, i) => Math.abs(g - pA.genome[i]) > 50 && Math.abs(g - pB.genome[i]) > 50 ? i : -1).filter(i => i >= 0);
-      setMutations(muts);
-      setChild({
-        id: allAgents.length + 1,
-        generation: Math.max(pA.generation, pB.generation) + 1,
-        parentA: pA.id,
-        parentB: pB.id,
-        genome: childGenome,
-        bornAt: Date.now(),
-        diedAt: null,
-        totalPnl: 0,
-        totalTrades: 0,
-        winRate: 0,
-        isAlive: true,
-        owner: '',
-      });
-      setStage('child');
-    }, 3500);
+      const data = await res.json();
+      
+      setTimeout(() => {
+        if (data.child) {
+          const c = data.child;
+          const muts = c.genome.map((g: number, i: number) => Math.abs(g - pA.genome[i]) > 50 && Math.abs(g - pB.genome[i]) > 50 ? i : -1).filter((i: number) => i >= 0);
+          setMutations(muts);
+          setChild(c);
+        } else {
+          // Fallback: client-side simulation
+          const childGenome = pA.genome.map((g, i) => {
+            const crossed = Math.random() > 0.5 ? g : pB.genome[i];
+            return Math.random() < 0.1 ? Math.min(1000, Math.max(0, crossed + (Math.random() - 0.5) * 200)) : crossed;
+          });
+          const muts = childGenome.map((g, i) => Math.abs(g - pA.genome[i]) > 50 && Math.abs(g - pB.genome[i]) > 50 ? i : -1).filter(i => i >= 0);
+          setMutations(muts);
+          setChild({
+            id: allAgents.length + 1,
+            generation: Math.max(pA.generation, pB.generation) + 1,
+            parentA: pA.id,
+            parentB: pB.id,
+            genome: childGenome,
+            bornAt: Date.now(),
+            diedAt: null,
+            totalPnl: 0,
+            totalTrades: 0,
+            winRate: 0,
+            isAlive: true,
+            owner: '',
+          });
+        }
+        setStage('child');
+      }, 2000);
+    } catch {
+      // Fallback on error
+      setTimeout(() => {
+        const childGenome = pA.genome.map((g, i) => Math.random() > 0.5 ? g : pB.genome[i]);
+        setChild({
+          id: allAgents.length + 1,
+          generation: Math.max(pA.generation, pB.generation) + 1,
+          parentA: pA.id, parentB: pB.id,
+          genome: childGenome, bornAt: Date.now(), diedAt: null,
+          totalPnl: 0, totalTrades: 0, winRate: 0, isAlive: true, owner: '',
+        });
+        setStage('child');
+      }, 2000);
+    }
   };
 
   return (

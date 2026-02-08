@@ -207,15 +207,78 @@ function evolvePopulation(state: ArenaState): void {
 export async function startEvolution(
   populationSize = 20,
   maxGenerations = 50,
+  seedGenomes?: number[][],
 ): Promise<void> {
   const state = initArena(populationSize, maxGenerations);
   state.status = 'running';
+
+  // If we have seed genomes (from "Continue Evolution"), use them for part of population
+  if (seedGenomes && seedGenomes.length > 0) {
+    const seedCount = Math.min(seedGenomes.length, Math.floor(populationSize * 0.5));
+    for (let i = 0; i < seedCount; i++) {
+      state.agents[i].genome = seedGenomes[i];
+      state.agents[i].parentA = -1; // marker: seeded from previous run
+    }
+  }
 
   // Fetch real market data
   state.candles = await fetchCandles('SOLUSDT', '4h', 500);
 
   // Run first generation
   await runGeneration(state);
+}
+
+/** Get top genomes from current run (for seeding next run) */
+export function getTopGenomes(count = 10): number[][] {
+  if (!arena) return [];
+  return [...arena.agents]
+    .filter(a => a.isAlive && a.totalTrades > 0)
+    .sort((a, b) => b.totalPnl - a.totalPnl)
+    .slice(0, count)
+    .map(a => [...a.genome]);
+}
+
+/** Breed two specific agents and backtest the child */
+export async function breedAndTest(parentAId: number, parentBId: number): Promise<AgentGenome | null> {
+  if (!arena || arena.candles.length === 0) return null;
+  
+  const parentA = arena.agents.find(a => a.id === parentAId);
+  const parentB = arena.agents.find(a => a.id === parentBId);
+  if (!parentA || !parentB) return null;
+
+  // Crossover
+  const childGenome = parentA.genome.map((g, i) => {
+    const crossed = Math.random() > 0.5 ? g : parentB.genome[i];
+    // 15% mutation rate
+    if (Math.random() < 0.15) {
+      return Math.min(1000, Math.max(0, Math.round(crossed + (Math.random() - 0.5) * 200)));
+    }
+    return Math.round(crossed);
+  });
+
+  // Backtest the child against current candle data
+  const result = runStrategy(childGenome, arena.candles);
+
+  const child: AgentGenome = {
+    id: arena.nextAgentId++,
+    generation: Math.max(parentA.generation, parentB.generation) + 1,
+    parentA: parentA.id,
+    parentB: parentB.id,
+    genome: childGenome,
+    bornAt: Date.now(),
+    diedAt: null,
+    totalPnl: Math.round(result.totalPnlPct * 100),
+    totalTrades: result.totalTrades,
+    winRate: Math.round(result.winRate * 100),
+    isAlive: true,
+    owner: '11111111111111111111111111111111',
+  };
+
+  // Add to arena
+  arena.agents.push(child);
+  arena.agentTrades.set(child.id, result.trades);
+
+  return child;
 }
 
 /**
@@ -291,6 +354,14 @@ export function getArenaSnapshot() {
     }).slice(0, 50),
     generations: arena.generations,
     candles: arena.candles,
+    candleInfo: arena.candles.length > 0 ? {
+      count: arena.candles.length,
+      interval: '4h',
+      startDate: new Date(arena.candles[0].time * 1000).toISOString().slice(0, 10),
+      endDate: new Date(arena.candles[arena.candles.length - 1].time * 1000).toISOString().slice(0, 10),
+      days: Math.round((arena.candles[arena.candles.length - 1].time - arena.candles[0].time) / 86400),
+      pair: 'SOL/USDT',
+    } : null,
     trades: tradesMap,
     bestEverPnl: arena.bestEverPnl,
     bestEverAgentId: arena.bestEverAgentId,

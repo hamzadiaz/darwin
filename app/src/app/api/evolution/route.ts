@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot } from '@/lib/engine/arena';
+import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest } from '@/lib/engine/arena';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -32,9 +32,10 @@ export async function POST(req: NextRequest) {
   if (action === 'start') {
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
+    const seedGenomes = body.seedGenomes as number[][] | undefined;
 
     try {
-      await startEvolution(populationSize, generations);
+      await startEvolution(populationSize, generations, seedGenomes);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('startEvolution failed:', message);
@@ -45,7 +46,44 @@ export async function POST(req: NextRequest) {
       status: 'started',
       populationSize,
       generations,
+      seeded: seedGenomes ? seedGenomes.length : 0,
     });
+  }
+
+  if (action === 'continue') {
+    // Continue evolution: seed new run with top genomes from current run
+    const topGenomes = getTopGenomes(10);
+    const populationSize = body.populationSize || 20;
+    const generations = body.generations || 50;
+
+    try {
+      await startEvolution(populationSize, generations, topGenomes);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      status: 'continued',
+      seededFrom: topGenomes.length,
+      populationSize,
+      generations,
+    });
+  }
+
+  if (action === 'breed') {
+    const { parentA, parentB } = body;
+    if (!parentA || !parentB) {
+      return NextResponse.json({ error: 'parentA and parentB ids required' }, { status: 400 });
+    }
+    try {
+      const child = await breedAndTest(parentA, parentB);
+      if (!child) return NextResponse.json({ error: 'Breeding failed — no arena state or parents not found' }, { status: 400 });
+      return NextResponse.json({ status: 'bred', child });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   if (action === 'step') {

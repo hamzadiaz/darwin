@@ -35,6 +35,14 @@ interface EvolutionData {
   bestEverAgentId: number;
   aiGuidedEvolution?: boolean;
   lastAIBreedingResult?: AIBreedingResult | null;
+  candleInfo?: {
+    count: number;
+    interval: string;
+    startDate: string;
+    endDate: string;
+    days: number;
+    pair: string;
+  } | null;
 }
 
 const TABS = [
@@ -141,6 +149,25 @@ export default function Dashboard() {
       runEvolutionLoop();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to start evolution');
+    }
+    setIsStarting(false);
+  };
+
+  const continueEvolution = async () => {
+    if (isStarting || (data?.status === 'running')) return;
+    setIsStarting(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/evolution', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50 }),
+      });
+      if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
+      await fetchStatus();
+      runEvolutionLoop();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to continue evolution');
     }
     setIsStarting(false);
   };
@@ -305,13 +332,22 @@ export default function Dashboard() {
         ) : (
           <>
             {/* Controls */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
-                <button onClick={startEvolution} disabled={isStarting}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-success/20 border border-success/30 text-success text-sm font-bold hover:bg-success/30 transition-all disabled:opacity-50">
-                  {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  {evStatus === 'complete' ? 'Restart Evolution' : 'Start Evolution'}
-                </button>
+                <>
+                  <button onClick={startEvolution} disabled={isStarting}
+                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-success/20 border border-success/30 text-success text-xs sm:text-sm font-bold hover:bg-success/30 transition-all disabled:opacity-50">
+                    {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    {evStatus === 'complete' ? 'Restart' : 'Start Evolution'}
+                  </button>
+                  {evStatus === 'complete' && (
+                    <button onClick={continueEvolution} disabled={isStarting}
+                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs sm:text-sm font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50">
+                      {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Dna className="w-4 h-4" />}
+                      Continue Evolving
+                    </button>
+                  )}
+                </>
               ) : (
                 <button onClick={stopEvolution}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl bg-danger/20 border border-danger/30 text-danger text-sm font-bold hover:bg-danger/30 transition-all">
@@ -333,6 +369,11 @@ export default function Dashboard() {
                 {evStatus === 'idle' && 'Ready to evolve'}
                 {evStatus === 'paused' && 'Paused'}
               </div>
+              {data?.candleInfo && (
+                <div className="text-[10px] font-mono text-text-muted bg-bg-elevated/50 px-2 py-1 rounded-lg border border-white/5">
+                  📊 {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count} candles · {data.candleInfo.days}d ({data.candleInfo.startDate} → {data.candleInfo.endDate})
+                </div>
+              )}
             </div>
 
             {/* Generation Progress */}
