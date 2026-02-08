@@ -3,10 +3,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-darwin_protocol = "DRWNpjSGRRRyNj3sTxEVKaMDkmVn6isQfoFVxYnVbBnR"
+darwin_protocol = "3Ka7DjJ3i6r1zoCrv7jBSBMzyUgWCDB9rqgwkr3hZS5A"
 
 [programs.devnet]
-darwin_protocol = "DRWNpjSGRRRyNj3sTxEVKaMDkmVn6isQfoFVxYnVbBnR"
+darwin_protocol = "3Ka7DjJ3i6r1zoCrv7jBSBMzyUgWCDB9rqgwkr3hZS5A"
 
 [registry]
 url = "https://api.apr.dev"

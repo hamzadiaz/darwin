@@ -6,7 +6,7 @@
 import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from '@solana/web3.js';
 
 const DEVNET_RPC = 'https://api.devnet.solana.com';
-const PROGRAM_ID = 'DRWNpjSGRRRyNj3sTxEVKaMDkmVn6isQfoFVxYnVbBnR';
+const PROGRAM_ID = '3Ka7DjJ3i6r1zoCrv7jBSBMzyUgWCDB9rqgwkr3hZS5A';
 
 export interface OnChainRecord {
   txSignature: string;

@@ -6,7 +6,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("DRWNpjSGRRRyNj3sTxEVKaMDkmVn6isQfoFVxYnVbBnR");
+declare_id!("3Ka7DjJ3i6r1zoCrv7jBSBMzyUgWCDB9rqgwkr3hZS5A");
 
 /// Darwin Protocol — Evolutionary Trading Agents on Solana
 ///
