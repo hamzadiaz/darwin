@@ -6,11 +6,12 @@ pub struct AgentGenome {
     pub generation: u16,
     pub parent_a: Option<u64>,
     pub parent_b: Option<u64>,
-    pub genome: [u16; 12],
+    pub genome: [u16; 22],
     pub born_at: i64,
     pub died_at: Option<i64>,
     pub total_pnl: i64,
     pub total_trades: u32,
+    pub total_wins: u32,
     pub win_rate: u16,
     pub is_alive: bool,
     pub owner: Pubkey,
@@ -24,11 +25,12 @@ impl AgentGenome {
         + 2   // generation
         + 9   // parent_a: Option<u64>
         + 9   // parent_b: Option<u64>
-        + 24  // genome: [u16; 12]
+        + 44  // genome: [u16; 22]
         + 8   // born_at
         + 9   // died_at: Option<i64>
         + 8   // total_pnl
         + 4   // total_trades
+        + 4   // total_wins
         + 2   // win_rate
         + 1   // is_alive
         + 32  // owner

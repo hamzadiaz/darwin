@@ -4,7 +4,7 @@
 
 import { OHLCV, fetchCandles, TradingPair, getPairLabel } from './market';
 import { runStrategy, Trade } from './strategy';
-import { createRandomGenome, evolveGeneration, AgentResult } from './genetics';
+import { createRandomGenome, evolveGeneration, AgentResult, mutate } from './genetics';
 import { AgentGenome, Generation } from '@/types';
 import { AIBreedingResult, applyMutationBias, getLatestBreedingResult } from './ai-breeder';
 
@@ -261,15 +261,11 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   const parentB = arena.agents.find(a => a.id === parentBId);
   if (!parentA || !parentB) return null;
 
-  // Crossover
-  const childGenome = parentA.genome.map((g, i) => {
-    const crossed = Math.random() > 0.5 ? g : parentB.genome[i];
-    // 15% mutation rate
-    if (Math.random() < 0.15) {
-      return Math.min(1000, Math.max(0, Math.round(crossed + (Math.random() - 0.5) * 200)));
-    }
-    return Math.round(crossed);
-  });
+  // Crossover + mutation using genetics.mutate() for consistency
+  const crossed = parentA.genome.map((g, i) =>
+    Math.random() > 0.5 ? g : parentB.genome[i]
+  );
+  const childGenome = mutate(crossed);
 
   // Backtest the child against current candle data
   const result = runStrategy(childGenome, arena.candles);

@@ -23,7 +23,7 @@ pub mod darwin_protocol {
     }
 
     /// Spawn a new agent with the given genome (12 genes, each 0-1000).
-    pub fn spawn_agent(ctx: Context<SpawnAgent>, genome: [u16; 12]) -> Result<()> {
+    pub fn spawn_agent(ctx: Context<SpawnAgent>, genome: [u16; 22]) -> Result<()> {
         instructions::spawn_agent::handler(ctx, genome)
     }
 
@@ -38,7 +38,7 @@ pub mod darwin_protocol {
     }
 
     /// Breed two parent agents to create a child with a new genome.
-    pub fn breed(ctx: Context<Breed>, child_genome: [u16; 12]) -> Result<()> {
+    pub fn breed(ctx: Context<Breed>, child_genome: [u16; 22]) -> Result<()> {
         instructions::breed::handler(ctx, child_genome)
     }
 

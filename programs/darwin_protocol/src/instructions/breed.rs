@@ -62,7 +62,7 @@ pub struct Breed<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<Breed>, child_genome: [u16; 12]) -> Result<()> {
+pub fn handler(ctx: Context<Breed>, child_genome: [u16; 22]) -> Result<()> {
     // Validate genome
     for &gene in child_genome.iter() {
         require!(gene <= 1000, DarwinError::GeneOutOfRange);
@@ -86,6 +86,7 @@ pub fn handler(ctx: Context<Breed>, child_genome: [u16; 12]) -> Result<()> {
     child.died_at = None;
     child.total_pnl = 0;
     child.total_trades = 0;
+    child.total_wins = 0;
     child.win_rate = 0;
     child.is_alive = true;
     child.owner = ctx.accounts.authority.key();
@@ -122,5 +123,5 @@ pub struct AgentBred {
     pub parent_a: u64,
     pub parent_b: u64,
     pub generation: u16,
-    pub genome: [u16; 12],
+    pub genome: [u16; 22],
 }

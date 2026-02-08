@@ -31,7 +31,7 @@ pub struct SpawnAgent<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler(ctx: Context<SpawnAgent>, genome: [u16; 12]) -> Result<()> {
+pub fn handler(ctx: Context<SpawnAgent>, genome: [u16; 22]) -> Result<()> {
     // Validate all genes are in range 0-1000
     for &gene in genome.iter() {
         require!(gene <= 1000, DarwinError::GeneOutOfRange);
@@ -52,6 +52,7 @@ pub fn handler(ctx: Context<SpawnAgent>, genome: [u16; 12]) -> Result<()> {
     agent.died_at = None;
     agent.total_pnl = 0;
     agent.total_trades = 0;
+    agent.total_wins = 0;
     agent.win_rate = 0;
     agent.is_alive = true;
     agent.owner = ctx.accounts.authority.key();
@@ -77,6 +78,6 @@ pub fn handler(ctx: Context<SpawnAgent>, genome: [u16; 12]) -> Result<()> {
 pub struct AgentSpawned {
     pub id: u64,
     pub generation: u16,
-    pub genome: [u16; 12],
+    pub genome: [u16; 22],
     pub owner: Pubkey,
 }

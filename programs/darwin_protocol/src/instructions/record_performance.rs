@@ -45,11 +45,13 @@ pub fn handler(
         .checked_add(trades)
         .ok_or(DarwinError::Overflow)?;
 
-    // Recalculate win rate as basis points (0-10000)
-    let total_wins = ((agent.win_rate as u64) * (agent.total_trades - trades) as u64 / 10000)
-        + wins as u64;
+    // Track wins directly to avoid integer division rounding errors
+    agent.total_wins = agent
+        .total_wins
+        .checked_add(wins)
+        .ok_or(DarwinError::Overflow)?;
     agent.win_rate = if agent.total_trades > 0 {
-        ((total_wins * 10000) / agent.total_trades as u64) as u16
+        ((agent.total_wins as u64 * 10000) / agent.total_trades as u64) as u16
     } else {
         0
     };

@@ -193,6 +193,17 @@ function calcVWAP(candles: OHLCV[]): number[] {
   return vwap;
 }
 
+// ─── Trading Fees (realistic Binance costs) ───
+
+/** Taker fee per side: 0.1% */
+const TAKER_FEE_PCT = 0.1;
+/** Slippage per side: 0.05% */
+const SLIPPAGE_PCT = 0.05;
+/** Total round-trip cost (entry + exit): (0.1 + 0.05) * 2 = 0.30% */
+const ROUND_TRIP_COST_PCT = (TAKER_FEE_PCT + SLIPPAGE_PCT) * 2;
+/** Per-side cost for applying to entry/exit individually */
+const PER_SIDE_COST_PCT = TAKER_FEE_PCT + SLIPPAGE_PCT; // 0.15%
+
 // ─── Main strategy runner ───
 
 export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResult {
@@ -234,12 +245,12 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
         ? ((price - entryPrice) / entryPrice) * 100
         : ((entryPrice - price) / entryPrice) * 100;
 
-      // Check stop loss
+      // Check stop loss (fees already included — stop is hit on raw price, but PnL includes fees)
       if (pnl <= -g.stopLossPct) {
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: -g.stopLossPct,
+          side: position, pnlPct: -g.stopLossPct - ROUND_TRIP_COST_PCT,
           exitReason: 'sl',
         });
         position = 'none';
@@ -247,12 +258,12 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
         continue;
       }
 
-      // Check take profit
+      // Check take profit (fees subtracted from profit)
       if (pnl >= g.takeProfitPct) {
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: g.takeProfitPct,
+          side: position, pnlPct: g.takeProfitPct - ROUND_TRIP_COST_PCT,
           exitReason: 'tp',
         });
         position = 'none';
@@ -266,7 +277,7 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: pnl,
+          side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT,
           exitReason: 'signal',
         });
         position = 'none';
@@ -303,14 +314,15 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
     trades.push({
       entryIdx, entryPrice,
       exitIdx: candles.length - 1, exitPrice: lastPrice,
-      side: position, pnlPct: pnl,
+      side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT,
       exitReason: 'signal',
     });
   }
 
   // Calculate results with LEVERAGE + COMPOUNDING (Donchian-style)
   const leverage = g.leverage; // 1-15x
-  const riskPerTrade = g.riskPerTrade / 100; // fraction of balance to risk per trade (5-30%)
+  const positionSizeFrac = g.positionSizePct / 100; // fraction of balance for position size (5-25%)
+  const riskPerTrade = g.riskPerTrade / 100; // max risk per trade as drawdown cap (5-30%)
 
   const wins = trades.filter((t) => t.pnlPct > 0).length;
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
@@ -325,8 +337,8 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
   let maxDD = 0;
 
   for (const t of trades) {
-    // Position size = balance * riskPerTrade (capped at balance)
-    const posSize = Math.min(balance, balance * riskPerTrade);
+    // Position size = balance * positionSizePct (capped at balance * riskPerTrade for risk management)
+    const posSize = Math.min(balance * riskPerTrade, balance * positionSizeFrac);
     // Leveraged PnL on this trade
     const tradePnl = posSize * leverage * (t.pnlPct / 100);
 
