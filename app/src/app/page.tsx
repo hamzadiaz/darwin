@@ -530,39 +530,25 @@ export default function Dashboard() {
 
   const runEvolutionLoop = useCallback(async () => {
     evolutionRef.current = true;
-    let retries = 0;
-    while (evolutionRef.current) {
-      try {
-        const res = await fetch('/api/evolution', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'step' }),
-        });
-        if (!res.ok) throw new Error(`Step failed: ${res.status}`);
-        const stepResult = await res.json();
-        retries = 0;
-
-        await fetchStatus();
-
-        if (stepResult.currentGeneration > 0 && stepResult.currentGeneration % 5 === 0) {
-          fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
-        }
-
-        if (stepResult.status === 'complete') {
-          evolutionRef.current = false;
-          break;
-        }
-
-        await new Promise(r => setTimeout(r, 300));
-      } catch (e) {
-        retries++;
-        if (retries > 5) {
-          setError('Evolution failed after 5 retries. Try again.');
-          evolutionRef.current = false;
-          break;
-        }
-        await new Promise(r => setTimeout(r, 1000 * retries));
+    try {
+      // Run complete evolution in a single request (avoids serverless state loss)
+      const res = await fetch('/api/evolution', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'run-all' }),
+      });
+      if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
+      const result = await res.json();
+      if (result.snapshot) {
+        setData(result.snapshot);
       }
+      await fetchStatus();
+      // Trigger AI analysis
+      fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Evolution failed. Try again.');
+    } finally {
+      evolutionRef.current = false;
     }
   }, [fetchStatus]);
 

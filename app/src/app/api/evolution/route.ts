@@ -99,13 +99,23 @@ export async function POST(req: NextRequest) {
 
   if (action === 'step') {
     // Client calls this repeatedly to advance evolution one generation at a time
-    // This avoids Vercel serverless timeout killing background promises
     const complete = await stepEvolution();
     const snapshot = getArenaSnapshot();
     return NextResponse.json({
       status: complete ? 'complete' : 'running',
       snapshot,
     });
+  }
+
+  if (action === 'run-all') {
+    // Run the complete evolution in a single request (for serverless environments)
+    // This avoids state loss between cold starts
+    let complete = false;
+    while (!complete) {
+      complete = await stepEvolution();
+    }
+    const snapshot = getArenaSnapshot();
+    return NextResponse.json({ status: 'complete', snapshot });
   }
 
   if (action === 'battle-evolve') {
