@@ -134,8 +134,8 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
 
   for (let i = warmup; i < candles.length; i++) {
     const price = closes[i];
-    const atrPct = atr[i] / price;
-    const volThreshold = g.volatilityFilter * 0.05; // scale 0-1 to 0-5% ATR threshold
+    const atrPct = atr[i] / price; // typically 0.02-0.05 for SOL
+    const volThreshold = g.volatilityFilter; // 0-1, compared directly to atrPct in generateSignal
 
     if (inPosition) {
       // Check stop loss / take profit
@@ -245,8 +245,9 @@ function generateSignal(
   atrPct: number,
   volThreshold: number,
 ): Signal {
-  // Volatility filter: skip if ATR is below threshold (market too quiet)
-  if (volThreshold > 0 && atrPct < volThreshold * 0.01) return 'HOLD';
+  // Volatility filter: skip if ATR% is below threshold (market too quiet)
+  // volThreshold 0-1 maps to 0-5% ATR threshold
+  if (volThreshold > 0 && atrPct < volThreshold * 0.05) return 'HOLD';
 
   let bullScore = 0;
   let bearScore = 0;

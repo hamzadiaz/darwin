@@ -66,11 +66,12 @@ export function initArena(populationSize = 20, maxGenerations = 50): ArenaState 
 
 /** Get a candle slice for this generation (rolling window for diversity) */
 function getCandleSlice(candles: OHLCV[], generation: number): OHLCV[] {
-  const minWindow = Math.min(100, candles.length);
-  // Shift the window by a few candles each generation to test on different market conditions
-  const shift = (generation * 7) % Math.max(1, candles.length - minWindow);
-  const start = Math.min(shift, candles.length - minWindow);
-  return candles.slice(start, start + minWindow);
+  // Use ~65% of candles so the window shifts meaningfully each generation
+  const windowSize = Math.min(candles.length, Math.max(150, Math.floor(candles.length * 0.65)));
+  const maxShift = Math.max(1, candles.length - windowSize);
+  // Shift by ~10 candles per generation, wrapping around
+  const shift = (generation * 10) % maxShift;
+  return candles.slice(shift, shift + windowSize);
 }
 
 /** Run a single generation: backtest all agents, record results */
@@ -123,10 +124,13 @@ async function runGeneration(state: ArenaState): Promise<void> {
 function evolvePopulation(state: ArenaState): void {
   const aliveAgents = state.agents.filter((a) => a.isAlive);
 
+  // Fitness: penalize non-traders
+  const fit = (a: AgentGenome) => a.totalTrades === 0 ? -10000 : a.totalPnl;
+
   const agentResults: AgentResult[] = aliveAgents.map((a) => ({
     id: a.id,
     genome: a.genome,
-    totalPnlPct: a.totalPnl / 100,
+    totalPnlPct: (a.totalTrades === 0 ? -100 : a.totalPnl / 100),
     winRate: a.winRate / 100,
     totalTrades: a.totalTrades,
     sharpe: 0,
@@ -135,8 +139,8 @@ function evolvePopulation(state: ArenaState): void {
   const newGen = evolveGeneration(agentResults, state.populationSize);
 
   // Mark non-elite agents as dead
-  const sorted = [...aliveAgents].sort((a, b) => b.totalPnl - a.totalPnl);
-  const eliteCount = Math.max(1, Math.round(state.populationSize * 0.25));
+  const sorted = [...aliveAgents].sort((a, b) => fit(b) - fit(a));
+  const eliteCount = Math.max(1, Math.round(state.populationSize * 0.20));
   const eliteIds = new Set(sorted.slice(0, eliteCount).map((a) => a.id));
 
   let deaths = 0;
@@ -193,8 +197,8 @@ export async function startEvolution(
 
   runningPromise = (async () => {
     try {
-      // Fetch real market data (90 days for diverse rolling windows)
-      state.candles = await fetchCandles('SOL', '4h', 90);
+      // Fetch real market data (30 days = ~180 candles at 4h from CoinGecko)
+      state.candles = await fetchCandles('SOL', '4h', 30);
 
       for (let gen = 0; gen < maxGenerations; gen++) {
         if (state.status !== 'running') break;
@@ -240,8 +244,17 @@ export function getArenaSnapshot() {
     currentGeneration: arena.currentGeneration,
     maxGenerations: arena.maxGenerations,
     populationSize: arena.populationSize,
-    agents: aliveAgents.sort((a, b) => b.totalPnl - a.totalPnl),
-    allAgents: allAgentsEver.sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 50),
+    agents: aliveAgents.sort((a, b) => {
+      // Rank by fitness: traders first, then by PnL
+      const fa = a.totalTrades === 0 ? -10000 : a.totalPnl;
+      const fb = b.totalTrades === 0 ? -10000 : b.totalPnl;
+      return fb - fa;
+    }),
+    allAgents: allAgentsEver.sort((a, b) => {
+      const fa = a.totalTrades === 0 ? -10000 : a.totalPnl;
+      const fb = b.totalTrades === 0 ? -10000 : b.totalPnl;
+      return fb - fa;
+    }).slice(0, 50),
     generations: arena.generations,
     candles: arena.candles,
     trades: tradesMap,

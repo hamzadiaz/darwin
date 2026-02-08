@@ -49,12 +49,12 @@ export function crossover(parentA: number[], parentB: number[]): number[] {
 export function mutate(genome: number[], rate = 0.20): number[] {
   return genome.map((gene) => {
     if (Math.random() > rate) return gene;
-    // 10% chance of complete randomization (macro mutation)
-    if (Math.random() < 0.10) return Math.floor(Math.random() * 1001);
-    // Otherwise ±15-35%
-    const magnitude = 0.15 + Math.random() * 0.20;
+    // 15% chance of complete randomization (macro mutation)
+    if (Math.random() < 0.15) return Math.floor(Math.random() * 1001);
+    // Otherwise add absolute offset ±75-250 (not relative, so gene=0 can escape)
+    const offset = 75 + Math.random() * 175;
     const direction = Math.random() < 0.5 ? -1 : 1;
-    const mutated = gene + gene * magnitude * direction;
+    const mutated = gene + offset * direction;
     return Math.max(0, Math.min(1000, Math.round(mutated)));
   });
 }
