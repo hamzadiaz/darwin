@@ -185,43 +185,53 @@ function evolvePopulation(state: ArenaState): void {
   }
 }
 
-/** Initialize and fetch candles, ready for step-by-step evolution */
+/** Initialize evolution with candle data and run first generation */
 export async function startEvolution(
   populationSize = 20,
   maxGenerations = 50,
 ): Promise<void> {
-  if (arena?.status === 'running') return;
-
   const state = initArena(populationSize, maxGenerations);
   state.status = 'running';
 
-  // Fetch real market data upfront
+  // Fetch real market data
   state.candles = await fetchCandles('SOLUSDT', '4h', 500);
 
-  // Run first generation immediately
+  // Run first generation
   await runGeneration(state);
 }
 
-/** Run the next generation step. Called by client polling. Returns true if evolution is complete. */
-export async function stepEvolution(): Promise<boolean> {
-  if (!arena || arena.status !== 'running') return true;
+/**
+ * Run a batch of generations (up to `batchSize`) in a single call.
+ * Returns true if evolution is complete.
+ * This batching approach works within Vercel's 10s timeout.
+ */
+export async function stepEvolution(batchSize = 5): Promise<boolean> {
+  if (!arena) return true;
+  if (arena.status === 'complete') return true;
 
-  // Evolve population from current results
-  evolvePopulation(arena);
-
-  // Check if we've reached max generations
-  if (arena.currentGeneration >= arena.maxGenerations) {
-    arena.status = 'complete';
-    return true;
+  // Re-fetch candles if lost (serverless instance may have changed)
+  if (!arena.candles || arena.candles.length === 0) {
+    arena.candles = await fetchCandles('SOLUSDT', '4h', 500);
+    // Re-run current generation since results were lost
+    await runGeneration(arena);
   }
 
-  // Run next generation
-  await runGeneration(arena);
+  arena.status = 'running';
 
-  // Auto-complete if at max
-  if (arena.currentGeneration >= arena.maxGenerations - 1) {
-    arena.status = 'complete';
-    return true;
+  for (let i = 0; i < batchSize; i++) {
+    evolvePopulation(arena);
+
+    if (arena.currentGeneration >= arena.maxGenerations) {
+      arena.status = 'complete';
+      return true;
+    }
+
+    await runGeneration(arena);
+
+    if (arena.currentGeneration >= arena.maxGenerations - 1) {
+      arena.status = 'complete';
+      return true;
+    }
   }
 
   return false;
