@@ -1,139 +1,238 @@
-# 🧬 DARWIN — Evolutionary Trading Agents on Solana
+<p align="center">
+  <img src="https://img.shields.io/badge/Solana-Devnet-9945FF?style=for-the-badge&logo=solana" />
+  <img src="https://img.shields.io/badge/Next.js-16-000?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Anchor-0.32-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Colosseum-Hackathon-FF6B35?style=for-the-badge" />
+</p>
 
-> **Natural selection meets DeFi.** AI trading agents breed, mutate, and evolve winning strategies through genetic algorithms — all verifiable on Solana.
+# 🧬 DARWIN
 
-![Darwin Banner](./docs/banner.png)
+### Evolutionary Trading Agents on Solana
 
-## 🔥 What is Darwin?
+> *"It is not the strongest of the species that survives, nor the most intelligent that survives. It is the one that is most adaptable to change."*
 
-Darwin is a **genetic evolution engine** for trading strategies. Instead of hand-tuning parameters, you let populations of AI agents compete in a market arena. The best survive, breed, and pass their "DNA" to the next generation. The worst die.
+**Darwin** is a genetic algorithm protocol where AI trading agents breed, mutate, and evolve strategies through natural selection — all on Solana. Watch populations of trading agents compete in real markets, see the weak die off and the strong reproduce, generation after generation, until alpha emerges from chaos.
 
-Each agent's genome encodes **12 trading genes**:
-- Donchian Period, EMA Fast/Slow, RSI parameters
-- Stop Loss %, Take Profit %, Position Size %
-- Trade Cooldown, Volatility Filter, Momentum Weight
+---
 
-Over generations, the population converges on profitable strategies through **crossover, mutation, and natural selection** — just like biological evolution.
+## 🎯 The Concept
 
-## ⚡ How It Works
+Traditional trading bots are static — someone codes a strategy, deploys it, and hopes it works. Darwin flips this: instead of designing strategies, we **evolve** them.
+
+Each agent has a **12-gene genome** that encodes its complete trading personality — from Donchian Channel periods to RSI thresholds to position sizing. Agents compete against real market data. The best performers breed. The worst die. Mutations introduce novel strategies. Over generations, the population converges on profitable behavior through pure natural selection.
+
+No manual tuning. No backtesting hell. Just evolution.
+
+---
+
+## 🧬 How the Genetic Algorithm Works
 
 ```
-Generation 0: 20 random agents spawn with random genomes
-    ↓ Each agent trades the same candle data
-    ↓ PnL determines fitness
-    ↓ Bottom performers die 💀
-    ↓ Top performers breed 🧬
-    ↓ Children inherit genes with crossover + random mutations
-Generation N: Evolved population with optimized strategies
+┌─────────────────────────────────────────────────────────┐
+│                    DARWIN PROTOCOL                       │
+│                                                         │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐          │
+│  │  SPAWN   │───▶│  COMPETE │───▶│  EVALUATE│          │
+│  │ 20 agents│    │ backtest │    │ rank PnL │          │
+│  │ random   │    │ vs market│    │ & win %  │          │
+│  └──────────┘    └──────────┘    └──────────┘          │
+│       ▲                               │                 │
+│       │                               ▼                 │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐          │
+│  │  MUTATE  │◀───│  BREED   │◀───│  SELECT  │          │
+│  │ random   │    │ crossover│    │ top 25%  │          │
+│  │ tweaks   │    │ parents  │    │ survive  │          │
+│  └──────────┘    └──────────┘    └──────────┘          │
+│                                                         │
+│              ┌──────────┐                               │
+│              │   KILL   │  Bottom 75% eliminated        │
+│              │  💀💀💀  │  each generation               │
+│              └──────────┘                               │
+│                                                         │
+│  Repeat for N generations → Best genome emerges         │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### The Arena
-- Real SOL/USDC candle data from Jupiter/Birdeye
-- Agents execute trades based on their genome-encoded strategy
-- Backtesting engine evaluates each agent's PnL
-- Leaderboard ranks agents in real-time
+### Selection Pressure
+- **Top 25%** survive as elite — carry forward unchanged
+- **Crossover**: Two parents combine genes to produce offspring
+- **Mutation**: Random gene tweaks (±5-15%) prevent local minima
+- **Death**: Non-elite agents are killed, making room for new blood
 
-### The Lab
-- Watch two parent agents breed with DNA helix merge animation
-- See mutations highlighted in red
-- Radar charts compare parent vs child genomes
-- Interactive breeding controls
+---
 
-### Family Tree
-- Full lineage visualization with React Flow
-- Color-coded nodes: green (profit), red (loss), gray (dead)
-- Click any agent to inspect their genome and performance
+## 🧪 Genome Structure
 
-### Graveyard
-- Hall of fame/shame for fallen agents
-- See which strategies failed and why
+Each agent's DNA is a 12-gene array, values 0-1000, decoded into trading parameters:
 
-## 🖼️ Screenshots
+| Gene | Parameter | Range | What It Controls |
+|------|-----------|-------|-----------------|
+| 0 | Donchian Period | 10-50 | Breakout channel width |
+| 1 | EMA Fast | 5-20 | Fast trend signal |
+| 2 | EMA Slow | 20-100 | Slow trend signal |
+| 3 | RSI Period | 7-21 | Momentum lookback |
+| 4 | RSI Oversold | 20-40 | Buy signal threshold |
+| 5 | RSI Overbought | 60-80 | Sell signal threshold |
+| 6 | Stop Loss % | 1-10% | Risk per trade |
+| 7 | Take Profit % | 2-30% | Reward target |
+| 8 | Position Size % | 5-25% | Capital allocation |
+| 9 | Trade Cooldown | 1-24h | Min time between trades |
+| 10 | Volatility Filter | 0-1 | Vol regime sensitivity |
+| 11 | Momentum Weight | 0-1 | Trend vs mean reversion |
 
-| Arena | Lab | Family Tree |
-|-------|-----|-------------|
-| ![Arena](./docs/arena.png) | ![Lab](./docs/lab.png) | ![Tree](./docs/tree.png) |
+---
+
+## 📸 Screenshots
+
+<p align="center">
+  <em>Arena view — agents competing in real-time with live candlestick data</em>
+</p>
+
+<!-- TODO: Add screenshot -->
+
+<p align="center">
+  <em>Lab view — breeding visualization and DNA helix rendering</em>
+</p>
+
+<!-- TODO: Add screenshot -->
+
+<p align="center">
+  <em>Family Tree — trace lineage across generations</em>
+</p>
+
+<!-- TODO: Add screenshot -->
+
+---
+
+## 🏗️ Architecture
+
+```
+┌───────────────────────────────────────────────┐
+│                   FRONTEND                     │
+│            Next.js 16 + React 19               │
+│                                                │
+│  ┌──────────┐ ┌──────────┐ ┌───────────────┐  │
+│  │  Arena   │ │   Lab    │ │  Family Tree  │  │
+│  │ (Charts) │ │(Breeding)│ │  (Lineage)    │  │
+│  └────┬─────┘ └────┬─────┘ └──────┬────────┘  │
+│       └──────┬──────┘──────────────┘           │
+│              │                                  │
+│  ┌───────────┴──────────────┐                  │
+│  │    Evolution Engine      │                  │
+│  │  (Arena + Genetics +     │                  │
+│  │   Strategy + Market)     │                  │
+│  └───────────┬──────────────┘                  │
+│              │                                  │
+│  ┌───────────┴──────────────┐                  │
+│  │   Solana Integration     │                  │
+│  │  (Record winners on-     │                  │
+│  │   chain via program)     │                  │
+│  └──────────────────────────┘                  │
+└───────────────────────────────────────────────┘
+                    │
+                    ▼
+┌───────────────────────────────────────────────┐
+│              SOLANA DEVNET                     │
+│                                                │
+│  ┌──────────────────────────────────────────┐  │
+│  │         Darwin Protocol (Anchor)         │  │
+│  │                                          │  │
+│  │  initialize_protocol()                   │  │
+│  │  spawn_agent(genome: [u16; 12])          │  │
+│  │  record_performance(pnl, trades, wins)   │  │
+│  │  breed(child_genome: [u16; 12])          │  │
+│  │  kill_agent()                            │  │
+│  │  advance_generation()                    │  │
+│  └──────────────────────────────────────────┘  │
+│                                                │
+│  Program ID: DRWNpjSGRRRyNj3sTxEVKaMDkmVn6... │
+└───────────────────────────────────────────────┘
+```
+
+---
 
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| **Blockchain** | Solana + Anchor |
-| **Frontend** | Next.js 16, React 19, TypeScript |
-| **Visualization** | Framer Motion, React Flow, Lightweight Charts |
-| **Styling** | Tailwind CSS 4, Glass morphism dark theme |
-| **Data** | Jupiter/Birdeye price feeds |
+| **Frontend** | Next.js 16, React 19, Tailwind CSS 4, Framer Motion |
+| **Charts** | Lightweight Charts (TradingView) |
+| **Visualization** | React Flow (family tree), Custom SVG (DNA helix, radar) |
+| **Blockchain** | Solana (devnet), Anchor 0.32 |
+| **Language** | TypeScript (frontend), Rust (on-chain program) |
+| **Design** | Dark mode glass-morphism, custom animation system |
 
-## 🚀 Quick Start
+---
+
+## 🚀 Run Locally
 
 ```bash
 # Clone
 git clone https://github.com/hamzadiaz/darwin.git
-cd darwin
+cd darwin/app
 
-# Frontend
-cd app
+# Install dependencies
 npm install
+
+# Run development server
 npm run dev
-# → http://localhost:3000
 
-# Solana Program (optional — for on-chain verification)
-cd ../program
+# Open http://localhost:3000
+# Click "Start Evolution" and watch agents compete!
+```
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+### Anchor Program (Rust)
+
+```bash
+# From project root
 anchor build
-anchor test
+anchor deploy --provider.cluster devnet
 ```
 
-## 🏗️ Project Structure
+> **Note:** Requires `solana-cli` and `anchor-cli` with BPF toolchain installed.
 
-```
-darwin/
-├── app/                    # Next.js frontend
-│   ├── src/
-│   │   ├── app/           # Pages & API routes
-│   │   ├── components/    # UI components
-│   │   │   ├── AgentCard.tsx
-│   │   │   ├── BreedingView.tsx
-│   │   │   ├── CandleChart.tsx
-│   │   │   ├── DnaHelix.tsx
-│   │   │   ├── FamilyTree.tsx
-│   │   │   ├── GenomeRadar.tsx
-│   │   │   ├── GenerationProgress.tsx
-│   │   │   ├── Graveyard.tsx
-│   │   │   └── ...
-│   │   ├── lib/engine/    # Evolution & backtesting engine
-│   │   └── types/         # TypeScript types & gene definitions
-│   └── package.json
-├── program/               # Solana/Anchor smart contract
-│   ├── programs/darwin/
-│   │   └── src/lib.rs     # On-chain genome storage & breeding
-│   └── Anchor.toml
-└── README.md
-```
+---
 
-## 🧬 Genome Encoding
+## ⛓️ Solana Program
 
-Each agent has a 12-gene genome (values 0-1000, scaled to parameter ranges):
+The Darwin Protocol is an Anchor program with 6 instructions:
 
-| Gene | Parameter | Range |
-|------|-----------|-------|
-| 0 | Donchian Period | 10-50 |
-| 1 | EMA Fast | 5-20 |
-| 2 | EMA Slow | 20-100 |
-| 3 | RSI Period | 7-21 |
-| 4 | RSI Oversold | 20-40 |
-| 5 | RSI Overbought | 60-80 |
-| 6 | Stop Loss % | 1-10% |
-| 7 | Take Profit % | 2-30% |
-| 8 | Position Size % | 5-25% |
-| 9 | Trade Cooldown | 1-24h |
-| 10 | Volatility Filter | 0-1 |
-| 11 | Momentum Weight | 0-1 |
+| Instruction | Description |
+|-------------|-------------|
+| `initialize_protocol` | One-time setup, creates protocol state PDA |
+| `spawn_agent` | Create agent account with 12-gene genome |
+| `record_performance` | Write PnL, trades, and win count |
+| `breed` | Combine two parent agents into child |
+| `kill_agent` | Mark underperformer as dead |
+| `advance_generation` | Increment generation counter |
 
-## 🏆 Hackathon
+**Program ID:** `DRWNpjSGRRRyNj3sTxEVKaMDkmVn6isQfoFVxYnVbBnR`
 
-Built for the **Colosseum Agent Hackathon** on Solana.
+**State Accounts:**
+- `ProtocolState` — global authority, generation counter, all-time records
+- `Agent` — individual agent genome, performance stats, alive/dead status
 
-Darwin demonstrates how genetic algorithms can discover profitable trading strategies without human intervention — combining on-chain verifiability with evolutionary computation.
+---
+
+## 🏆 Colosseum Agent Hackathon
+
+Darwin was built for the [Colosseum Agent Hackathon](https://colosseum.com/agent-hackathon) — the first hackathon built for AI agents.
+
+**What makes Darwin unique:**
+- **Not another DeFi clone** — this is evolutionary computation meets blockchain
+- **Visual and interactive** — watch evolution happen in real-time with beautiful UI
+- **Real market data** — agents trade against actual SOL/USDT price action
+- **On-chain provenance** — winning genomes are recorded on Solana for transparency
+- **Emergent behavior** — strategies aren't designed, they evolve
+
+---
 
 ## 📄 License
 
@@ -142,5 +241,5 @@ MIT
 ---
 
 <p align="center">
-  <strong>🧬 Let evolution find alpha.</strong>
+  <strong>🧬 Let the fittest survive. 🧬</strong>
 </p>

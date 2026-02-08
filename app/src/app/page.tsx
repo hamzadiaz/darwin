@@ -14,6 +14,7 @@ import { Graveyard } from '@/components/Graveyard';
 import { AgentCard } from '@/components/AgentCard';
 import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull } from 'lucide-react';
 import { AgentGenome, Generation } from '@/types';
+import { SolanaPanel } from '@/components/SolanaPanel';
 
 interface EvolutionData {
   status: 'idle' | 'running' | 'paused' | 'complete';
@@ -222,6 +223,18 @@ export default function Dashboard() {
             )}
           </motion.div>
         </AnimatePresence>
+
+        {/* Solana Integration */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-1">
+            <SolanaPanel
+              generationsComplete={generations.length}
+              isRunning={status === 'running'}
+              bestPnl={bestPnl}
+              bestAgentId={data?.bestEverAgentId ?? 0}
+            />
+          </div>
+        </div>
 
         {/* Footer */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-center py-4">
