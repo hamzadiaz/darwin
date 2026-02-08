@@ -18,6 +18,18 @@ import { SolanaPanel } from '@/components/SolanaPanel';
 import { LiveTrading } from '@/components/LiveTrading';
 import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
 import type { TradingPair } from '@/lib/engine/market';
+import { BattleTestCard } from '@/components/BattleTestCard';
+
+const PERIODS: { id: string; label: string }[] = [
+  { id: '', label: 'Default' },
+  { id: 'last-30d', label: '30d' },
+  { id: 'last-90d', label: '90d' },
+  { id: 'last-1y', label: '1Y' },
+  { id: 'bull-2024', label: 'Bull 2024' },
+  { id: 'bear-2022', label: 'Bear 2022' },
+  { id: 'crash-2021', label: 'Crash 2021' },
+  { id: 'full-history', label: 'Full' },
+];
 
 const PAIRS: { symbol: TradingPair; label: string; icon: string }[] = [
   { symbol: 'SOLUSDT', label: 'SOL', icon: '◎' },
@@ -50,6 +62,7 @@ interface EvolutionData {
     days: number;
     pair: string;
   } | null;
+  period?: string | null;
 }
 
 const TABS = [
@@ -80,6 +93,7 @@ export default function Dashboard() {
   const [selectedAgent, setSelectedAgent] = useState<AgentGenome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPair, setSelectedPair] = useState<TradingPair>('SOLUSDT');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('');
   const [strategyJson, setStrategyJson] = useState<string | null>(null);
   const [paperTradeData, setPaperTradeData] = useState<Record<string, unknown> | null>(null);
   const [loadingStrategy, setLoadingStrategy] = useState(false);
@@ -154,7 +168,7 @@ export default function Dashboard() {
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair }),
+        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
       });
       if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
       await fetchStatus();
@@ -173,7 +187,7 @@ export default function Dashboard() {
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair }),
+        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
       });
       if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
       await fetchStatus();
@@ -319,6 +333,29 @@ export default function Dashboard() {
                     ))}
                   </motion.div>
 
+                  {/* Period Selector */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.37 }}
+                    className="flex items-center gap-1.5 mb-4 flex-wrap"
+                  >
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold mr-2">Period</span>
+                    {PERIODS.map(p => (
+                      <button
+                        key={p.id}
+                        onClick={() => setSelectedPeriod(p.id)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
+                          selectedPeriod === p.id
+                            ? 'bg-evolution-purple/20 text-evolution-purple border border-evolution-purple/40 shadow-[0_0_12px_rgba(147,51,234,0.2)]'
+                            : 'bg-white/5 text-text-muted border border-white/10 hover:bg-white/10 hover:text-text-secondary'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </motion.div>
+
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -406,6 +443,23 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
+              {/* Period selector (compact) */}
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-bg-secondary/80 border border-white/5">
+                {PERIODS.filter(p => ['', 'last-30d', 'last-90d', 'last-1y', 'bull-2024', 'bear-2022'].includes(p.id)).map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setSelectedPeriod(p.id)}
+                    disabled={evStatus === 'running'}
+                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                      selectedPeriod === p.id
+                        ? 'bg-evolution-purple/20 text-evolution-purple'
+                        : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
               {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
                 <>
                   <button onClick={startEvolution} disabled={isStarting}
@@ -444,7 +498,7 @@ export default function Dashboard() {
               </div>
               {data?.candleInfo && (
                 <div className="text-[10px] font-mono text-text-muted bg-bg-elevated/50 px-2 py-1 rounded-lg border border-white/5">
-                  📊 {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count} candles · {data.candleInfo.days}d ({data.candleInfo.startDate} → {data.candleInfo.endDate})
+                  📊 {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count} candles · {data.candleInfo.days}d ({data.candleInfo.startDate} → {data.candleInfo.endDate}){data.period ? ` · ${data.period}` : ''}
                 </div>
               )}
             </div>
@@ -509,6 +563,16 @@ export default function Dashboard() {
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {activeTab === 'arena' && evStatus === 'complete' && agents.length > 0 && (
+                  <div className="mt-4">
+                    <BattleTestCard
+                      genome={agents[0]?.genome ?? null}
+                      agentId={data?.bestEverAgentId ?? agents[0]?.id ?? 0}
+                      symbol={selectedPair}
+                    />
                   </div>
                 )}
 

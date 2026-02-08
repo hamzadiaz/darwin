@@ -119,6 +119,86 @@ async function fetchFromCoinGecko(coingeckoId: string): Promise<OHLCV[]> {
   }));
 }
 
+// Long-term cache for historical ranges (keyed by symbol_interval_start_end)
+const rangeCaches: Map<string, OHLCV[]> = new Map();
+
+/**
+ * Fetch ALL candles in a date range by paginating Binance API (max 1000 per request).
+ * Results are cached since historical data doesn't change.
+ */
+export async function fetchCandlesRange(
+  symbol: TradingPair,
+  interval: string,
+  startDate: number, // ms timestamp
+  endDate: number,   // ms timestamp
+): Promise<OHLCV[]> {
+  const cacheKey = `${symbol}_${interval}_${startDate}_${endDate}`;
+  const cached = rangeCaches.get(cacheKey);
+  if (cached) return cached;
+
+  const allCandles: OHLCV[] = [];
+  let currentStart = startDate;
+  const limit = 1000;
+
+  while (currentStart < endDate) {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${currentStart}&endTime=${endDate}&limit=${limit}`;
+    const res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000),
+    });
+
+    if (!res.ok) throw new Error(`Binance ${res.status} fetching range`);
+
+    const raw: (string | number)[][] = await res.json();
+    if (raw.length === 0) break;
+
+    for (const k of raw) {
+      allCandles.push({
+        time: Math.floor(Number(k[0]) / 1000),
+        open: parseFloat(k[1] as string),
+        high: parseFloat(k[2] as string),
+        low: parseFloat(k[3] as string),
+        close: parseFloat(k[4] as string),
+        volume: parseFloat(k[5] as string),
+      });
+    }
+
+    // Move start past the last candle we received
+    const lastOpenTime = Number(raw[raw.length - 1][0]);
+    currentStart = lastOpenTime + 1;
+
+    // Rate limit: small delay between paginated requests
+    if (raw.length === limit) {
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
+
+  // Deduplicate by timestamp (just in case)
+  const seen = new Set<number>();
+  const deduped = allCandles.filter(c => {
+    if (seen.has(c.time)) return false;
+    seen.add(c.time);
+    return true;
+  });
+
+  rangeCaches.set(cacheKey, deduped);
+  return deduped;
+}
+
+/**
+ * Fetch candles for a named period.
+ */
+export async function fetchCandlesForPeriod(
+  symbol: TradingPair,
+  periodId: string,
+  interval = '4h',
+): Promise<OHLCV[]> {
+  // Import here to avoid circular deps
+  const { resolvePeriodDates } = await import('./periods');
+  const { startTime, endTime } = resolvePeriodDates(periodId as import('./periods').PeriodId);
+  return fetchCandlesRange(symbol, interval, startTime, endTime);
+}
+
 export function clearCandleCache(symbol?: TradingPair) {
   if (symbol) {
     for (const key of candleCaches.keys()) {

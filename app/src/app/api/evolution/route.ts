@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest } from '@/lib/engine/arena';
 import { TradingPair, SUPPORTED_PAIRS } from '@/lib/engine/market';
+import { runBattleTest } from '@/lib/engine/battle-test';
+import { MARKET_PERIODS } from '@/lib/engine/periods';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -36,9 +38,10 @@ export async function POST(req: NextRequest) {
     const seedGenomes = body.seedGenomes as number[][] | undefined;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
+    const period = (body.period && body.period in MARKET_PERIODS) ? body.period as string : null;
 
     try {
-      await startEvolution(populationSize, generations, seedGenomes, symbol);
+      await startEvolution(populationSize, generations, seedGenomes, symbol, period);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('startEvolution failed:', message);
@@ -50,6 +53,7 @@ export async function POST(req: NextRequest) {
       populationSize,
       generations,
       symbol,
+      period,
       seeded: seedGenomes ? seedGenomes.length : 0,
     });
   }
@@ -61,9 +65,10 @@ export async function POST(req: NextRequest) {
     const generations = body.generations || 50;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
+    const period = (body.period && body.period in MARKET_PERIODS) ? body.period as string : null;
 
     try {
-      await startEvolution(populationSize, generations, topGenomes, symbol);
+      await startEvolution(populationSize, generations, topGenomes, symbol, period);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return NextResponse.json({ error: message }, { status: 500 });
@@ -102,6 +107,22 @@ export async function POST(req: NextRequest) {
       currentGeneration: snapshot?.currentGeneration ?? 0,
       maxGenerations: snapshot?.maxGenerations ?? 0,
     });
+  }
+
+  if (action === 'battle-test') {
+    const genome = body.genome as number[] | undefined;
+    if (!genome || !Array.isArray(genome)) {
+      return NextResponse.json({ error: 'genome array required' }, { status: 400 });
+    }
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
+    try {
+      const result = await runBattleTest(genome, symbol);
+      return NextResponse.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
   }
 
   if (action === 'stop') {

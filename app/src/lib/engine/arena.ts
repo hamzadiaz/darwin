@@ -2,7 +2,7 @@
  * Arena — the main evolution loop. Manages population, runs backtests, evolves.
  */
 
-import { OHLCV, fetchCandles, TradingPair, getPairLabel } from './market';
+import { OHLCV, fetchCandles, fetchCandlesForPeriod, TradingPair, getPairLabel } from './market';
 import { runStrategy, Trade } from './strategy';
 import { createRandomGenome, evolveGeneration, AgentResult, mutate } from './genetics';
 import { AgentGenome, Generation } from '@/types';
@@ -23,6 +23,7 @@ export interface ArenaState {
   aiGuidedEvolution: boolean;
   lastAIBreedingResult: AIBreedingResult | null;
   symbol: TradingPair;
+  period: string | null; // period ID or null for default (last 500 candles)
 }
 
 let arena: ArenaState | null = null;
@@ -32,7 +33,7 @@ export function getArenaState(): ArenaState | null {
   return arena;
 }
 
-export function initArena(populationSize = 20, maxGenerations = 50, symbol: TradingPair = 'SOLUSDT'): ArenaState {
+export function initArena(populationSize = 20, maxGenerations = 50, symbol: TradingPair = 'SOLUSDT', period: string | null = null): ArenaState {
   const agents: AgentGenome[] = [];
   for (let i = 0; i < populationSize; i++) {
     agents.push({
@@ -66,6 +67,7 @@ export function initArena(populationSize = 20, maxGenerations = 50, symbol: Trad
     aiGuidedEvolution: true,
     lastAIBreedingResult: null,
     symbol,
+    period,
   };
 
   return arena;
@@ -223,8 +225,9 @@ export async function startEvolution(
   maxGenerations = 50,
   seedGenomes?: number[][],
   symbol: TradingPair = 'SOLUSDT',
+  period: string | null = null,
 ): Promise<void> {
-  const state = initArena(populationSize, maxGenerations, symbol);
+  const state = initArena(populationSize, maxGenerations, symbol, period);
   state.status = 'running';
 
   // If we have seed genomes (from "Continue Evolution"), use them for part of population
@@ -236,8 +239,12 @@ export async function startEvolution(
     }
   }
 
-  // Fetch real market data
-  state.candles = await fetchCandles(symbol, '4h', 500);
+  // Fetch real market data — use period if specified
+  if (period) {
+    state.candles = await fetchCandlesForPeriod(symbol, period, '4h');
+  } else {
+    state.candles = await fetchCandles(symbol, '4h', 500);
+  }
 
   // Run first generation
   await runGeneration(state);
@@ -303,7 +310,11 @@ export async function stepEvolution(batchSize = 5): Promise<boolean> {
 
   // Re-fetch candles if lost (serverless instance may have changed)
   if (!arena.candles || arena.candles.length === 0) {
-    arena.candles = await fetchCandles(arena.symbol, '4h', 500);
+    if (arena.period) {
+      arena.candles = await fetchCandlesForPeriod(arena.symbol, arena.period, '4h');
+    } else {
+      arena.candles = await fetchCandles(arena.symbol, '4h', 500);
+    }
     // Re-run current generation since results were lost
     await runGeneration(arena);
   }
@@ -380,5 +391,6 @@ export function getArenaSnapshot() {
     aiGuidedEvolution: arena.aiGuidedEvolution,
     lastAIBreedingResult: arena.lastAIBreedingResult,
     totalDeaths: arena.agents.filter(a => !a.isAlive).length,
+    period: arena.period,
   };
 }
