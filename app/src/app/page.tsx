@@ -17,6 +17,13 @@ import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
 import { LiveTrading } from '@/components/LiveTrading';
 import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
+import type { TradingPair } from '@/lib/engine/market';
+
+const PAIRS: { symbol: TradingPair; label: string; icon: string }[] = [
+  { symbol: 'SOLUSDT', label: 'SOL', icon: '◎' },
+  { symbol: 'BTCUSDT', label: 'BTC', icon: '₿' },
+  { symbol: 'ETHUSDT', label: 'ETH', icon: 'Ξ' },
+];
 
 // Lazy load heavy components
 const FamilyTree = lazy(() => import('@/components/FamilyTree').then(m => ({ default: m.FamilyTree })));
@@ -72,6 +79,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabId>('arena');
   const [selectedAgent, setSelectedAgent] = useState<AgentGenome | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPair, setSelectedPair] = useState<TradingPair>('SOLUSDT');
 
   const evolutionRef = useRef(false);
 
@@ -142,7 +150,7 @@ export default function Dashboard() {
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50 }),
+        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair }),
       });
       if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
       await fetchStatus();
@@ -161,7 +169,7 @@ export default function Dashboard() {
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50 }),
+        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair }),
       });
       if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
       await fetchStatus();
@@ -258,9 +266,33 @@ export default function Dashboard() {
                       <span className="dna-strand"> Evolve</span>
                     </h2>
                     <p className="text-xs sm:text-sm text-text-secondary leading-relaxed mb-4 sm:mb-6 max-w-md">
-                      Spawn 20 AI agents with random trading strategies. Watch them compete on real SOL market data.
+                      Spawn 20 AI agents with random trading strategies. Watch them compete on real SOL, BTC, or ETH market data.
                       The fittest breed. The weak die. After 50 generations, only the strongest strategy survives.
                     </p>
+                  </motion.div>
+
+                  {/* Pair Selector */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="flex items-center gap-1.5 mb-4"
+                  >
+                    <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold mr-2">Trading Pair</span>
+                    {PAIRS.map(p => (
+                      <button
+                        key={p.symbol}
+                        onClick={() => setSelectedPair(p.symbol)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          selectedPair === p.symbol
+                            ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/40 shadow-[0_0_12px_rgba(59,130,246,0.2)]'
+                            : 'bg-white/5 text-text-muted border border-white/10 hover:bg-white/10 hover:text-text-secondary'
+                        }`}
+                      >
+                        <span className="text-sm">{p.icon}</span>
+                        {p.label}
+                      </button>
+                    ))}
                   </motion.div>
 
                   <motion.div
@@ -333,6 +365,23 @@ export default function Dashboard() {
           <>
             {/* Controls */}
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              {/* Pair selector (compact, in controls bar) */}
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-bg-secondary/80 border border-white/5">
+                {PAIRS.map(p => (
+                  <button
+                    key={p.symbol}
+                    onClick={() => setSelectedPair(p.symbol)}
+                    disabled={evStatus === 'running'}
+                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                      selectedPair === p.symbol
+                        ? 'bg-accent-primary/20 text-accent-primary'
+                        : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
+                    }`}
+                  >
+                    {p.icon} {p.label}
+                  </button>
+                ))}
+              </div>
               {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
                 <>
                   <button onClick={startEvolution} disabled={isStarting}

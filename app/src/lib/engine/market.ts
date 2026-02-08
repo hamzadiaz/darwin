@@ -1,5 +1,5 @@
 /**
- * Market Data Feed — fetches real SOL/USDT OHLCV candles
+ * Market Data Feed — fetches real OHLCV candles for SOL, BTC, ETH
  * Priority: Binance → CoinGecko (real data only, no synthetic)
  */
 
@@ -12,57 +12,74 @@ export interface OHLCV {
   volume: number;  // real volume (0 if unavailable from source)
 }
 
-let candleCache: { data: OHLCV[]; fetchedAt: number } | null = null;
+export type TradingPair = 'SOLUSDT' | 'BTCUSDT' | 'ETHUSDT';
+
+export const SUPPORTED_PAIRS: { symbol: TradingPair; label: string; coingeckoId: string }[] = [
+  { symbol: 'SOLUSDT', label: 'SOL/USDT', coingeckoId: 'solana' },
+  { symbol: 'BTCUSDT', label: 'BTC/USDT', coingeckoId: 'bitcoin' },
+  { symbol: 'ETHUSDT', label: 'ETH/USDT', coingeckoId: 'ethereum' },
+];
+
+// Per-symbol cache
+const candleCaches: Map<string, { data: OHLCV[]; fetchedAt: number }> = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+export function getPairLabel(symbol: TradingPair): string {
+  return SUPPORTED_PAIRS.find(p => p.symbol === symbol)?.label ?? symbol;
+}
+
 /**
- * Fetch real SOL candles. Tries Binance first (best data),
- * falls back to CoinGecko (no volume but real prices).
- * Binance may return 451 from certain server regions (e.g. Vercel US).
+ * Fetch real candles for any supported pair.
+ * Tries Binance first, falls back to CoinGecko.
  */
 export async function fetchCandles(
-  _symbol = 'SOLUSDT',
+  symbol: TradingPair = 'SOLUSDT',
   interval = '4h',
-  _limit = 500,
+  limit = 500,
 ): Promise<OHLCV[]> {
-  if (candleCache && Date.now() - candleCache.fetchedAt < CACHE_TTL) {
-    return candleCache.data;
+  const cacheKey = `${symbol}_${interval}_${limit}`;
+  const cached = candleCaches.get(cacheKey);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+    return cached.data;
   }
 
   // Try Binance first (500 candles, real volume)
   try {
-    const candles = await fetchFromBinance(interval, _limit);
+    const candles = await fetchFromBinance(symbol, interval, limit);
     if (candles.length > 0) {
-      candleCache = { data: candles, fetchedAt: Date.now() };
+      candleCaches.set(cacheKey, { data: candles, fetchedAt: Date.now() });
       return candles;
     }
   } catch (err) {
-    console.warn('Binance failed, trying CoinGecko:', (err as Error).message);
+    console.warn(`Binance failed for ${symbol}, trying CoinGecko:`, (err as Error).message);
   }
 
-  // Fallback: CoinGecko OHLC (180 candles at 4h, no real volume)
-  try {
-    const candles = await fetchFromCoinGecko();
-    if (candles.length > 0) {
-      candleCache = { data: candles, fetchedAt: Date.now() };
-      return candles;
+  // Fallback: CoinGecko OHLC
+  const pair = SUPPORTED_PAIRS.find(p => p.symbol === symbol);
+  if (pair) {
+    try {
+      const candles = await fetchFromCoinGecko(pair.coingeckoId);
+      if (candles.length > 0) {
+        candleCaches.set(cacheKey, { data: candles, fetchedAt: Date.now() });
+        return candles;
+      }
+    } catch (err) {
+      console.error('CoinGecko also failed:', (err as Error).message);
     }
-  } catch (err) {
-    console.error('CoinGecko also failed:', (err as Error).message);
   }
 
   // If we have stale cache, use it (still real data)
-  if (candleCache) {
+  if (cached) {
     console.warn('Using stale cache');
-    return candleCache.data;
+    return cached.data;
   }
 
-  throw new Error('All market data sources failed. Check your internet connection.');
+  throw new Error(`All market data sources failed for ${symbol}. Check your internet connection.`);
 }
 
 /** Binance: best source — 500 candles with real volume */
-async function fetchFromBinance(interval: string, limit: number): Promise<OHLCV[]> {
-  const url = `https://api.binance.com/api/v3/klines?symbol=SOLUSDT&interval=${interval}&limit=${limit}`;
+async function fetchFromBinance(symbol: TradingPair, interval: string, limit: number): Promise<OHLCV[]> {
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
     signal: AbortSignal.timeout(10000),
@@ -81,9 +98,9 @@ async function fetchFromBinance(interval: string, limit: number): Promise<OHLCV[
   }));
 }
 
-/** CoinGecko: fallback — 180 candles at 4h, real OHLC but no volume */
-async function fetchFromCoinGecko(): Promise<OHLCV[]> {
-  const url = 'https://api.coingecko.com/api/v3/coins/solana/ohlc?vs_currency=usd&days=30';
+/** CoinGecko: fallback — real OHLC but no volume */
+async function fetchFromCoinGecko(coingeckoId: string): Promise<OHLCV[]> {
+  const url = `https://api.coingecko.com/api/v3/coins/${coingeckoId}/ohlc?vs_currency=usd&days=30`;
   const res = await fetch(url, {
     headers: { Accept: 'application/json', 'User-Agent': 'Darwin/1.0' },
     signal: AbortSignal.timeout(10000),
@@ -98,10 +115,16 @@ async function fetchFromCoinGecko(): Promise<OHLCV[]> {
     high: c[2],
     low: c[3],
     close: c[4],
-    volume: 0, // CoinGecko OHLC doesn't provide volume
+    volume: 0,
   }));
 }
 
-export function clearCandleCache() {
-  candleCache = null;
+export function clearCandleCache(symbol?: TradingPair) {
+  if (symbol) {
+    for (const key of candleCaches.keys()) {
+      if (key.startsWith(symbol)) candleCaches.delete(key);
+    }
+  } else {
+    candleCaches.clear();
+  }
 }

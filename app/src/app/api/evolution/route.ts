@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest } from '@/lib/engine/arena';
+import { TradingPair, SUPPORTED_PAIRS } from '@/lib/engine/market';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -33,9 +34,11 @@ export async function POST(req: NextRequest) {
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
     const seedGenomes = body.seedGenomes as number[][] | undefined;
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
 
     try {
-      await startEvolution(populationSize, generations, seedGenomes);
+      await startEvolution(populationSize, generations, seedGenomes, symbol);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('startEvolution failed:', message);
@@ -46,6 +49,7 @@ export async function POST(req: NextRequest) {
       status: 'started',
       populationSize,
       generations,
+      symbol,
       seeded: seedGenomes ? seedGenomes.length : 0,
     });
   }
@@ -55,9 +59,11 @@ export async function POST(req: NextRequest) {
     const topGenomes = getTopGenomes(10);
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
 
     try {
-      await startEvolution(populationSize, generations, topGenomes);
+      await startEvolution(populationSize, generations, topGenomes, symbol);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return NextResponse.json({ error: message }, { status: 500 });
