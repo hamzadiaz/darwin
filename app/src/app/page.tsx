@@ -45,6 +45,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabId>('arena');
   const [selectedAgent, setSelectedAgent] = useState<AgentGenome | null>(null);
 
+  const evolutionRef = useRef(false);
+
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/evolution?action=status');
@@ -54,9 +56,39 @@ export default function Dashboard() {
     } catch { /* ignore */ }
   }, []);
 
+  // Step-driven evolution: client drives each generation to avoid serverless timeout
+  const runEvolutionLoop = useCallback(async () => {
+    evolutionRef.current = true;
+    while (evolutionRef.current) {
+      try {
+        // Step one generation
+        const res = await fetch('/api/evolution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'step' }),
+        });
+        const stepResult = await res.json();
+
+        // Fetch full status for UI
+        await fetchStatus();
+
+        if (stepResult.status === 'complete') {
+          evolutionRef.current = false;
+          break;
+        }
+
+        // Small delay between steps for UI to breathe
+        await new Promise(r => setTimeout(r, 300));
+      } catch {
+        // Retry after a pause
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+  }, [fetchStatus]);
+
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, data?.status === 'running' ? 500 : 5000);
+    const interval = setInterval(fetchStatus, data?.status === 'running' ? 2000 : 5000);
     return () => clearInterval(interval);
   }, [fetchStatus, data?.status]);
 
@@ -66,14 +98,17 @@ export default function Dashboard() {
       await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 15 }),
+        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50 }),
       });
-      setTimeout(fetchStatus, 200);
+      await fetchStatus();
+      // Start the step-driven loop
+      runEvolutionLoop();
     } catch { /* ignore */ }
     setIsStarting(false);
   };
 
   const stopEvolution = async () => {
+    evolutionRef.current = false;
     await fetch('/api/evolution', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -185,7 +185,7 @@ function evolvePopulation(state: ArenaState): void {
   }
 }
 
-/** Start the full evolution loop */
+/** Initialize and fetch candles, ready for step-by-step evolution */
 export async function startEvolution(
   populationSize = 20,
   maxGenerations = 50,
@@ -195,30 +195,36 @@ export async function startEvolution(
   const state = initArena(populationSize, maxGenerations);
   state.status = 'running';
 
-  runningPromise = (async () => {
-    try {
-      // Fetch real market data (30 days = ~180 candles at 4h from CoinGecko)
-      state.candles = await fetchCandles('SOL', '4h', 30);
+  // Fetch real market data upfront
+  state.candles = await fetchCandles('SOL', '4h', 30);
 
-      for (let gen = 0; gen < maxGenerations; gen++) {
-        if (state.status !== 'running') break;
+  // Run first generation immediately
+  await runGeneration(state);
+}
 
-        await runGeneration(state);
+/** Run the next generation step. Called by client polling. Returns true if evolution is complete. */
+export async function stepEvolution(): Promise<boolean> {
+  if (!arena || arena.status !== 'running') return true;
 
-        if (gen < maxGenerations - 1) {
-          evolvePopulation(state);
-        }
+  // Evolve population from current results
+  evolvePopulation(arena);
 
-        // Small delay to allow API polling to see intermediate states
-        await new Promise((r) => setTimeout(r, 100));
-      }
+  // Check if we've reached max generations
+  if (arena.currentGeneration >= arena.maxGenerations) {
+    arena.status = 'complete';
+    return true;
+  }
 
-      state.status = 'complete';
-    } catch (err) {
-      console.error('Evolution error:', err);
-      state.status = 'idle';
-    }
-  })();
+  // Run next generation
+  await runGeneration(arena);
+
+  // Auto-complete if at max
+  if (arena.currentGeneration >= arena.maxGenerations - 1) {
+    arena.status = 'complete';
+    return true;
+  }
+
+  return false;
 }
 
 export function stopEvolution(): void {

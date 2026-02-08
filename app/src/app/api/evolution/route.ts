@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startEvolution, stopEvolution, getArenaSnapshot } from '@/lib/engine/arena';
+import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot } from '@/lib/engine/arena';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -33,13 +33,24 @@ export async function POST(req: NextRequest) {
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
 
-    // Start evolution in background (don't await)
-    startEvolution(populationSize, generations);
+    await startEvolution(populationSize, generations);
 
     return NextResponse.json({
       status: 'started',
       populationSize,
       generations,
+    });
+  }
+
+  if (action === 'step') {
+    // Client calls this repeatedly to advance evolution one generation at a time
+    // This avoids Vercel serverless timeout killing background promises
+    const complete = await stepEvolution();
+    const snapshot = getArenaSnapshot();
+    return NextResponse.json({
+      status: complete ? 'complete' : 'running',
+      currentGeneration: snapshot?.currentGeneration ?? 0,
+      maxGenerations: snapshot?.maxGenerations ?? 0,
     });
   }
 
