@@ -28,7 +28,6 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
     } catch { /* ignore */ }
   }, []);
 
-  // Poll for updates when agent is running
   useEffect(() => {
     fetchState();
     const interval = setInterval(async () => {
@@ -42,7 +41,7 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
           if (res.ok) setState(await res.json());
         } catch { /* ignore */ }
       }
-    }, 30000); // Every 30s
+    }, 30000);
     return () => clearInterval(interval);
   }, [state?.isRunning, fetchState]);
 
@@ -58,7 +57,6 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
       if (!res.ok) throw new Error('Deploy failed');
       const data = await res.json();
       setState(data);
-      // Trigger first update
       setTimeout(async () => {
         const r = await fetch('/api/live-trading', {
           method: 'POST',
@@ -80,33 +78,23 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'stop' }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setState(data);
-      }
+      if (res.ok) setState(await res.json());
     } catch { /* ignore */ }
   };
-
-  const positionIcon = state?.position === 'long'
-    ? <TrendingUp className="w-4 h-4 text-success" />
-    : state?.position === 'short'
-      ? <TrendingDown className="w-4 h-4 text-danger" />
-      : <Minus className="w-4 h-4 text-text-muted" />;
 
   const positionColor = state?.position === 'long' ? 'text-success' : state?.position === 'short' ? 'text-danger' : 'text-text-muted';
 
   return (
     <div className="space-y-4">
-      {/* Deploy Section */}
       {!state?.isRunning ? (
-        <div className="glass-card rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-primary/20 flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-accent-primary" />
+        <div className="glass-card rounded-xl p-5 space-y-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-accent-primary/10 flex items-center justify-center">
+              <Rocket className="w-4 h-4 text-accent-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-text-primary">Deploy Live Agent</h3>
-              <p className="text-xs text-text-muted">Run the best evolved strategy against live SOL prices</p>
+              <h3 className="text-base font-semibold text-text-primary">Deploy Live Agent</h3>
+              <p className="text-[11px] text-text-muted">Run the best evolved strategy against live prices</p>
             </div>
           </div>
 
@@ -114,110 +102,99 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMode('paper')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mode === 'paper'
-                ? 'bg-accent-tertiary/20 text-accent-tertiary border border-accent-tertiary/30'
-                : 'bg-white/5 text-text-muted hover:bg-white/10'
-                }`}
+              className={`px-4 py-2 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${mode === 'paper'
+                ? 'bg-accent-tertiary/10 text-accent-tertiary border border-accent-tertiary/20'
+                : 'bg-bg-elevated/40 text-text-muted hover:bg-bg-elevated/60'
+              }`}
             >
-              📝 Paper Trading
+              Paper Trading
             </button>
             <button
               onClick={() => setMode('live')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${mode === 'live'
-                ? 'bg-danger/20 text-danger border border-danger/30'
-                : 'bg-white/5 text-text-muted hover:bg-white/10'
-                }`}
+              className={`px-4 py-2 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${mode === 'live'
+                ? 'bg-danger/10 text-danger border border-danger/20'
+                : 'bg-bg-elevated/40 text-text-muted hover:bg-bg-elevated/60'
+              }`}
             >
-              ⚡ Live Trading
+              Live Trading
             </button>
           </div>
 
           {mode === 'live' && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-danger/10 border border-danger/20">
-              <AlertTriangle className="w-4 h-4 text-danger flex-shrink-0" />
-              <p className="text-xs text-danger">Live trading executes real swaps on Jupiter DEX. Use at your own risk.</p>
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-danger/[0.04] border border-danger/10">
+              <AlertTriangle className="w-3.5 h-3.5 text-danger mt-0.5 flex-shrink-0" />
+              <p className="text-[11px] text-danger/80">Live trading executes real swaps on Jupiter DEX. Use at your own risk.</p>
             </div>
           )}
 
           {!hasEvolutionData && (
-            <p className="text-xs text-text-muted">⚠️ Run evolution first to generate a genome, or a random one will be used.</p>
+            <p className="text-[11px] text-text-muted">Run evolution first to generate a genome, or a random one will be used.</p>
           )}
 
           <button
             onClick={deployAgent}
             disabled={deploying}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-accent-primary/80 to-evolution-purple/80 text-white text-sm font-bold hover:from-accent-primary hover:to-evolution-purple transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-accent-primary/80 to-evolution-purple/80 text-white text-[13px] font-semibold hover:from-accent-primary hover:to-evolution-purple transition-all disabled:opacity-50 cursor-pointer"
           >
             {deploying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
             Deploy Agent ({mode === 'paper' ? 'Paper' : 'Live'})
           </button>
 
-          {error && <p className="text-xs text-danger">⚠️ {error}</p>}
+          {error && <p className="text-[11px] text-danger">{error}</p>}
         </div>
       ) : (
         <>
           {/* Live Dashboard */}
-          <div className="glass-card rounded-2xl p-5 space-y-4">
-            {/* Header */}
+          <div className="glass-card rounded-xl p-4 sm:p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-success/20 flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-success animate-pulse" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-success/10 flex items-center justify-center">
+                  <Activity className="w-3.5 h-3.5 text-success" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Live Agent</h3>
+                  <h3 className="section-title text-sm">Live Agent</h3>
                   <p className="text-[10px] text-text-muted font-mono">
-                    {state.mode === 'paper' ? '📝 Paper Mode' : '⚡ Live Mode'} · Updated {state.lastUpdate ? new Date(state.lastUpdate).toLocaleTimeString() : 'never'}
+                    {state.mode === 'paper' ? 'Paper' : 'Live'} · {state.lastUpdate ? new Date(state.lastUpdate).toLocaleTimeString() : '—'}
                   </p>
                 </div>
               </div>
               <button
                 onClick={stopAgent}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-danger/20 border border-danger/30 text-danger text-[10px] font-bold hover:bg-danger/30 transition-all"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-danger/8 border border-danger/15 text-danger text-[10px] font-medium hover:bg-danger/12 transition-colors cursor-pointer"
               >
                 <Square className="w-3 h-3" /> Stop
               </button>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard
-                label="SOL Price"
-                value={state.currentPrice > 0 ? `$${state.currentPrice.toFixed(2)}` : '—'}
-                icon={<DollarSign className="w-3.5 h-3.5 text-accent-primary" />}
-              />
-              <StatCard
-                label="Position"
-                value={state.position.toUpperCase()}
-                icon={positionIcon}
-                valueClass={positionColor}
-              />
-              <StatCard
-                label="Portfolio"
-                value={`$${state.portfolioValue.toFixed(2)}`}
-                icon={<DollarSign className="w-3.5 h-3.5 text-accent-secondary" />}
-              />
-              <StatCard
-                label="Total PnL"
-                value={`${state.totalPnl >= 0 ? '+' : ''}${state.totalPnl.toFixed(2)}%`}
-                icon={<TrendingUp className="w-3.5 h-3.5" />}
-                valueClass={state.totalPnl >= 0 ? 'text-success' : 'text-danger'}
-              />
+            {/* Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+              {[
+                { label: 'SOL Price', value: state.currentPrice > 0 ? `$${state.currentPrice.toFixed(2)}` : '—', icon: <DollarSign className="w-3 h-3 text-accent-primary" />, cls: 'text-text-primary' },
+                { label: 'Position', value: state.position.toUpperCase(), icon: state.position === 'long' ? <TrendingUp className="w-3 h-3 text-success" /> : state.position === 'short' ? <TrendingDown className="w-3 h-3 text-danger" /> : <Minus className="w-3 h-3 text-text-muted" />, cls: positionColor },
+                { label: 'Portfolio', value: `$${state.portfolioValue.toFixed(2)}`, icon: <DollarSign className="w-3 h-3 text-accent-secondary" />, cls: 'text-text-primary' },
+                { label: 'Total PnL', value: `${state.totalPnl >= 0 ? '+' : ''}${state.totalPnl.toFixed(2)}%`, icon: <TrendingUp className="w-3 h-3" />, cls: state.totalPnl >= 0 ? 'text-success' : 'text-danger' },
+              ].map(s => (
+                <div key={s.label} className="p-3 rounded-lg bg-bg-elevated/30">
+                  <div className="flex items-center gap-1 mb-1">
+                    {s.icon}
+                    <span className="text-[9px] text-text-muted uppercase tracking-wider">{s.label}</span>
+                  </div>
+                  <p className={`text-sm font-mono font-bold ${s.cls}`}>{s.value}</p>
+                </div>
+              ))}
             </div>
 
-            {/* Signal Strength */}
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Signal</span>
-                <span className={`text-xs font-bold ${state.currentSignal === 'BUY' ? 'text-success' : state.currentSignal === 'SELL' ? 'text-danger' : 'text-text-muted'
-                  }`}>
+            {/* Signal */}
+            <div className="p-3 rounded-lg bg-bg-elevated/20">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] text-text-muted">Signal</span>
+                <span className={`text-[11px] font-bold ${state.currentSignal === 'BUY' ? 'text-success' : state.currentSignal === 'SELL' ? 'text-danger' : 'text-text-muted'}`}>
                   {state.currentSignal}
                 </span>
               </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
+              <div className="w-full bg-bg-primary/60 rounded-full h-1.5">
                 <motion.div
-                  className={`h-2 rounded-full ${state.currentSignal === 'BUY' ? 'bg-success' : state.currentSignal === 'SELL' ? 'bg-danger' : 'bg-text-muted/30'
-                    }`}
+                  className={`h-1.5 rounded-full ${state.currentSignal === 'BUY' ? 'bg-success' : state.currentSignal === 'SELL' ? 'bg-danger' : 'bg-text-muted/20'}`}
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, state.signalStrength * 100)}%` }}
                   transition={{ duration: 0.5 }}
@@ -227,12 +204,12 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
           </div>
 
           {/* Trade History */}
-          <div className="glass-card rounded-2xl p-5 space-y-3">
-            <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">Trade History</h4>
+          <div className="glass-card rounded-xl p-4 sm:p-5 space-y-3">
+            <h4 className="section-title text-sm">Trade History</h4>
             {state.trades.length === 0 ? (
-              <p className="text-xs text-text-muted text-center py-4">No trades yet — waiting for signals...</p>
+              <p className="text-[11px] text-text-muted text-center py-4">No trades yet — waiting for signals...</p>
             ) : (
-              <div className="space-y-2 max-h-64 overflow-y-auto scrollbar-custom">
+              <div className="space-y-1 max-h-60 overflow-y-auto scrollbar-custom">
                 {[...state.trades].reverse().map((trade) => (
                   <TradeRow key={trade.id} trade={trade} />
                 ))}
@@ -245,63 +222,38 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
   );
 }
 
-function StatCard({ label, value, icon, valueClass = 'text-text-primary' }: {
-  label: string; value: string; icon: React.ReactNode; valueClass?: string;
-}) {
-  return (
-    <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-      <div className="flex items-center gap-1.5 mb-1">
-        {icon}
-        <span className="text-[9px] font-bold text-text-muted uppercase tracking-wider">{label}</span>
-      </div>
-      <p className={`text-sm font-mono font-bold ${valueClass}`}>{value}</p>
-    </div>
-  );
-}
-
 function TradeRow({ trade }: { trade: LiveTrade }) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: -10 }}
+      initial={{ opacity: 0, x: -6 }}
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-center justify-between p-2.5 rounded-lg bg-white/5 border border-white/5"
+      className="flex items-center justify-between px-2.5 py-2 rounded-lg row-hover"
     >
-      <div className="flex items-center gap-3">
-        <div className={`w-6 h-6 rounded-md flex items-center justify-center ${trade.type === 'BUY' ? 'bg-success/20' : 'bg-danger/20'
-          }`}>
+      <div className="flex items-center gap-2.5">
+        <div className={`w-5 h-5 rounded flex items-center justify-center ${trade.type === 'BUY' ? 'bg-success/10' : 'bg-danger/10'}`}>
           {trade.type === 'BUY'
-            ? <TrendingUp className="w-3 h-3 text-success" />
-            : <TrendingDown className="w-3 h-3 text-danger" />}
+            ? <TrendingUp className="w-2.5 h-2.5 text-success" />
+            : <TrendingDown className="w-2.5 h-2.5 text-danger" />}
         </div>
         <div>
-          <span className={`text-xs font-bold ${trade.type === 'BUY' ? 'text-success' : 'text-danger'}`}>
+          <span className={`text-[11px] font-medium ${trade.type === 'BUY' ? 'text-success' : 'text-danger'}`}>
             {trade.type}
           </span>
-          <span className="text-[10px] text-text-muted ml-2">
-            @ ${trade.price.toFixed(2)}
-          </span>
+          <span className="text-[10px] text-text-muted ml-1.5">@ ${trade.price.toFixed(2)}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {trade.pnl !== 0 && (
-          <span className={`text-xs font-mono font-bold ${trade.pnl >= 0 ? 'text-success' : 'text-danger'}`}>
+          <span className={`text-[11px] font-mono font-bold ${trade.pnl >= 0 ? 'text-success' : 'text-danger'}`}>
             {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}%
           </span>
         )}
-        <span className="text-[9px] text-text-muted font-mono">
-          {trade.mode === 'paper' ? '📝' : '⚡'}
-        </span>
         {trade.jupiterUrl && (
-          <a
-            href={trade.jupiterUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-accent-primary hover:text-accent-primary/80"
-          >
-            <ExternalLink className="w-3 h-3" />
+          <a href={trade.jupiterUrl} target="_blank" rel="noopener noreferrer" className="text-accent-primary/60 hover:text-accent-primary">
+            <ExternalLink className="w-2.5 h-2.5" />
           </a>
         )}
-        <span className="text-[9px] text-text-muted/50">
+        <span className="text-[9px] text-text-muted/50 font-mono">
           {new Date(trade.timestamp).toLocaleTimeString()}
         </span>
       </div>

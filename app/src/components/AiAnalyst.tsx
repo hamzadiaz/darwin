@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Sparkles, TrendingUp, Lightbulb, Loader2, RefreshCw, Dna, Target, BarChart3 } from 'lucide-react';
 import type { AnalysisResult } from '@/lib/engine/analyst';
@@ -20,7 +20,6 @@ interface AiAnalystProps {
   aiBreedingResult?: AIBreedingResult | null;
 }
 
-/** Typing effect hook */
 function useTypingEffect(text: string, speed = 15): string {
   const [displayed, setDisplayed] = useState('');
   const [currentText, setCurrentText] = useState('');
@@ -47,7 +46,7 @@ function useTypingEffect(text: string, speed = 15): string {
 
 function TypedText({ text, className = '' }: { text: string; className?: string }) {
   const displayed = useTypingEffect(text);
-  return <p className={className}>{displayed}<span className="animate-pulse">|</span></p>;
+  return <p className={className}>{displayed}<span className="animate-pulse text-text-muted">|</span></p>;
 }
 
 export function AiAnalyst({
@@ -81,15 +80,11 @@ export function AiAnalyst({
           avgPnl, bestPnl, populationSize, candleSummary,
         }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setAnalysis(data);
-      }
+      if (res.ok) setAnalysis(await res.json());
     } catch { /* ignore */ }
     setLoading(false);
   };
 
-  // Auto-analyze on generation change
   useEffect(() => {
     if (autoAnalyze && generation !== lastGen && generation > 0 && generation % 5 === 0) {
       setLastGen(generation);
@@ -106,25 +101,22 @@ export function AiAnalyst({
       ? 'text-danger' : 'text-yellow-400';
 
   return (
-    <div className="glass-card rounded-2xl p-5 space-y-4 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-bl from-evolution-purple/10 to-transparent rounded-full blur-3xl" />
-
+    <div className="glass-card rounded-xl p-4 sm:p-5 space-y-3 relative overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-evolution-purple/20 flex items-center justify-center">
-            <Brain className="w-4 h-4 text-evolution-purple" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-evolution-purple/10 flex items-center justify-center">
+            <Brain className="w-3.5 h-3.5 text-evolution-purple" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">AI Analyst</h3>
-            <p className="text-[10px] text-text-muted font-mono">Powered by Gemini Flash</p>
+            <h3 className="section-title text-sm">AI Analyst</h3>
+            <p className="text-[10px] text-text-muted font-mono">Gemini Flash</p>
           </div>
         </div>
         <button
           onClick={runAnalysis}
           disabled={loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-[10px] font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-evolution-purple/8 border border-evolution-purple/15 text-evolution-purple text-[10px] font-medium hover:bg-evolution-purple/12 transition-colors disabled:opacity-50 cursor-pointer"
         >
           {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
           Analyze
@@ -133,65 +125,54 @@ export function AiAnalyst({
 
       {/* AI Breeding Decisions */}
       {decision && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-3 relative z-10"
-        >
-          {/* Market Regime Detection */}
-          <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <BarChart3 className="w-3 h-3 text-accent-primary" />
-              <span className="text-[10px] font-bold text-accent-primary uppercase tracking-wider">Market Regime</span>
-              <span className={`ml-auto text-[10px] font-mono font-bold ${regimeColor}`}>
-                {aiBreedingResult?.marketRegimeDetection?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}
-              </span>
-            </div>
-          </div>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+          <InfoBlock
+            icon={<BarChart3 className="w-3 h-3 text-accent-primary" />}
+            label="Market Regime"
+            labelColor="text-accent-primary"
+            extra={<span className={`text-[10px] font-mono font-bold ${regimeColor}`}>
+              {aiBreedingResult?.marketRegimeDetection?.replace('_', ' ').toUpperCase() || 'UNKNOWN'}
+            </span>}
+          />
 
-          {/* Breeding Decision */}
-          <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <Dna className="w-3 h-3 text-evolution-purple" />
-              <span className="text-[10px] font-bold text-evolution-purple uppercase tracking-wider">AI Breeding Decision</span>
-              <span className="ml-auto text-[9px] font-mono text-text-muted">
-                confidence: {(decision.confidence * 100).toFixed(0)}%
-              </span>
-            </div>
+          <InfoBlock
+            icon={<Dna className="w-3 h-3 text-evolution-purple" />}
+            label="AI Breeding Decision"
+            labelColor="text-evolution-purple"
+            extra={<span className="text-[9px] font-mono text-text-muted">{(decision.confidence * 100).toFixed(0)}%</span>}
+          >
             {showTyping ? (
-              <TypedText text={decision.reasoning} className="text-xs text-text-secondary leading-relaxed" />
+              <TypedText text={decision.reasoning} className="text-[11px] text-text-secondary leading-relaxed" />
             ) : (
-              <p className="text-xs text-text-secondary leading-relaxed">{decision.reasoning}</p>
+              <p className="text-[11px] text-text-secondary leading-relaxed">{decision.reasoning}</p>
             )}
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-evolution-purple/10 text-evolution-purple font-mono">
-                Parent #{decision.parentA} × #{decision.parentB}
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-evolution-purple/8 text-evolution-purple font-mono">
+                #{decision.parentA} × #{decision.parentB}
               </span>
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-accent-primary/10 text-accent-primary font-mono">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-accent-primary/8 text-accent-primary font-mono">
                 {decision.strategyFocus}
               </span>
             </div>
-          </div>
+          </InfoBlock>
 
-          {/* Evolution Strategy */}
           {aiBreedingResult?.evolutionStrategy && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Target className="w-3 h-3 text-accent-tertiary" />
-                <span className="text-[10px] font-bold text-accent-tertiary uppercase tracking-wider">Evolution Strategy</span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">{aiBreedingResult.evolutionStrategy}</p>
-            </div>
+            <InfoBlock
+              icon={<Target className="w-3 h-3 text-accent-tertiary" />}
+              label="Evolution Strategy"
+              labelColor="text-accent-tertiary"
+            >
+              <p className="text-[11px] text-text-secondary leading-relaxed">{aiBreedingResult.evolutionStrategy}</p>
+            </InfoBlock>
           )}
 
-          {/* Mutation Bias */}
           {Object.keys(decision.mutationBias).length > 0 && (
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Sparkles className="w-3 h-3 text-yellow-400" />
-                <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider">Mutation Bias</span>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
+            <InfoBlock
+              icon={<Sparkles className="w-3 h-3 text-yellow-400" />}
+              label="Mutation Bias"
+              labelColor="text-yellow-400"
+            >
+              <div className="grid grid-cols-2 gap-1">
                 {Object.entries(decision.mutationBias).map(([gene, bias]) => (
                   <div key={gene} className="flex items-center justify-between text-[10px]">
                     <span className="text-text-muted">{gene}</span>
@@ -201,83 +182,69 @@ export function AiAnalyst({
                   </div>
                 ))}
               </div>
-            </div>
+            </InfoBlock>
           )}
         </motion.div>
       )}
 
       <AnimatePresence mode="wait">
         {loading && !analysis && (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center justify-center py-8"
-          >
+          <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center py-6">
             <div className="text-center">
-              <Loader2 className="w-6 h-6 animate-spin text-evolution-purple mx-auto mb-2" />
-              <p className="text-xs text-text-muted">Analyzing genome...</p>
+              <Loader2 className="w-5 h-5 animate-spin text-evolution-purple mx-auto mb-2" />
+              <p className="text-[11px] text-text-muted">Analyzing genome...</p>
             </div>
           </motion.div>
         )}
 
         {analysis && (
-          <motion.div
-            key="analysis"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-3 relative z-10"
-          >
-            {/* Strategy Description */}
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Sparkles className="w-3 h-3 text-accent-primary" />
-                <span className="text-[10px] font-bold text-accent-primary uppercase tracking-wider">Strategy</span>
-                <span className={`ml-auto text-[9px] font-mono ${confidenceColor}`}>
-                  {analysis.confidence} confidence
-                </span>
-              </div>
+          <motion.div key="analysis" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+            <InfoBlock
+              icon={<Sparkles className="w-3 h-3 text-accent-primary" />}
+              label="Strategy"
+              labelColor="text-accent-primary"
+              extra={<span className={`text-[9px] font-mono ${confidenceColor}`}>{analysis.confidence}</span>}
+            >
               {showTyping ? (
-                <TypedText text={analysis.strategyDescription} className="text-xs text-text-secondary leading-relaxed" />
+                <TypedText text={analysis.strategyDescription} className="text-[11px] text-text-secondary leading-relaxed" />
               ) : (
-                <p className="text-xs text-text-secondary leading-relaxed">{analysis.strategyDescription}</p>
+                <p className="text-[11px] text-text-secondary leading-relaxed">{analysis.strategyDescription}</p>
               )}
-            </div>
+            </InfoBlock>
 
-            {/* Market Insight */}
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <TrendingUp className="w-3 h-3 text-success" />
-                <span className="text-[10px] font-bold text-success uppercase tracking-wider">Market Insight</span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">{analysis.marketInsight}</p>
-            </div>
+            <InfoBlock icon={<TrendingUp className="w-3 h-3 text-success" />} label="Market Insight" labelColor="text-success">
+              <p className="text-[11px] text-text-secondary leading-relaxed">{analysis.marketInsight}</p>
+            </InfoBlock>
 
-            {/* Mutation Suggestion */}
-            <div className="p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Lightbulb className="w-3 h-3 text-yellow-400" />
-                <span className="text-[10px] font-bold text-yellow-400 uppercase tracking-wider">Mutation Advice</span>
-              </div>
-              <p className="text-xs text-text-secondary leading-relaxed">{analysis.mutationSuggestion}</p>
-            </div>
+            <InfoBlock icon={<Lightbulb className="w-3 h-3 text-yellow-400" />} label="Mutation Advice" labelColor="text-yellow-400">
+              <p className="text-[11px] text-text-secondary leading-relaxed">{analysis.mutationSuggestion}</p>
+            </InfoBlock>
           </motion.div>
         )}
 
         {!analysis && !loading && !decision && (
-          <motion.div
-            key="empty"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="py-6 text-center"
-          >
-            <Brain className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
-            <p className="text-xs text-text-muted">Click Analyze to get AI insights on the best evolved strategy</p>
-            <p className="text-[10px] text-text-muted/50 mt-1">Auto-analyzes every 5 generations</p>
+          <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-6 text-center">
+            <Brain className="w-7 h-7 text-text-muted/15 mx-auto mb-2" />
+            <p className="text-[11px] text-text-muted">Click Analyze for AI insights</p>
+            <p className="text-[10px] text-text-muted/50 mt-0.5">Auto-analyzes every 5 gens</p>
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+function InfoBlock({ icon, label, labelColor, extra, children }: {
+  icon: React.ReactNode; label: string; labelColor: string; extra?: React.ReactNode; children?: React.ReactNode;
+}) {
+  return (
+    <div className="p-3 rounded-lg bg-bg-elevated/25 border border-white/[0.03]">
+      <div className="flex items-center gap-1.5 mb-1.5">
+        {icon}
+        <span className={`text-[10px] font-medium uppercase tracking-wider ${labelColor}`}>{label}</span>
+        {extra && <span className="ml-auto">{extra}</span>}
+      </div>
+      {children}
     </div>
   );
 }

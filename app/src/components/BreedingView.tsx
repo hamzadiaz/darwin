@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dna, Zap, Sparkles } from 'lucide-react';
 import { AgentGenome } from '@/types';
@@ -33,7 +33,6 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
 
     setTimeout(() => setStage('merge'), 1500);
 
-    // Call real breed-and-test API
     try {
       const res = await fetch('/api/evolution', {
         method: 'POST',
@@ -49,7 +48,6 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
           setMutations(muts);
           setChild(c);
         } else {
-          // Fallback: client-side simulation
           const childGenome = pA.genome.map((g, i) => {
             const crossed = Math.random() > 0.5 ? g : pB.genome[i];
             return Math.random() < 0.1 ? Math.min(1000, Math.max(0, crossed + (Math.random() - 0.5) * 200)) : crossed;
@@ -59,22 +57,14 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
           setChild({
             id: allAgents.length + 1,
             generation: Math.max(pA.generation, pB.generation) + 1,
-            parentA: pA.id,
-            parentB: pB.id,
-            genome: childGenome,
-            bornAt: Date.now(),
-            diedAt: null,
-            totalPnl: 0,
-            totalTrades: 0,
-            winRate: 0,
-            isAlive: true,
-            owner: '',
+            parentA: pA.id, parentB: pB.id,
+            genome: childGenome, bornAt: Date.now(), diedAt: null,
+            totalPnl: 0, totalTrades: 0, winRate: 0, isAlive: true, owner: '',
           });
         }
         setStage('child');
       }, 2000);
     } catch {
-      // Fallback on error
       setTimeout(() => {
         const childGenome = pA.genome.map((g, i) => Math.random() > 0.5 ? g : pB.genome[i]);
         setChild({
@@ -90,38 +80,36 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-evolution-purple/10 flex items-center justify-center">
-            <Dna className="w-4 h-4 text-evolution-purple" />
+    <div className="glass-card rounded-xl p-5">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-evolution-purple/10 flex items-center justify-center">
+            <Dna className="w-3.5 h-3.5 text-evolution-purple" />
           </div>
-          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Breeding Lab</h3>
+          <h3 className="section-title text-sm">Breeding Lab</h3>
         </div>
         <button
           onClick={() => { setStage('idle'); setTimeout(simulateBreeding, 100); }}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs font-bold hover:bg-evolution-purple/30 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-medium hover:bg-evolution-purple/15 transition-colors cursor-pointer"
         >
           <Zap className="w-3 h-3" /> Breed Top 2
         </button>
       </div>
 
-      <div className="relative flex items-center justify-center gap-4 min-h-[400px]">
+      <div className="relative flex items-center justify-center gap-4 min-h-[360px]">
         <AnimatePresence mode="wait">
-          {/* Parent A */}
           {(stage === 'parents' || stage === 'merge') && parentA && (
             <motion.div
               key="parentA"
               initial={{ x: -200, opacity: 0 }}
               animate={{ x: stage === 'merge' ? -40 : 0, opacity: 1 }}
               exit={{ x: -200, opacity: 0 }}
-              className="w-56"
+              className="w-52"
             >
               <AgentCard agent={parentA} compact />
             </motion.div>
           )}
 
-          {/* DNA Merge */}
           {stage === 'merge' && (
             <motion.div
               key="merge"
@@ -129,24 +117,22 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
               animate={{ scale: 1, opacity: 1 }}
               className="mx-4"
             >
-              <DnaHelix genome={parentA?.genome} merging height={250} />
+              <DnaHelix genome={parentA?.genome} merging height={220} />
             </motion.div>
           )}
 
-          {/* Parent B */}
           {(stage === 'parents' || stage === 'merge') && parentB && (
             <motion.div
               key="parentB"
               initial={{ x: 200, opacity: 0 }}
               animate={{ x: stage === 'merge' ? 40 : 0, opacity: 1 }}
               exit={{ x: 200, opacity: 0 }}
-              className="w-56"
+              className="w-52"
             >
               <AgentCard agent={parentB} compact />
             </motion.div>
           )}
 
-          {/* Child */}
           {stage === 'child' && child && (
             <motion.div
               key="child"
@@ -155,23 +141,15 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
               transition={{ type: 'spring', damping: 12 }}
               className="relative"
             >
-              {/* Glow burst */}
-              <motion.div
-                className="absolute inset-0 rounded-2xl"
-                initial={{ boxShadow: '0 0 0px rgba(16,185,129,0)' }}
-                animate={{ boxShadow: ['0 0 60px rgba(16,185,129,0.4)', '0 0 20px rgba(16,185,129,0.1)'] }}
-                transition={{ duration: 1 }}
-              />
-              <div className="w-64">
+              <div className="w-60">
                 <AgentCard agent={child} highlight parentGenome={parentA?.genome} />
               </div>
-              {/* Mutation badges */}
               {mutations.length > 0 && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="mt-3 flex items-center gap-1 justify-center"
+                  className="mt-2 flex items-center gap-1 justify-center"
                 >
                   <Sparkles className="w-3 h-3 text-danger" />
                   <span className="text-[10px] font-mono text-danger">
@@ -182,11 +160,10 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
             </motion.div>
           )}
 
-          {/* Idle */}
           {stage === 'idle' && (
-            <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-              <Dna className="w-12 h-12 text-text-muted/30 mx-auto mb-3" />
-              <p className="text-sm text-text-muted">Select two agents or click &quot;Breed Top 2&quot; to start</p>
+            <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
+              <Dna className="w-10 h-10 text-text-muted/20 mx-auto mb-3" />
+              <p className="text-xs text-text-muted">Click &quot;Breed Top 2&quot; to start</p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -17,74 +17,83 @@ export function Leaderboard({ agents }: LeaderboardProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
+      initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3 }}
-      className="glass-card rounded-2xl p-5 h-full overflow-hidden flex flex-col"
+      transition={{ delay: 0.2, duration: 0.4 }}
+      className="glass-card rounded-xl p-4 sm:p-5 h-full flex flex-col"
     >
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
-          <Trophy className="w-4 h-4 text-warning" />
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-warning/10 flex items-center justify-center">
+            <Trophy className="w-3.5 h-3.5 text-warning" />
+          </div>
+          <div>
+            <h3 className="section-title text-sm">Leaderboard</h3>
+            <p className="text-[10px] text-text-muted">Top agents by PnL</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Leaderboard</h3>
-          <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">Top Agents by PnL</p>
-        </div>
+        <span className="text-[10px] font-mono text-text-muted">{sorted.length} alive</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-custom space-y-2">
+      {/* Table Header */}
+      <div className="grid grid-cols-[28px_1fr_auto] gap-2 px-2 mb-1.5">
+        <span className="text-[9px] uppercase tracking-wider text-text-muted font-medium">#</span>
+        <span className="text-[9px] uppercase tracking-wider text-text-muted font-medium">Agent</span>
+        <span className="text-[9px] uppercase tracking-wider text-text-muted font-medium text-right">PnL</span>
+      </div>
+
+      {/* Rows */}
+      <div className="flex-1 overflow-y-auto scrollbar-custom space-y-0.5">
         {sorted.map((agent, i) => (
           <motion.div
             key={agent.id}
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 8 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4 + i * 0.05 }}
+            transition={{ delay: 0.25 + i * 0.04, duration: 0.3 }}
             className={cn(
-              'group relative flex items-center justify-between p-3 rounded-xl border border-white/5 hover:bg-bg-elevated/50 hover:border-white/10 transition-all',
-              i === 0 && 'bg-warning/5 border-warning/20 glow-success',
-              i === 1 && 'bg-bg-elevated/30',
-              i === 2 && 'bg-bg-elevated/20',
+              'grid grid-cols-[28px_1fr_auto] gap-2 items-center px-2 py-2 rounded-lg row-hover cursor-default',
+              i === 0 && 'bg-warning/[0.04]',
             )}
           >
-            <div className="flex items-center gap-3">
-              <div
-                className={cn(
-                  'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold font-mono',
-                  i === 0 && 'bg-warning/20 text-warning',
-                  i === 1 && 'bg-text-secondary/20 text-text-secondary',
-                  i === 2 && 'bg-orange-500/20 text-orange-400',
-                  i > 2 && 'bg-bg-card text-text-muted',
-                )}
-              >
-                {i + 1}
-              </div>
-              <div>
-                <p className="text-xs font-bold text-text-primary tracking-tight flex items-center gap-1.5">
-                  Agent #{agent.id}
-                  {!agent.isAlive && <Skull className="w-3 h-3 text-danger" />}
-                </p>
-                <p className="text-[9px] text-text-muted font-mono">
-                  Gen {agent.generation} · {agent.totalTrades} trades
-                </p>
-              </div>
+            {/* Rank */}
+            <div
+              className={cn(
+                'w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold font-mono',
+                i === 0 && 'bg-warning/15 text-warning',
+                i === 1 && 'bg-text-secondary/10 text-text-secondary',
+                i === 2 && 'bg-orange-500/10 text-orange-400',
+                i > 2 && 'text-text-muted',
+              )}
+            >
+              {i + 1}
             </div>
 
+            {/* Agent Info */}
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-text-primary flex items-center gap-1.5 leading-none mb-0.5">
+                Agent #{agent.id}
+                {!agent.isAlive && <Skull className="w-2.5 h-2.5 text-danger/60" />}
+              </p>
+              <p className="text-[10px] text-text-muted font-mono leading-none">
+                Gen {agent.generation} · {agent.totalTrades}t · {(agent.winRate / 100).toFixed(0)}% WR
+              </p>
+            </div>
+
+            {/* PnL */}
             <div className="text-right">
               <p
                 className={cn(
-                  'text-xs font-mono font-bold tracking-tight',
+                  'text-xs font-mono font-bold leading-none flex items-center gap-0.5 justify-end',
                   agent.totalPnl >= 0 ? 'text-success' : 'text-danger',
                 )}
               >
                 {agent.totalPnl >= 0 ? (
-                  <TrendingUp className="w-3 h-3 inline mr-1" />
+                  <TrendingUp className="w-3 h-3" />
                 ) : (
-                  <TrendingDown className="w-3 h-3 inline mr-1" />
+                  <TrendingDown className="w-3 h-3" />
                 )}
                 {formatBps(agent.totalPnl)}
-              </p>
-              <p className="text-[9px] text-text-muted font-mono">
-                {(agent.winRate / 100).toFixed(1)}% WR
               </p>
             </div>
           </motion.div>
@@ -92,7 +101,7 @@ export function Leaderboard({ agents }: LeaderboardProps) {
 
         {sorted.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Skull className="w-8 h-8 text-text-muted mb-3 opacity-30" />
+            <Skull className="w-6 h-6 text-text-muted/20 mb-2" />
             <p className="text-text-muted text-xs">No agents alive</p>
           </div>
         )}

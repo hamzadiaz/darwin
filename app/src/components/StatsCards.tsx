@@ -1,8 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Dna, Target, Zap, Skull } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Target, Zap, Dna, Skull } from 'lucide-react';
 
 interface StatsCardsProps {
   bestPnl: number;
@@ -14,67 +13,64 @@ interface StatsCardsProps {
 export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths }: StatsCardsProps) {
   const cards = [
     {
-      label: 'Best PnL Ever',
+      label: 'Best PnL',
       value: bestPnl <= -9999 ? '—' : `${bestPnl >= 0 ? '+' : ''}${(bestPnl / 100).toFixed(2)}%`,
-      icon: <Target className="w-5 h-5" />,
-      color: 'success' as const,
-      glow: 'glow-success',
-      bg: 'from-success/20 to-transparent',
-      iconBg: 'bg-success shadow-[0_0_20px_rgba(16,185,129,0.2)]',
+      icon: Target,
+      accentColor: 'text-success',
+      glowColor: 'rgba(16, 185, 129, 0.08)',
+      iconBg: 'bg-success/10',
     },
     {
-      label: 'Avg Win Rate',
+      label: 'Win Rate',
       value: `${(avgWinRate / 100).toFixed(1)}%`,
-      icon: <Zap className="w-5 h-5" />,
-      color: 'primary' as const,
-      glow: 'glow-primary',
-      bg: 'from-accent-primary/20 to-transparent',
-      iconBg: 'bg-accent-primary shadow-[0_0_20px_rgba(59,130,246,0.2)]',
+      icon: Zap,
+      accentColor: 'text-accent-primary',
+      glowColor: 'rgba(59, 130, 246, 0.08)',
+      iconBg: 'bg-accent-primary/10',
     },
     {
       label: 'Generations',
       value: String(totalGenerations),
-      icon: <Dna className="w-5 h-5" />,
-      color: 'evolution' as const,
-      glow: 'glow-evolution',
-      bg: 'from-evolution-purple/20 to-transparent',
-      iconBg: 'bg-evolution-purple shadow-[0_0_20px_rgba(139,92,246,0.2)]',
+      icon: Dna,
+      accentColor: 'text-evolution-purple',
+      glowColor: 'rgba(139, 92, 246, 0.08)',
+      iconBg: 'bg-evolution-purple/10',
     },
     {
-      label: 'Total Deaths',
+      label: 'Deaths',
       value: String(totalDeaths),
-      icon: <Skull className="w-5 h-5" />,
-      color: 'danger' as const,
-      glow: 'glow-danger',
-      bg: 'from-danger/20 to-transparent',
-      iconBg: 'bg-danger shadow-[0_0_20px_rgba(239,68,68,0.2)]',
+      icon: Skull,
+      accentColor: 'text-danger',
+      glowColor: 'rgba(239, 68, 68, 0.08)',
+      iconBg: 'bg-danger/10',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-      {cards.map((card, i) => (
-        <motion.div
-          key={card.label}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 + i * 0.08 }}
-          className={cn(
-            'glass-card rounded-xl sm:rounded-2xl p-3 sm:p-5 relative overflow-hidden group transition-all duration-500 hover:scale-[1.02] hover:border-white/10',
-            card.glow,
-          )}
-        >
-          <div className={cn('absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl opacity-50 group-hover:scale-150 transition-all duration-500', card.bg)} />
-
-          <div className="relative z-10">
-            <div className={cn('w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center text-white mb-2 sm:mb-4', card.iconBg)}>
-              {card.icon}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {cards.map((card, i) => {
+        const Icon = card.icon;
+        return (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 + i * 0.06, duration: 0.4, ease: 'easeOut' }}
+            className="glass-card rounded-xl p-4 sm:p-5 relative overflow-hidden group transition-all duration-200 hover:border-white/8"
+            style={{ boxShadow: `0 0 32px -8px ${card.glowColor}` }}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className={`w-8 h-8 rounded-lg ${card.iconBg} flex items-center justify-center`}>
+                <Icon className={`w-4 h-4 ${card.accentColor}`} />
+              </div>
             </div>
-            <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-text-muted font-bold mb-0.5 sm:mb-1">{card.label}</p>
-            <p className="text-lg sm:text-2xl font-mono font-bold text-text-primary tracking-tighter">{card.value}</p>
-          </div>
-        </motion.div>
-      ))}
+            <p className="metric-label mb-1">{card.label}</p>
+            <p className={`text-2xl sm:text-3xl font-mono font-bold ${card.accentColor} tracking-tighter leading-none`}>
+              {card.value}
+            </p>
+          </motion.div>
+        );
+      })}
     </div>
   );
 }

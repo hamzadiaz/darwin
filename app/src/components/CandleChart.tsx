@@ -42,7 +42,6 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
     import('lightweight-charts').then(({ createChart, ColorType, CrosshairMode, CandlestickSeries, createSeriesMarkers }) => {
       if (disposed || !containerRef.current) return;
 
-      // Clear previous
       if (chartRef.current) {
         chartRef.current.remove();
         chartRef.current = null;
@@ -53,30 +52,29 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
         height: containerRef.current.clientHeight,
         layout: {
           background: { type: ColorType.Solid, color: 'transparent' },
-          textColor: 'rgba(255, 255, 255, 0.5)',
-          fontSize: 11,
+          textColor: 'rgba(139, 148, 158, 0.7)',
+          fontSize: 10,
         },
         grid: {
-          vertLines: { color: 'rgba(255, 255, 255, 0.03)' },
-          horzLines: { color: 'rgba(255, 255, 255, 0.03)' },
+          vertLines: { color: 'rgba(240, 246, 252, 0.02)' },
+          horzLines: { color: 'rgba(240, 246, 252, 0.02)' },
         },
         crosshair: {
           mode: CrosshairMode.Normal,
-          vertLine: { color: 'rgba(255, 255, 255, 0.1)', width: 1, style: 2 },
-          horzLine: { color: 'rgba(255, 255, 255, 0.1)', width: 1, style: 2 },
+          vertLine: { color: 'rgba(240, 246, 252, 0.08)', width: 1, style: 2 },
+          horzLine: { color: 'rgba(240, 246, 252, 0.08)', width: 1, style: 2 },
         },
         rightPriceScale: {
-          borderColor: 'rgba(255, 255, 255, 0.05)',
+          borderColor: 'rgba(240, 246, 252, 0.04)',
         },
         timeScale: {
-          borderColor: 'rgba(255, 255, 255, 0.05)',
+          borderColor: 'rgba(240, 246, 252, 0.04)',
           timeVisible: true,
         },
       });
 
       chartRef.current = chart;
 
-      // Add candlestick series
       const candleSeries = chart.addSeries(CandlestickSeries, {
         upColor: '#10B981',
         downColor: '#EF4444',
@@ -96,7 +94,6 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
 
       candleSeries.setData(chartData);
 
-      // Add trade markers
       if (markers.length > 0) {
         const seriesMarkers = markers
           .filter((m) => m.time >= candles[0].time && m.time <= candles[candles.length - 1].time)
@@ -120,7 +117,6 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
 
       chart.timeScale().fitContent();
 
-      // Resize observer
       const observer = new ResizeObserver((entries) => {
         const entry = entries[0];
         if (entry && chartRef.current) {
@@ -149,45 +145,44 @@ function CandleChartInner({ candles, markers = [] }: CandleChartProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.2 }}
-      className="glass-card rounded-xl sm:rounded-2xl p-3 sm:p-6 h-full min-h-[300px] sm:min-h-[400px] relative overflow-hidden flex flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.15, duration: 0.4 }}
+      className="glass-card rounded-xl p-4 sm:p-5 h-full min-h-[320px] sm:min-h-[420px] flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-accent-tertiary/10 flex items-center justify-center">
-            <BarChart3 className="w-4 h-4 text-accent-tertiary" />
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-accent-tertiary/10 flex items-center justify-center">
+            <BarChart3 className="w-3.5 h-3.5 text-accent-tertiary" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">SOL / USDC Arena</h3>
-            <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest">
+            <h3 className="section-title text-sm">Market Arena</h3>
+            <p className="text-[10px] text-text-muted">
               {candles.length > 0
-                ? `${candles.length} candles · Real market data`
+                ? `${candles.length} candles · Real data`
                 : 'Waiting for data...'}
             </p>
           </div>
         </div>
         {markers.length > 0 && (
-          <div className="flex items-center gap-2 text-[10px] text-text-muted font-mono">
+          <div className="flex items-center gap-3 text-[10px] text-text-muted font-mono">
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-success" /> Buy
+              <span className="w-1.5 h-1.5 rounded-full bg-success" /> Buy
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-danger" /> Sell
+              <span className="w-1.5 h-1.5 rounded-full bg-danger" /> Sell
             </span>
-            <span>{markers.length} signals</span>
           </div>
         )}
       </div>
 
-      {/* Chart container */}
+      {/* Chart */}
       <div ref={containerRef} className="flex-1 min-h-0" />
 
       {candles.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-text-muted text-sm">Start evolution to load chart data</p>
+          <p className="text-text-muted text-xs">Start evolution to load chart data</p>
         </div>
       )}
     </motion.div>

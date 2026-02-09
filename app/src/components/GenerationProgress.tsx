@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Zap, TrendingUp, Users, Activity } from 'lucide-react';
+import { Zap, Users } from 'lucide-react';
 import { Generation } from '@/types';
 import { formatBps } from '@/lib/utils';
 
@@ -18,12 +18,12 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
-  const w = 120;
-  const h = 30;
+  const w = 100;
+  const h = 24;
 
   const points = values.map((v, i) => {
     const x = (i / (values.length - 1)) * w;
-    const y = h - ((v - min) / range) * h;
+    const y = h - ((v - min) / range) * (h - 2) - 1;
     return `${x},${y}`;
   }).join(' ');
 
@@ -38,14 +38,13 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
         strokeLinejoin="round"
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ duration: 1.5 }}
+        transition={{ duration: 1.2 }}
       />
-      {/* Last point glow */}
       {values.length > 0 && (
         <motion.circle
           cx={(values.length - 1) / (values.length - 1) * w}
-          cy={h - ((values[values.length - 1] - min) / range) * h}
-          r={3}
+          cy={h - ((values[values.length - 1] - min) / range) * (h - 2) - 1}
+          r={2.5}
           fill={color}
           animate={{ opacity: [1, 0.4, 1] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
@@ -64,19 +63,28 @@ export function GenerationProgress({ currentGeneration, maxGenerations, generati
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-2xl p-5"
+      className="glass-card rounded-xl p-4"
     >
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mb-4">
-        <Zap className="w-4 h-4 text-evolution-purple" />
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-1.5">
+          <Zap className="w-3.5 h-3.5 text-evolution-purple" />
+          {status === 'running' && (
+            <motion.div
+              className="w-1.5 h-1.5 rounded-full bg-success"
+              animate={{ scale: [1, 1.4, 1] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            />
+          )}
+        </div>
         <div className="flex-1">
           <div className="flex justify-between text-[10px] font-mono text-text-muted mb-1">
-            <span>Generation {currentGeneration + 1} / {maxGenerations}</span>
+            <span>Gen {currentGeneration + 1} / {maxGenerations}</span>
             <span>{progress.toFixed(0)}%</span>
           </div>
-          <div className="h-2 rounded-full bg-bg-elevated overflow-hidden">
+          <div className="h-1.5 rounded-full bg-bg-elevated overflow-hidden">
             <motion.div
               className="h-full rounded-full gradient-evolution"
               initial={{ width: 0 }}
@@ -85,37 +93,30 @@ export function GenerationProgress({ currentGeneration, maxGenerations, generati
             />
           </div>
         </div>
-        {status === 'running' && (
-          <motion.div
-            className="w-2 h-2 rounded-full bg-success"
-            animate={{ scale: [1, 1.4, 1] }}
-            transition={{ repeat: Infinity, duration: 1 }}
-          />
-        )}
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      {/* Compact stats row */}
+      <div className="grid grid-cols-4 gap-4">
         <div>
-          <div className="metric-label mb-1">Best PnL</div>
-          <div className={`metric-value text-xs sm:text-sm ${bestPnl >= 0 ? 'text-success' : 'text-danger'}`}>
+          <p className="text-[10px] text-text-muted mb-0.5">Best PnL</p>
+          <p className={`text-xs font-mono font-bold ${bestPnl >= 0 ? 'text-success' : 'text-danger'}`}>
             {formatBps(bestPnl)}
-          </div>
+          </p>
         </div>
         <div>
-          <div className="metric-label mb-1">Avg PnL</div>
-          <div className={`metric-value text-xs sm:text-sm ${avgPnl >= 0 ? 'text-success' : 'text-danger'}`}>
+          <p className="text-[10px] text-text-muted mb-0.5">Avg PnL</p>
+          <p className={`text-xs font-mono font-bold ${avgPnl >= 0 ? 'text-success' : 'text-danger'}`}>
             {formatBps(avgPnl)}
-          </div>
+          </p>
         </div>
         <div>
-          <div className="metric-label mb-1">Alive</div>
-          <div className="metric-value text-xs sm:text-sm text-accent-primary flex items-center gap-1">
+          <p className="text-[10px] text-text-muted mb-0.5">Alive</p>
+          <p className="text-xs font-mono font-bold text-accent-primary flex items-center gap-1">
             <Users className="w-3 h-3" /> {aliveCount}
-          </div>
+          </p>
         </div>
         <div>
-          <div className="metric-label mb-1">Best PnL Trend</div>
+          <p className="text-[10px] text-text-muted mb-0.5">Trend</p>
           <Sparkline values={bestPnls} color="#10B981" />
         </div>
       </div>

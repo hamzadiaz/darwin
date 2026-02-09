@@ -107,9 +107,7 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }: { value: number; s
 
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
-    <div
-      className="text-center mb-12 lg:mb-16"
-    >
+    <div className="text-center mb-12 lg:mb-16">
       <p className="text-[10px] uppercase tracking-[0.4em] text-accent-primary font-bold mb-3">{eyebrow}</p>
       <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight mb-4">{title}</h2>
       <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed">{description}</p>
@@ -150,18 +148,14 @@ function LandingPage({
   return (
     <div className="space-y-0">
       {/* ─── HERO ─── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
-        {/* Background effects */}
+      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-accent-primary/5 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-evolution-purple/5 rounded-full blur-[120px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-tertiary/3 rounded-full blur-[150px]" />
-          {/* Grid overlay */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-accent-primary/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-evolution-purple/[0.03] rounded-full blur-[120px]" />
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
         </div>
 
         <div className="relative z-10 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-12">
-          {/* Left: Copy */}
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -171,7 +165,7 @@ function LandingPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-evolution-purple/10 border border-evolution-purple/20 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-evolution-purple/8 border border-evolution-purple/15 mb-6"
             >
               <div className="w-1.5 h-1.5 rounded-full bg-evolution-purple animate-pulse" />
               <span className="text-[10px] uppercase tracking-[0.3em] text-evolution-purple font-bold">Colosseum Hackathon · Solana</span>
@@ -196,10 +190,10 @@ function LandingPage({
                 <button
                   key={p.symbol}
                   onClick={() => setSelectedPair(p.symbol)}
-                  className={`group flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-300 ${
+                  className={`group flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                     selectedPair === p.symbol
-                      ? 'bg-accent-primary/15 text-accent-primary border border-accent-primary/30 shadow-[0_0_20px_rgba(59,130,246,0.15)]'
-                      : 'bg-white/[0.03] text-text-muted border border-white/[0.06] hover:bg-white/[0.06] hover:text-text-secondary hover:border-white/10'
+                      ? 'bg-accent-primary/10 text-accent-primary border border-accent-primary/25'
+                      : 'bg-white/[0.02] text-text-muted border border-white/[0.04] hover:bg-white/[0.04] hover:text-text-secondary'
                   }`}
                 >
                   <span className="text-sm">{p.icon}</span>
@@ -215,10 +209,10 @@ function LandingPage({
                 <button
                   key={p.id}
                   onClick={() => setSelectedPeriod(p.id)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 ${
+                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 cursor-pointer ${
                     selectedPeriod === p.id
-                      ? 'bg-evolution-purple/15 text-evolution-purple border border-evolution-purple/30 shadow-[0_0_15px_rgba(139,92,246,0.15)]'
-                      : 'bg-white/[0.03] text-text-muted border border-white/[0.06] hover:bg-white/[0.06] hover:text-text-secondary hover:border-white/10'
+                      ? 'bg-evolution-purple/10 text-evolution-purple border border-evolution-purple/25'
+                      : 'bg-white/[0.02] text-text-muted border border-white/[0.04] hover:bg-white/[0.04] hover:text-text-secondary'
                   }`}
                 >
                   {p.label}
@@ -231,16 +225,15 @@ function LandingPage({
               <button
                 onClick={startEvolution}
                 disabled={isStarting}
-                className="group relative flex items-center gap-3 px-7 py-3.5 rounded-xl bg-gradient-to-r from-success to-emerald-500 text-white text-sm font-bold transition-all duration-300 shadow-[0_0_30px_rgba(16,185,129,0.25)] hover:shadow-[0_0_50px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+                className="group relative flex items-center gap-3 px-7 py-3.5 rounded-xl bg-gradient-to-r from-success to-emerald-500 text-white text-sm font-bold transition-all duration-200 shadow-[0_0_24px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
               >
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 {isStarting ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Play className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
+                  <Play className="w-5 h-5" />
                 )}
-                <span className="relative">Start Evolution</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                <span>Start Evolution</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </button>
               <div className="flex items-center gap-2 text-xs text-text-muted">
                 <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
@@ -251,11 +244,11 @@ function LandingPage({
             {/* Tags */}
             <div className="flex items-center gap-2 mt-5 flex-wrap">
               {[
-                { label: '🧠 AI-Guided', color: 'evolution-purple' },
-                { label: '⚡ Live Trading', color: 'success' },
-                { label: '🪐 Jupiter DEX', color: 'accent-secondary' },
+                { label: 'AI-Guided', color: 'evolution-purple' },
+                { label: 'Live Trading', color: 'success' },
+                { label: 'Jupiter DEX', color: 'accent-secondary' },
               ].map(tag => (
-                <span key={tag.label} className={`text-[9px] px-2.5 py-1 rounded-full bg-${tag.color}/10 text-${tag.color} font-bold border border-${tag.color}/20`}>
+                <span key={tag.label} className={`text-[9px] px-2.5 py-1 rounded-full bg-${tag.color}/8 text-${tag.color} font-bold border border-${tag.color}/15`}>
                   {tag.label}
                 </span>
               ))}
@@ -269,14 +262,12 @@ function LandingPage({
             transition={{ delay: 0.4, duration: 1, ease: 'easeOut' }}
             className="hidden lg:flex justify-center items-center relative mx-auto max-w-[400px]"
           >
-            <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/10 via-transparent to-transparent rounded-full blur-2xl" />
             <div className="relative">
               <DnaHelix genome={SAMPLE_GENOME} height={450} />
             </div>
           </motion.div>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -295,18 +286,15 @@ function LandingPage({
       </section>
 
       {/* ─── LIVE STATS BAR ─── */}
-      <section className="py-8 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
+      <section className="py-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: '22-Gene Genome', value: <AnimatedCounter value={22} suffix=" genes" />, color: 'text-success' },
             { label: 'Technical Indicators', value: <AnimatedCounter value={9} />, color: 'text-accent-primary' },
             { label: 'Population Size', value: <AnimatedCounter value={20} suffix=" agents" />, color: 'text-evolution-purple' },
             { label: 'Generations', value: <AnimatedCounter value={50} suffix=" per run" />, color: 'text-accent-tertiary' },
-          ].map((stat, i) => (
-            <div
-              key={stat.label}
-              className="glass-card rounded-xl p-4 text-center group hover:border-white/10 transition-all duration-500"
-            >
+          ].map((stat) => (
+            <div key={stat.label} className="glass-card rounded-xl p-4 text-center">
               <p className="text-[9px] uppercase tracking-[0.3em] text-text-muted font-bold mb-1">{stat.label}</p>
               <p className={`text-2xl sm:text-3xl font-bold ${stat.color}`}>{stat.value}</p>
             </div>
@@ -315,7 +303,7 @@ function LandingPage({
       </section>
 
       {/* ─── WHAT IS DARWIN ─── */}
-      <section className="py-16 lg:py-24 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
+      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           <SectionHeading
             eyebrow="What is Darwin"
@@ -325,18 +313,18 @@ function LandingPage({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {[
-              { icon: '🧬', title: 'Genetic Encoding', desc: 'Every trading strategy is encoded as a genome — 22 genes controlling indicators, thresholds, risk parameters, and position sizing. Each agent is unique.', gradient: 'from-accent-primary/20 to-evolution-purple/20' },
-              { icon: '⚔️', title: 'Survival of the Fittest', desc: 'Agents trade real market data with realistic fees and slippage. Bottom 80% are eliminated each generation. Only profitable strategies pass on their genes.', gradient: 'from-evolution-purple/20 to-accent-tertiary/20' },
-              { icon: '🤖', title: 'AI-Guided Breeding', desc: 'Gemini 3 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-accent-tertiary/20 to-success/20' },
-            ].map((card, i) => (
+              { icon: '🧬', title: 'Genetic Encoding', desc: 'Every trading strategy is encoded as a genome — 22 genes controlling indicators, thresholds, risk parameters, and position sizing. Each agent is unique.', gradient: 'from-accent-primary/15 to-evolution-purple/15' },
+              { icon: '⚔️', title: 'Survival of the Fittest', desc: 'Agents trade real market data with realistic fees and slippage. Bottom 80% are eliminated each generation. Only profitable strategies pass on their genes.', gradient: 'from-evolution-purple/15 to-accent-tertiary/15' },
+              { icon: '🤖', title: 'AI-Guided Breeding', desc: 'Gemini 3 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-accent-tertiary/15 to-success/15' },
+            ].map((card) => (
               <div
                 key={card.title}
-                className={`group relative glass-card rounded-2xl p-6 lg:p-8 overflow-hidden transition-all duration-500 hover:border-white/15 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)]`}
+                className="group relative glass-card rounded-xl p-6 lg:p-8 overflow-hidden transition-all duration-300 hover:border-white/8"
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative z-10">
-                  <span className="text-3xl mb-4 block">{card.icon}</span>
-                  <h3 className="text-base font-bold text-text-primary mb-3">{card.title}</h3>
+                  <span className="text-2xl mb-4 block">{card.icon}</span>
+                  <h3 className="text-base font-semibold text-text-primary mb-3">{card.title}</h3>
                   <p className="text-sm text-text-secondary leading-relaxed">{card.desc}</p>
                 </div>
               </div>
@@ -346,8 +334,7 @@ function LandingPage({
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="py-16 lg:py-24 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent-primary/[0.02] to-transparent pointer-events-none" />
+      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-[1400px] mx-auto relative z-10">
           <SectionHeading
             eyebrow="How It Works"
@@ -355,24 +342,19 @@ function LandingPage({
             description="From random chaos to optimized trading strategy in under a minute."
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {HOW_IT_WORKS.map((step, i) => (
-              <div
-                key={step.title}
-                className="group relative"
-              >
-                <div className="glass-card rounded-2xl p-6 h-full transition-all duration-500 hover:border-white/15 hover:shadow-[0_20px_60px_rgba(0,0,0,0.4)] hover:-translate-y-1">
-                  {/* Step number */}
-                  <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${step.color} mb-4 shadow-lg group-hover:scale-110 transition-transform duration-500`}>
-                    <step.icon className="w-5 h-5 text-white" />
+              <div key={step.title} className="group relative">
+                <div className="glass-card rounded-xl p-5 h-full transition-all duration-200 hover:border-white/8 hover:-translate-y-1">
+                  <div className={`inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br ${step.color} mb-4`}>
+                    <step.icon className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-[10px] font-mono text-text-muted mb-1 tracking-wider">{step.step}</p>
-                  <h3 className="text-lg font-bold text-text-primary mb-2">{step.title}</h3>
+                  <p className="text-[10px] font-mono text-text-muted mb-1">{step.step}</p>
+                  <h3 className="text-base font-semibold text-text-primary mb-2">{step.title}</h3>
                   <p className="text-xs text-text-secondary leading-relaxed">{step.desc}</p>
                 </div>
-                {/* Connector line */}
                 {i < HOW_IT_WORKS.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-white/10 to-transparent" />
+                  <div className="hidden lg:block absolute top-1/2 -right-2.5 w-5 h-px bg-gradient-to-r from-white/6 to-transparent" />
                 )}
               </div>
             ))}
@@ -381,7 +363,7 @@ function LandingPage({
       </section>
 
       {/* ─── FEATURES BENTO GRID ─── */}
-      <section className="py-16 lg:py-24 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
+      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-[1400px] mx-auto">
           <SectionHeading
             eyebrow="Key Features"
@@ -389,20 +371,20 @@ function LandingPage({
             description="Every component designed for realistic strategy discovery and deployment."
           />
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-            {BENTO_FEATURES.map((feature, i) => (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {BENTO_FEATURES.map((feature) => (
               <div
                 key={feature.title}
-                className={`group glass-card rounded-2xl p-5 transition-all duration-500 hover:border-white/15 hover:shadow-[0_12px_40px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 ${
+                className={`group glass-card rounded-xl p-4 transition-all duration-200 hover:border-white/8 ${
                   feature.size === 'lg' ? 'lg:col-span-2' : ''
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/[0.05] flex items-center justify-center group-hover:bg-accent-primary/10 transition-colors duration-500">
-                    <feature.icon className="w-4.5 h-4.5 text-text-muted group-hover:text-accent-primary transition-colors duration-500" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center group-hover:bg-accent-primary/8 transition-colors duration-200">
+                    <feature.icon className="w-4 h-4 text-text-muted group-hover:text-accent-primary transition-colors duration-200" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-text-primary mb-1">{feature.title}</h4>
+                    <h4 className="text-xs font-semibold text-text-primary mb-1">{feature.title}</h4>
                     <p className="text-[11px] text-text-muted leading-relaxed">{feature.desc}</p>
                   </div>
                 </div>
@@ -413,8 +395,7 @@ function LandingPage({
       </section>
 
       {/* ─── RESULTS SHOWCASE ─── */}
-      <section className="py-16 lg:py-24 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-evolution-purple/[0.02] to-transparent pointer-events-none" />
+      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-[1400px] mx-auto relative z-10">
           <SectionHeading
             eyebrow="Results"
@@ -423,37 +404,30 @@ function LandingPage({
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            {/* Big stat card */}
-            <div
-              className="lg:col-span-2 glass-card rounded-2xl p-8 relative overflow-hidden group hover:border-success/20 transition-all duration-500"
-            >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-success/5 rounded-full blur-3xl group-hover:bg-success/10 transition-colors duration-500" />
+            <div className="lg:col-span-2 glass-card rounded-xl p-8 relative overflow-hidden group hover:border-success/15 transition-all duration-200">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-success/[0.03] rounded-full blur-3xl" />
               <div className="relative z-10">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-text-muted font-bold mb-2">Search Space</p>
                 <p className="text-5xl sm:text-6xl font-bold text-success font-mono mb-3">10<sup className="text-2xl">66</sup></p>
                 <p className="text-xs text-text-secondary">Possible genome combinations — far too large for brute force. Evolution finds the needle in the haystack.</p>
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">22 genes × 1001 values</span>
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">9 indicators</span>
+                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.02] border border-white/[0.04]">22 genes × 1001 values</span>
+                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.02] border border-white/[0.04]">9 indicators</span>
                 </div>
               </div>
             </div>
 
-            {/* Smaller stats */}
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue evolution', color: 'text-success' },
-                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15× leverage', color: 'text-evolution-purple' },
+                { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue', color: 'text-success' },
+                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15×', color: 'text-evolution-purple' },
                 { label: 'Best Win Rate', value: '75%', sub: 'Top evolved agents', color: 'text-accent-primary' },
                 { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-warning' },
-                { label: 'Battle Tested', value: '3/4', sub: 'Periods passed by best agents', color: 'text-accent-tertiary' },
-                { label: 'Strategies Per Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
-              ].map((stat, i) => (
-                <div
-                  key={stat.label}
-                  className="glass-card rounded-xl p-4 hover:border-white/10 transition-all duration-500"
-                >
-                  <p className="text-[8px] uppercase tracking-[0.2em] text-text-muted font-bold mb-1 leading-tight">{stat.label}</p>
+                { label: 'Battle Tested', value: '3/4', sub: 'Periods passed', color: 'text-accent-tertiary' },
+                { label: 'Strategies/Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
+              ].map((stat) => (
+                <div key={stat.label} className="glass-card rounded-xl p-4 hover:border-white/8 transition-all duration-200">
+                  <p className="text-[8px] uppercase tracking-[0.15em] text-text-muted font-bold mb-1 leading-tight">{stat.label}</p>
                   <p className={`text-xl font-bold font-mono ${stat.color} mb-0.5`}>{stat.value}</p>
                   <p className="text-[10px] text-text-muted">{stat.sub}</p>
                 </div>
@@ -464,11 +438,9 @@ function LandingPage({
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-20 lg:py-28 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
-        <div
-          className="max-w-[900px] mx-auto text-center relative"
-        >
-          <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/5 via-transparent to-transparent blur-3xl pointer-events-none" />
+      <section className="py-20 lg:py-28 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[900px] mx-auto text-center relative">
+          <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/[0.03] via-transparent to-transparent blur-3xl pointer-events-none" />
           <div className="relative z-10">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary tracking-tight mb-5 leading-tight">
               Start Evolving Your<br />
@@ -480,16 +452,15 @@ function LandingPage({
             <button
               onClick={startEvolution}
               disabled={isStarting}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-evolution-purple to-accent-primary text-white text-base font-bold transition-all duration-300 shadow-[0_0_40px_rgba(139,92,246,0.25)] hover:shadow-[0_0_60px_rgba(139,92,246,0.4)] hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100"
+              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-evolution-purple to-accent-primary text-white text-base font-bold transition-all duration-200 shadow-[0_0_32px_rgba(139,92,246,0.2)] hover:shadow-[0_0_48px_rgba(139,92,246,0.3)] hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
             >
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               {isStarting ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Dna className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                <Dna className="w-5 h-5" />
               )}
-              <span className="relative">Launch Evolution</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              <span>Launch Evolution</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
             </button>
           </div>
         </div>
@@ -531,7 +502,6 @@ export default function Dashboard() {
   const runEvolutionLoop = useCallback(async () => {
     evolutionRef.current = true;
     try {
-      // Run complete evolution in a single request (avoids serverless state loss)
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -539,11 +509,8 @@ export default function Dashboard() {
       });
       if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
       const result = await res.json();
-      if (result.snapshot) {
-        setData(result.snapshot);
-      }
+      if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
-      // Trigger AI analysis
       fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Evolution failed. Try again.');
@@ -653,8 +620,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen p-2.5 sm:p-4 lg:p-6 max-w-[1600px] mx-auto">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 lg:space-y-6">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
         {!showHero && <Header generation={generation} agentCount={data?.populationSize ?? 20} aliveCount={aliveAgents.length} />}
 
         {/* Error Banner */}
@@ -664,10 +631,10 @@ export default function Dashboard() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="glass-card rounded-xl p-3 border-danger/30 bg-danger/10 flex items-center gap-3"
+              className="glass-card rounded-lg px-4 py-2.5 border-danger/20 bg-danger/[0.06] flex items-center gap-3"
             >
-              <span className="text-danger text-xs font-bold">⚠️ {error}</span>
-              <button onClick={() => setError(null)} className="ml-auto text-danger/60 hover:text-danger text-xs">✕</button>
+              <span className="text-danger text-[11px] font-medium">{error}</span>
+              <button onClick={() => setError(null)} className="ml-auto text-danger/40 hover:text-danger text-xs cursor-pointer">✕</button>
             </motion.div>
           )}
         </AnimatePresence>
@@ -684,17 +651,18 @@ export default function Dashboard() {
           />
         ) : (
           <>
-            {/* Controls */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-bg-secondary/80 border border-white/5">
+            {/* ─── Controls Bar ─── */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Pair & Period selectors */}
+              <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-bg-secondary/60 border border-white/[0.04]">
                 {PAIRS.map(p => (
                   <button
                     key={p.symbol}
                     onClick={() => setSelectedPair(p.symbol)}
                     disabled={evStatus === 'running'}
-                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                    className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
                       selectedPair === p.symbol
-                        ? 'bg-accent-primary/20 text-accent-primary'
+                        ? 'bg-accent-primary/15 text-accent-primary'
                         : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
                     }`}
                   >
@@ -702,15 +670,16 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-bg-secondary/80 border border-white/5">
+
+              <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-bg-secondary/60 border border-white/[0.04]">
                 {PERIODS.filter(p => ['', 'last-30d', 'last-90d', 'last-1y', 'bull-2024', 'bear-2022'].includes(p.id)).map(p => (
                   <button
                     key={p.id}
                     onClick={() => setSelectedPeriod(p.id)}
                     disabled={evStatus === 'running'}
-                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-all ${
+                    className={`px-2 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
                       selectedPeriod === p.id
-                        ? 'bg-evolution-purple/20 text-evolution-purple'
+                        ? 'bg-evolution-purple/15 text-evolution-purple'
                         : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
                     }`}
                   >
@@ -718,45 +687,52 @@ export default function Dashboard() {
                   </button>
                 ))}
               </div>
+
+              {/* Action buttons */}
               {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
-                <>
+                <div className="flex items-center gap-2">
                   <button onClick={startEvolution} disabled={isStarting}
-                    className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-success/20 border border-success/30 text-success text-xs sm:text-sm font-bold hover:bg-success/30 transition-all disabled:opacity-50">
-                    {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    {evStatus === 'complete' ? 'Restart' : 'Start Evolution'}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success/10 border border-success/20 text-success text-[11px] font-semibold hover:bg-success/15 transition-colors disabled:opacity-50 cursor-pointer">
+                    {isStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                    {evStatus === 'complete' ? 'Restart' : 'Start'}
                   </button>
                   {evStatus === 'complete' && (
                     <button onClick={continueEvolution} disabled={isStarting}
-                      className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs sm:text-sm font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50">
-                      {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Dna className="w-4 h-4" />}
-                      Continue Evolving
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-semibold hover:bg-evolution-purple/15 transition-colors disabled:opacity-50 cursor-pointer">
+                      {isStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Dna className="w-3.5 h-3.5" />}
+                      Continue
                     </button>
                   )}
-                </>
+                </div>
               ) : (
                 <button onClick={stopEvolution}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-danger/20 border border-danger/30 text-danger text-sm font-bold hover:bg-danger/30 transition-all">
-                  <Square className="w-4 h-4" /> Stop
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-danger/10 border border-danger/20 text-danger text-[11px] font-semibold hover:bg-danger/15 transition-colors cursor-pointer">
+                  <Square className="w-3.5 h-3.5" /> Stop
                 </button>
               )}
-              <div className="flex items-center gap-2 text-xs text-text-muted font-mono">
-                <div className={`w-2 h-2 rounded-full ${evStatus === 'running' ? 'bg-success animate-pulse' : evStatus === 'complete' ? 'bg-accent-primary' : 'bg-text-muted'}`} />
+
+              {/* Status indicator */}
+              <div className="flex items-center gap-2 text-[11px] text-text-muted font-mono">
+                <div className={`w-1.5 h-1.5 rounded-full ${evStatus === 'running' ? 'bg-success animate-pulse' : evStatus === 'complete' ? 'bg-accent-primary' : 'bg-text-muted/40'}`} />
                 {evStatus === 'running' && (
-                  <motion.span key={generation} initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}>
-                    Gen {generation + 1} / {data?.maxGenerations ?? '?'}
+                  <motion.span key={generation} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    Gen {generation + 1}/{data?.maxGenerations ?? '?'}
                   </motion.span>
                 )}
-                {evStatus === 'complete' && `Complete · ${generations.length} generations`}
-                {evStatus === 'idle' && 'Ready to evolve'}
+                {evStatus === 'complete' && `Complete · ${generations.length} gens`}
+                {evStatus === 'idle' && 'Ready'}
                 {evStatus === 'paused' && 'Paused'}
               </div>
+
+              {/* Candle info */}
               {data?.candleInfo && (
-                <div className="text-[10px] font-mono text-text-muted bg-bg-elevated/50 px-2 py-1 rounded-lg border border-white/5">
-                  📊 {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count} candles · {data.candleInfo.days}d ({data.candleInfo.startDate} → {data.candleInfo.endDate}){data.period ? ` · ${data.period}` : ''}
+                <div className="text-[10px] font-mono text-text-muted bg-bg-elevated/30 px-2 py-1 rounded border border-white/[0.03]">
+                  {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count}c · {data.candleInfo.days}d{data.period ? ` · ${data.period}` : ''}
                 </div>
               )}
             </div>
 
+            {/* ─── Progress Bar ─── */}
             {(evStatus === 'running' || generations.length > 0) && (
               <GenerationProgress
                 currentGeneration={generation}
@@ -767,75 +743,79 @@ export default function Dashboard() {
               />
             )}
 
+            {/* ─── KPI Stats ─── */}
             <StatsCards bestPnl={bestPnl} avgWinRate={avgWinRate} totalGenerations={generations.length} totalDeaths={totalDeaths} />
 
-            {/* Tabs */}
-            <div className="flex gap-1 p-1 rounded-xl bg-bg-secondary/80 backdrop-blur-xl border border-white/5 w-full sm:w-fit overflow-x-auto scrollbar-custom -mx-1 px-1">
+            {/* ─── Tab Navigation ─── */}
+            <nav className="flex gap-0.5 p-1 rounded-lg bg-bg-secondary/50 border border-white/[0.04] w-full sm:w-fit overflow-x-auto scrollbar-custom">
               {TABS.map(tab => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0 ${
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-md text-[11px] font-semibold transition-all duration-150 whitespace-nowrap flex-shrink-0 cursor-pointer ${
                     activeTab === tab.id
-                      ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30'
-                      : 'text-text-muted hover:text-text-secondary hover:bg-white/5'
+                      ? 'bg-white/[0.06] text-text-primary'
+                      : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.02]'
                   }`}
                 >
                   <tab.icon className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{tab.label}</span>
                 </button>
               ))}
-            </div>
+            </nav>
 
+            {/* ─── Tab Content ─── */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.2 }}
               >
                 {activeTab === 'arena' && (
-                  <div className="space-y-4 lg:space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-                      <div className="lg:col-span-2">
+                  <div className="space-y-5">
+                    {/* Chart + Leaderboard — hero layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                      <div className="lg:col-span-3">
                         <CandleChart candles={candles} markers={tradeMarkers} />
                       </div>
-                      <div className="lg:col-span-1 max-h-[400px] sm:max-h-none overflow-y-auto">
+                      <div className="lg:col-span-2 max-h-[420px] sm:max-h-none">
                         <Leaderboard agents={agents} />
                       </div>
                     </div>
+
+                    {/* Top Agents */}
                     {agents.length > 0 && (
                       <div>
-                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-3">Top Agents</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
+                        <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Top Agents</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
                           {[...agents].filter(a => a.isAlive).sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 5).map(agent => (
                             <AgentCard key={agent.id} agent={agent} compact onSelect={setSelectedAgent} />
                           ))}
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
 
-                {activeTab === 'arena' && evStatus === 'complete' && agents.length > 0 && (
-                  <div className="mt-4">
-                    <BattleTestCard
-                      genome={agents[0]?.genome ?? null}
-                      agentId={data?.bestEverAgentId ?? agents[0]?.id ?? 0}
-                      symbol={selectedPair}
-                    />
+                    {/* Battle Test */}
+                    {evStatus === 'complete' && agents.length > 0 && (
+                      <BattleTestCard
+                        genome={agents[0]?.genome ?? null}
+                        agentId={data?.bestEverAgentId ?? agents[0]?.id ?? 0}
+                        symbol={selectedPair}
+                      />
+                    )}
                   </div>
                 )}
 
                 {activeTab === 'lab' && (
-                  <div className="space-y-6">
+                  <div className="space-y-5">
                     <BreedingView agents={agents} allAgents={allAgents} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="glass-card rounded-2xl p-5">
-                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider mb-4">DNA Structure</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="glass-card rounded-xl p-5">
+                        <h3 className="section-title text-sm mb-4">DNA Structure</h3>
                         <div className="flex justify-center">
-                          <DnaHelix genome={agents[0]?.genome ?? SAMPLE_GENOME} height={350} />
+                          <DnaHelix genome={agents[0]?.genome ?? SAMPLE_GENOME} height={320} />
                         </div>
                       </div>
                       {selectedAgent && (
@@ -847,10 +827,10 @@ export default function Dashboard() {
 
                 {activeTab === 'tree' && (
                   <Suspense fallback={
-                    <div className="glass-card rounded-2xl p-12 flex items-center justify-center" style={{ height: 500 }}>
+                    <div className="glass-card rounded-xl p-12 flex items-center justify-center" style={{ height: 480 }}>
                       <div className="text-center">
-                        <Loader2 className="w-8 h-8 animate-spin text-evolution-purple mx-auto mb-3" />
-                        <p className="text-sm text-text-muted">Loading Family Tree...</p>
+                        <Loader2 className="w-6 h-6 animate-spin text-evolution-purple mx-auto mb-2" />
+                        <p className="text-[11px] text-text-muted">Loading Family Tree...</p>
                       </div>
                     </div>
                   }>
@@ -882,44 +862,48 @@ export default function Dashboard() {
                 {activeTab === 'live' && (
                   <div className="space-y-4">
                     <LiveTrading hasEvolutionData={agents.length > 0} />
-                    <div className="glass-card rounded-xl p-3 border-accent-primary/20 bg-accent-primary/5 flex items-center gap-2">
-                      <BarChart3 className="w-4 h-4 text-accent-primary" />
-                      <span className="text-[11px] font-bold text-accent-primary">📊 Includes 0.1% taker fee + 0.05% slippage per trade (0.30% round trip)</span>
+                    <div className="glass-card rounded-lg px-3 py-2 border-accent-primary/15 bg-accent-primary/[0.04] flex items-center gap-2">
+                      <BarChart3 className="w-3.5 h-3.5 text-accent-primary" />
+                      <span className="text-[10px] font-medium text-accent-primary/80">Includes 0.1% taker fee + 0.05% slippage per trade (0.30% round trip)</span>
                     </div>
-                    <div className="glass-card rounded-2xl p-5">
+
+                    {/* Export Strategy */}
+                    <div className="glass-card rounded-xl p-4 sm:p-5">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Export Best Strategy</h3>
+                        <h3 className="section-title text-sm">Export Strategy</h3>
                         <button
                           onClick={exportStrategy}
                           disabled={loadingStrategy || agents.length === 0}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-medium hover:bg-evolution-purple/15 transition-colors disabled:opacity-50 cursor-pointer"
                         >
-                          {loadingStrategy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                          Export Strategy
+                          {loadingStrategy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                          Export
                         </button>
                       </div>
                       {strategyJson && (
-                        <pre className="bg-bg-primary/80 rounded-xl p-4 text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[400px] overflow-y-auto border border-white/5">
+                        <pre className="bg-bg-primary/60 rounded-lg p-3 text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[360px] overflow-y-auto border border-white/[0.03] scrollbar-custom">
                           {strategyJson}
                         </pre>
                       )}
                     </div>
-                    <div className="glass-card rounded-2xl p-5">
+
+                    {/* Paper Trade */}
+                    <div className="glass-card rounded-xl p-4 sm:p-5">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Paper Trade (Forward Test)</h3>
+                        <h3 className="section-title text-sm">Paper Trade (Forward Test)</h3>
                         <button
                           onClick={fetchPaperTrade}
                           disabled={loadingPaperTrade || agents.length === 0}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/20 border border-success/30 text-success text-xs font-bold hover:bg-success/30 transition-all disabled:opacity-50"
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20 text-success text-[11px] font-medium hover:bg-success/15 transition-colors disabled:opacity-50 cursor-pointer"
                         >
-                          {loadingPaperTrade ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <TrendingUp className="w-3.5 h-3.5" />}
-                          Run Paper Trade
+                          {loadingPaperTrade ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
+                          Run
                         </button>
                       </div>
                       {paperTradeData && (
                         <div className="space-y-3">
                           {paperTradeData.error ? (
-                            <p className="text-xs text-danger">{String(paperTradeData.error)}</p>
+                            <p className="text-[11px] text-danger">{String(paperTradeData.error)}</p>
                           ) : (
                             <>
                               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -929,7 +913,7 @@ export default function Dashboard() {
                                   { label: 'Win Rate', value: `${Number(paperTradeData.winRate ?? 0).toFixed(1)}%`, color: 'text-accent-primary' },
                                   { label: 'Trades', value: String(paperTradeData.totalTrades ?? 0), color: 'text-text-secondary' },
                                 ].map(s => (
-                                  <div key={s.label} className="bg-bg-primary/60 rounded-lg p-2.5 border border-white/5">
+                                  <div key={s.label} className="bg-bg-elevated/30 rounded-lg p-2.5 border border-white/[0.03]">
                                     <p className="text-[9px] uppercase tracking-wider text-text-muted mb-0.5">{s.label}</p>
                                     <p className={`text-sm font-bold font-mono ${s.color}`}>{s.value}</p>
                                   </div>
@@ -950,6 +934,7 @@ export default function Dashboard() {
               </motion.div>
             </AnimatePresence>
 
+            {/* ─── Solana Panel ─── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="lg:col-span-1">
                 <SolanaPanel
@@ -964,11 +949,11 @@ export default function Dashboard() {
         )}
 
         {/* Footer */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-center py-6">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-text-muted font-bold">
+        <div className="text-center py-6">
+          <p className="text-[10px] text-text-muted/60">
             Built for Colosseum Agent Hackathon · Powered by Solana
           </p>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );

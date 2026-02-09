@@ -59,95 +59,93 @@ export function BattleTestCard({ genome, agentId, symbol }: Props) {
   };
 
   return (
-    <div className="glass-card rounded-2xl p-5">
+    <div className="glass-card rounded-xl p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider flex items-center gap-2">
-          <Shield className="w-4 h-4 text-evolution-purple" />
-          Battle Test
-        </h3>
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-evolution-purple/10 flex items-center justify-center">
+            <Shield className="w-3.5 h-3.5 text-evolution-purple" />
+          </div>
+          <h3 className="section-title text-sm">Battle Test</h3>
+        </div>
         <button
           onClick={runTest}
           disabled={loading || !genome}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-evolution-purple/20 border border-evolution-purple/30 text-evolution-purple text-xs font-bold hover:bg-evolution-purple/30 transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-medium hover:bg-evolution-purple/15 transition-colors disabled:opacity-50 cursor-pointer"
         >
-          {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-          {loading ? 'Testing...' : 'Run Battle Test'}
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Shield className="w-3 h-3" />}
+          {loading ? 'Testing...' : 'Run Test'}
         </button>
       </div>
 
       {error && (
-        <div className="text-xs text-danger bg-danger/10 rounded-lg p-2 mb-3 border border-danger/20">
-          ⚠️ {error}
+        <div className="text-[11px] text-danger bg-danger/8 rounded-lg px-3 py-2 mb-3 border border-danger/15">
+          {error}
         </div>
       )}
 
       <AnimatePresence>
         {result && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-3"
           >
-            {/* Header */}
-            <div className={`flex items-center gap-2 p-3 rounded-xl border ${
+            {/* Summary */}
+            <div className={`flex items-center gap-2.5 p-3 rounded-lg border ${
               result.battleTested
-                ? 'bg-success/10 border-success/30'
-                : 'bg-warning/10 border-warning/30'
+                ? 'bg-success/[0.04] border-success/15'
+                : 'bg-warning/[0.04] border-warning/15'
             }`}>
-              <Trophy className={`w-5 h-5 ${result.battleTested ? 'text-success' : 'text-warning'}`} />
+              <Trophy className={`w-4 h-4 ${result.battleTested ? 'text-success' : 'text-warning'}`} />
               <div>
-                <p className="text-xs font-bold text-text-primary">
-                  Battle Test Results — Agent #{agentId}
+                <p className="text-xs font-medium text-text-primary">
+                  Agent #{agentId} — {result.passedCount}/{result.totalPeriods} passed
                 </p>
-                <p className={`text-[11px] font-bold ${result.battleTested ? 'text-success' : 'text-warning'}`}>
-                  Overall: {result.averagePnl > 0 ? '+' : ''}{result.averagePnl.toFixed(1)}% avg
-                  {result.battleTested ? ' — BATTLE TESTED ✅' : ' — NEEDS WORK ⚠️'}
+                <p className={`text-[11px] font-mono font-bold ${result.battleTested ? 'text-success' : 'text-warning'}`}>
+                  {result.averagePnl > 0 ? '+' : ''}{result.averagePnl.toFixed(1)}% avg
+                  {result.battleTested ? ' · BATTLE TESTED' : ' · NEEDS WORK'}
                 </p>
               </div>
             </div>
 
-            {/* Per-period results */}
-            <div className="space-y-1.5">
+            {/* Period Results */}
+            <div className="space-y-1">
               {result.periods.map((p) => (
                 <div
                   key={p.periodId}
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-bg-primary/60 border border-white/5"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg bg-bg-elevated/40 row-hover"
                 >
                   <div className="flex items-center gap-2">
                     {p.passed ? (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-success/80" />
                     ) : (
-                      <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+                      <AlertTriangle className="w-3.5 h-3.5 text-warning/80" />
                     )}
                     <div>
-                      <p className="text-[11px] font-bold text-text-primary">{p.label}</p>
+                      <p className="text-[11px] font-medium text-text-primary">{p.label}</p>
                       <p className="text-[9px] text-text-muted font-mono">
-                        {p.startDate} → {p.endDate} · {p.candleCount} candles
+                        {p.startDate} → {p.endDate}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xs font-bold font-mono ${p.totalPnlPct >= 0 ? 'text-success' : 'text-danger'}`}>
+                    <p className={`text-xs font-mono font-bold ${p.totalPnlPct >= 0 ? 'text-success' : 'text-danger'}`}>
                       {p.totalPnlPct > 0 ? '+' : ''}{p.totalPnlPct.toFixed(1)}%
                     </p>
-                    <p className="text-[9px] text-text-muted">
-                      {p.totalTrades} trades · {p.winRate.toFixed(0)}% WR
+                    <p className="text-[9px] text-text-muted font-mono">
+                      {p.totalTrades}t · {p.winRate.toFixed(0)}% WR
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-
-            <p className="text-[9px] text-text-muted text-center">
-              Passed {result.passedCount}/{result.totalPeriods} periods
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {!result && !loading && (
         <p className="text-[11px] text-text-muted">
-          Test the best genome across multiple market regimes (bull, bear, crash) to verify it&apos;s not overfitted.
+          Test the best genome across multiple market regimes to verify it&apos;s not overfitted.
         </p>
       )}
     </div>
