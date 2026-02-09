@@ -194,14 +194,23 @@ export default function Dashboard() {
     }
 
     try {
+      // Send top genomes from client state (server state may be lost on serverless)
+      const topGenomes = data?.agents
+        ?.filter((a: AgentGenome) => a.isAlive && a.totalTrades > 0)
+        ?.sort((a: AgentGenome, b: AgentGenome) => b.totalPnl - a.totalPnl)
+        ?.slice(0, 10)
+        ?.map((a: AgentGenome) => [...a.genome]) ?? [];
+
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
+        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined, seedGenomes: topGenomes }),
       });
       if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
+      const result = await res.json();
+      if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
-      runEvolutionLoop();
+      fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to continue evolution');
     }

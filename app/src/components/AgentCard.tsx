@@ -102,7 +102,7 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
       )}
 
       {/* Parents */}
-      {(agent.parentA !== null || agent.parentB !== null) && (
+      {(agent.parentA !== null && agent.parentA > 0 && agent.parentB !== null && agent.parentB > 0) && (
         <div className="flex items-center gap-1 text-[10px] text-text-muted font-mono">
           <Dna className="w-3 h-3" />
           <span>#{agent.parentA} × #{agent.parentB}</span>

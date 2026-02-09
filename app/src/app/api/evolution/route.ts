@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
 
   if (action === 'continue') {
     // Continue evolution: seed new run with top genomes from current run
-    const topGenomes = getTopGenomes(10);
+    // Run the FULL evolution in a single request to avoid serverless state loss
+    const topGenomes = body.seedGenomes as number[][] | undefined ?? getTopGenomes(10);
     const populationSize = body.populationSize || 20;
     const generations = body.generations || 50;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
@@ -69,17 +70,21 @@ export async function POST(req: NextRequest) {
 
     try {
       await startEvolution(populationSize, generations, topGenomes, symbol, period);
+      // Run all generations in this single request (like run-all)
+      let complete = false;
+      while (!complete) {
+        complete = await stepEvolution();
+      }
+      const snapshot = getArenaSnapshot();
+      return NextResponse.json({
+        status: 'complete',
+        snapshot,
+        seededFrom: topGenomes ? topGenomes.length : 0,
+      });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       return NextResponse.json({ error: message }, { status: 500 });
     }
-
-    return NextResponse.json({
-      status: 'continued',
-      seededFrom: topGenomes.length,
-      populationSize,
-      generations,
-    });
   }
 
   if (action === 'breed') {
