@@ -1,12 +1,40 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Dna, Swords, GitBranch, Rocket, ArrowRight, Brain, Target, Crosshair, Shield, Activity, LineChart, Zap, ChevronDown, Wallet } from 'lucide-react';
-import { DnaHelix } from '@/components/DnaHelix';
+import { EvolutionCanvas } from '@/components/EvolutionCanvas';
 
-const SAMPLE_GENOME = [720, 350, 680, 500, 300, 750, 250, 600, 450, 200, 550, 800, 400, 600, 500, 650, 450, 550, 400, 350];
+const EVOLVE_WORDS = ['Evolve', 'Adapt', 'Survive', 'Dominate'];
+
+function RotatingWord() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex(i => (i + 1) % EVOLVE_WORDS.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <span className="inline-block relative">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={EVOLVE_WORDS[index]}
+          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -30, filter: 'blur(8px)' }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          className="bg-gradient-to-r from-[#00ff88] via-[#06B6D4] to-[#00ff88] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-x inline-block"
+        >
+          {EVOLVE_WORDS[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
 function AnimatedCounter({ value, suffix = '', prefix = '' }: { value: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
@@ -97,101 +125,141 @@ export default function LandingPage() {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Background effects */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Full-screen evolution canvas background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/4 w-[800px] h-[800px] bg-[#00ff88]/[0.03] rounded-full blur-[150px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#8B5CF6]/[0.04] rounded-full blur-[150px]" />
-          <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
+          <EvolutionCanvas />
         </div>
 
-        <div className="relative z-10 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center px-6 py-16">
+        {/* Gradient overlays */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/3 w-[900px] h-[900px] bg-[#00ff88]/[0.04] rounded-full blur-[180px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[700px] h-[700px] bg-[#8B5CF6]/[0.05] rounded-full blur-[160px]" />
+          {/* Grid overlay */}
+          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+          {/* Bottom fade */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0a0a0a] to-transparent" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-[1100px] mx-auto w-full text-center px-6">
+          {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="mb-10"
           >
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#8B5CF6]/20 mb-8"
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#8B5CF6]/20"
               style={{ background: 'rgba(139,92,246,0.06)' }}
             >
               <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] animate-pulse" />
               <span className="text-[10px] uppercase tracking-[0.3em] text-[#8B5CF6] font-bold">Colosseum Hackathon · Solana</span>
-            </motion.div>
-
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white tracking-tight leading-[1.05] mb-8">
-              Trading Agents{' '}
-              <br />
-              That{' '}
-              <span className="bg-gradient-to-r from-[#00ff88] to-[#06B6D4] bg-clip-text text-transparent">Evolve</span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-[#8B949E] leading-relaxed mb-10 max-w-lg">
-              Spawn AI agents with random genomes. Watch them compete on real market data.
-              The fittest breed, the weak die. After 50 generations, only the strongest strategy survives.
-            </p>
-
-            {/* CTA */}
-            <div className="flex items-center gap-5 flex-wrap">
-              <Link
-                href="/app"
-                className="group relative flex items-center gap-3 px-8 py-4 rounded-xl text-black text-sm font-bold transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.25)] hover:shadow-[0_0_50px_rgba(0,255,136,0.35)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                style={{ background: 'linear-gradient(135deg, #00ff88, #00cc6a)' }}
-              >
-                <Rocket className="w-5 h-5" />
-                <span>Launch App</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-              </Link>
-              <div className="flex items-center gap-2 text-xs text-[#484F58]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" />
-                <span className="font-mono">20 agents · 50 gens · ~30s</span>
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="flex items-center gap-2 mt-6 flex-wrap">
-              {[
-                { label: 'AI-Guided', color: '#8B5CF6' },
-                { label: 'Live Trading', color: '#00ff88' },
-                { label: 'Jupiter DEX', color: '#06B6D4' },
-              ].map(tag => (
-                <span
-                  key={tag.label}
-                  className="text-[9px] px-2.5 py-1 rounded-full font-bold border"
-                  style={{
-                    color: tag.color,
-                    borderColor: `${tag.color}20`,
-                    background: `${tag.color}08`,
-                  }}
-                >
-                  {tag.label}
-                </span>
-              ))}
             </div>
           </motion.div>
 
-          {/* Right: DNA Helix */}
+          {/* Title */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 1, ease: 'easeOut' }}
-            className="hidden lg:flex justify-center items-center relative mx-auto max-w-[420px]"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: 'easeOut' }}
           >
-            <div className="absolute inset-0 bg-[#00ff88]/[0.03] rounded-full blur-[80px]" />
-            <div className="relative">
-              <DnaHelix genome={SAMPLE_GENOME} height={480} />
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tight leading-[0.95] mb-4">
+              Trading Agents
+            </h1>
+            <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight leading-[0.95] mb-8">
+              That <RotatingWord />
+            </h1>
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            className="text-lg sm:text-xl text-[#8B949E] leading-relaxed mb-14 max-w-2xl mx-auto"
+          >
+            Spawn AI agents with random genomes. Watch them compete on real market data.
+            The fittest breed, the weak die. Only the strongest strategy survives.
+          </motion.p>
+
+          {/* CTA Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+            className="flex items-center justify-center gap-6 flex-wrap mb-12"
+          >
+            <Link
+              href="/app"
+              className="group relative flex items-center gap-3 px-10 py-5 rounded-2xl text-black text-base font-bold transition-all duration-300 shadow-[0_0_40px_rgba(0,255,136,0.3)] hover:shadow-[0_0_80px_rgba(0,255,136,0.5)] hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #00ff88, #00cc6a)' }}
+            >
+              <Rocket className="w-5 h-5" />
+              <span>Launch Evolution</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
+              {/* Pulse ring */}
+              <span className="absolute inset-0 rounded-2xl border-2 border-[#00ff88]/30 animate-ping opacity-20 pointer-events-none" />
+            </Link>
+            <div className="flex items-center gap-2 text-sm text-[#484F58]">
+              <div className="w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
+              <span className="font-mono">20 agents · 50 gens · ~30s</span>
             </div>
+          </motion.div>
+
+          {/* Tags */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+            className="flex items-center justify-center gap-3 flex-wrap mb-16"
+          >
+            {[
+              { label: 'AI-Guided Breeding', color: '#8B5CF6' },
+              { label: 'Live Solana Trading', color: '#00ff88' },
+              { label: 'Jupiter DEX', color: '#06B6D4' },
+            ].map(tag => (
+              <span
+                key={tag.label}
+                className="text-[10px] px-3 py-1.5 rounded-full font-bold border"
+                style={{
+                  color: tag.color,
+                  borderColor: `${tag.color}25`,
+                  background: `${tag.color}0a`,
+                }}
+              >
+                {tag.label}
+              </span>
+            ))}
+          </motion.div>
+
+          {/* Social proof stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.3, duration: 0.6 }}
+            className="flex items-center justify-center gap-8 sm:gap-12"
+          >
+            {[
+              { value: '10⁶⁶', label: 'Possible Strategies' },
+              { value: '1,000+', label: 'Tested Per Run' },
+              { value: '22', label: 'Gene Genome' },
+            ].map(stat => (
+              <div key={stat.label} className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold font-mono text-white">{stat.value}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[#484F58] mt-1">{stat.label}</p>
+              </div>
+            ))}
           </motion.div>
         </div>
 
+        {/* Scroll indicator */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
+          transition={{ delay: 2 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
         >
           <motion.div
             animate={{ y: [0, 8, 0] }}

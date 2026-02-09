@@ -55,7 +55,13 @@
   --animate-shimmer: shimmer 2s linear infinite;
   --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-dna-spin: dna-spin 8s linear infinite;
+  --animate-gradient-x: gradient-x 3s ease infinite;
   
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
   @keyframes shimmer {
     from { transform: translateX(-100%); }
     to { transform: translateX(100%); }
