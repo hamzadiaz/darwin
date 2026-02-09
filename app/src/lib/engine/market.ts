@@ -79,13 +79,33 @@ export async function fetchCandles(
 
 /** Binance: best source — 500 candles with real volume */
 async function fetchFromBinance(symbol: TradingPair, interval: string, limit: number): Promise<OHLCV[]> {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-  const res = await fetch(url, {
-    headers: { Accept: 'application/json' },
-    signal: AbortSignal.timeout(10000),
-  });
+  const HOSTS = [
+    'https://api1.binance.com',
+    'https://api2.binance.com', 
+    'https://api3.binance.com',
+    'https://api.binance.com',
+    'https://data-api.binance.vision',
+  ];
+  const path = `/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  
+  let res: Response | null = null;
+  let lastErr = '';
+  for (const host of HOSTS) {
+    try {
+      res = await fetch(`${host}${path}`, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) break;
+      lastErr = `${host} ${res.status}`;
+      res = null;
+    } catch (e) {
+      lastErr = `${host} ${(e as Error).message}`;
+      res = null;
+    }
+  }
 
-  if (!res.ok) throw new Error(`Binance ${res.status}`);
+  if (!res || !res.ok) throw new Error(`Binance: ${lastErr}`);
 
   const raw: (string | number)[][] = await res.json();
   return raw.map((k) => ({
@@ -140,14 +160,36 @@ export async function fetchCandlesRange(
   let currentStart = startDate;
   const limit = 1000;
 
-  while (currentStart < endDate) {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${currentStart}&endTime=${endDate}&limit=${limit}`;
-    const res = await fetch(url, {
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(15000),
-    });
+  // Try multiple Binance endpoints — api.binance.com gets 451 from US/Vercel IPs
+  const BINANCE_HOSTS = [
+    'https://api1.binance.com',
+    'https://api2.binance.com',
+    'https://api3.binance.com',
+    'https://api.binance.com',
+    'https://data-api.binance.vision',
+  ];
 
-    if (!res.ok) throw new Error(`Binance ${res.status} fetching range`);
+  while (currentStart < endDate) {
+    const path = `/api/v3/klines?symbol=${symbol}&interval=${interval}&startTime=${currentStart}&endTime=${endDate}&limit=${limit}`;
+    
+    let res: Response | null = null;
+    let lastErr = '';
+    for (const host of BINANCE_HOSTS) {
+      try {
+        res = await fetch(`${host}${path}`, {
+          headers: { Accept: 'application/json' },
+          signal: AbortSignal.timeout(10000),
+        });
+        if (res.ok) break;
+        lastErr = `${host} ${res.status}`;
+        res = null;
+      } catch (e) {
+        lastErr = `${host} ${(e as Error).message}`;
+        res = null;
+      }
+    }
+
+    if (!res || !res.ok) throw new Error(`All Binance endpoints failed: ${lastErr}`);
 
     const raw: (string | number)[][] = await res.json();
     if (raw.length === 0) break;
