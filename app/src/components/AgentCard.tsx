@@ -90,7 +90,7 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
           </span>
         </div>
         <span className="text-[10px] text-text-muted font-mono">
-          {(agent.winRate / 100).toFixed(0)}% WR · {agent.totalTrades}t
+          {(agent.winRate / 100).toFixed(0)}% WR{agent.riskReward ? ` · ${agent.riskReward} R:R` : ''} · {agent.totalTrades}t
         </span>
       </div>
 

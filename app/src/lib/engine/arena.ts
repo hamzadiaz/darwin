@@ -100,14 +100,31 @@ async function runGeneration(state: ArenaState): Promise<void> {
     agent.totalTrades = result.totalTrades;
     agent.winRate = Math.round(result.winRate * 100); // store as basis points
     state.agentTrades.set(agent.id, result.trades);
+    // Compute trading metrics
+    const wins = result.trades.filter(t => t.pnlPct > 0);
+    const losses = result.trades.filter(t => t.pnlPct <= 0);
+    const avgWin = wins.length > 0 ? wins.reduce((s, t) => s + t.pnlPct, 0) / wins.length : 0;
+    const avgLoss = losses.length > 0 ? Math.abs(losses.reduce((s, t) => s + t.pnlPct, 0) / losses.length) : 0;
+    const grossWins = wins.reduce((s, t) => s + t.pnlPct, 0);
+    const grossLosses = Math.abs(losses.reduce((s, t) => s + t.pnlPct, 0));
+    agent.avgWin = +avgWin.toFixed(2);
+    agent.avgLoss = +avgLoss.toFixed(2);
+    agent.profitFactor = grossLosses > 0 ? +(grossWins / grossLosses).toFixed(2) : grossWins > 0 ? 999 : 0;
+    agent.riskReward = avgLoss > 0 ? `1:${(avgWin / avgLoss).toFixed(1)}` : '—';
+    const wr = result.winRate / 100;
+    agent.expectedValue = +((wr * avgWin) - ((1 - wr) * avgLoss)).toFixed(2);
   }
 
-  // Fitness function: multi-objective — PnL + win rate bonus + trade count bonus
-  // Agents must trade to survive. Cowards (0 trades) get punished.
-  // Win rate bonus: agents with >60% WR get a boost
+  // Fitness function: multi-objective — PnL + win rate pressure + trade count bonus
+  // WR stored as basis points (e.g. 5000 = 50%)
   const fitness = (a: AgentGenome) => {
     if (a.totalTrades === 0) return -10000;
-    const wrBonus = a.winRate > 6000 ? (a.winRate - 6000) / 100 : 0; // bonus for >60% WR (winRate stored as bps)
+    const wrPct = a.winRate / 100; // convert bps to percent (e.g. 5000 -> 50)
+    // Proportional WR bonus: every % above 40% WR adds bonus, scaling up
+    let wrBonus = 0;
+    if (wrPct > 40) wrBonus = (wrPct - 40) * 15; // +15 bps per % above 40% (e.g. 55% WR = +225 bps)
+    // Penalty for degenerate low WR (<30%) — proportional
+    if (wrPct < 30) wrBonus = -(30 - wrPct) * 20; // -20 bps per % below 30% (e.g. 20% WR = -200 bps)
     const tradeBonus = Math.min(a.totalTrades, 10) * 5; // reward active traders (up to 50 bps bonus)
     return a.totalPnl + wrBonus + tradeBonus;
   };
@@ -151,7 +168,10 @@ function evolvePopulation(state: ArenaState): void {
   // Fitness: penalize non-traders, reward win rate + trade activity
   const fit = (a: AgentGenome) => {
     if (a.totalTrades === 0) return -10000;
-    const wrBonus = a.winRate > 6000 ? (a.winRate - 6000) / 100 : 0;
+    const wrPct = a.winRate / 100;
+    let wrBonus = 0;
+    if (wrPct > 40) wrBonus = (wrPct - 40) * 15;
+    if (wrPct < 30) wrBonus = -(30 - wrPct) * 20;
     const tradeBonus = Math.min(a.totalTrades, 10) * 5;
     return a.totalPnl + wrBonus + tradeBonus;
   };
@@ -279,6 +299,15 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   // Backtest the child against current candle data
   const result = runStrategy(childGenome, arena.candles);
 
+  // Compute trading metrics for child
+  const cWins = result.trades.filter(t => t.pnlPct > 0);
+  const cLosses = result.trades.filter(t => t.pnlPct <= 0);
+  const cAvgWin = cWins.length > 0 ? cWins.reduce((s, t) => s + t.pnlPct, 0) / cWins.length : 0;
+  const cAvgLoss = cLosses.length > 0 ? Math.abs(cLosses.reduce((s, t) => s + t.pnlPct, 0) / cLosses.length) : 0;
+  const cGrossWins = cWins.reduce((s, t) => s + t.pnlPct, 0);
+  const cGrossLosses = Math.abs(cLosses.reduce((s, t) => s + t.pnlPct, 0));
+  const cWr = result.winRate / 100;
+
   const child: AgentGenome = {
     id: arena.nextAgentId++,
     generation: Math.max(parentA.generation, parentB.generation) + 1,
@@ -292,6 +321,11 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
     winRate: Math.round(result.winRate * 100),
     isAlive: true,
     owner: '11111111111111111111111111111111',
+    avgWin: +cAvgWin.toFixed(2),
+    avgLoss: +cAvgLoss.toFixed(2),
+    profitFactor: cGrossLosses > 0 ? +(cGrossWins / cGrossLosses).toFixed(2) : cGrossWins > 0 ? 999 : 0,
+    riskReward: cAvgLoss > 0 ? `1:${(cAvgWin / cAvgLoss).toFixed(1)}` : '—',
+    expectedValue: +((cWr * cAvgWin) - ((1 - cWr) * cAvgLoss)).toFixed(2),
   };
 
   // Add to arena

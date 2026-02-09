@@ -13,6 +13,12 @@ export interface AgentGenome {
   isAlive: boolean;
   owner: string;
   aiAnalysis?: string; // AI analyst commentary
+  // Trading metrics (computed from trades)
+  avgWin?: number;        // average win % per trade
+  avgLoss?: number;       // average loss % per trade (positive number)
+  profitFactor?: number;  // gross wins / gross losses
+  riskReward?: string;    // formatted R:R like "1:3.2"
+  expectedValue?: number; // EV per trade as %
 }
 
 /** Decoded genome with human-readable gene names */

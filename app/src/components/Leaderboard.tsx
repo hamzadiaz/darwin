@@ -76,7 +76,7 @@ export function Leaderboard({ agents }: LeaderboardProps) {
                 {!agent.isAlive && <Skull className="w-2.5 h-2.5 text-danger/60" />}
               </p>
               <p className="text-[10px] text-text-muted font-mono leading-none">
-                Gen {agent.generation} · {agent.totalTrades}t · {(agent.winRate / 100).toFixed(0)}% WR
+                Gen {agent.generation} · {agent.totalTrades}t · {(agent.winRate / 100).toFixed(0)}% WR{agent.riskReward ? ` · ${agent.riskReward} R:R` : ''}
               </p>
             </div>
 

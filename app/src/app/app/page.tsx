@@ -442,7 +442,10 @@ export default function Dashboard() {
 
           {/* ─── KPI Stats ─── */}
           {generations.length > 0 && (
-            <StatsCards bestPnl={bestPnl} avgWinRate={avgWinRate} totalGenerations={totalGenerationsAllRuns || generations.length} totalDeaths={totalDeaths} />
+            <StatsCards bestPnl={bestPnl} avgWinRate={avgWinRate} totalGenerations={totalGenerationsAllRuns || generations.length} totalDeaths={totalDeaths}
+              avgProfitFactor={agents.filter(a => a.isAlive && a.profitFactor != null && a.profitFactor < 900).length > 0 ? +(agents.filter(a => a.isAlive && a.profitFactor != null && a.profitFactor < 900).reduce((s, a) => s + (a.profitFactor ?? 0), 0) / agents.filter(a => a.isAlive && a.profitFactor != null && a.profitFactor < 900).length).toFixed(2) : undefined}
+              avgExpectedValue={agents.filter(a => a.isAlive && a.expectedValue != null).length > 0 ? +(agents.filter(a => a.isAlive && a.expectedValue != null).reduce((s, a) => s + (a.expectedValue ?? 0), 0) / agents.filter(a => a.isAlive && a.expectedValue != null).length).toFixed(2) : undefined}
+            />
           )}
 
           {/* ─── Tab Navigation ─── */}

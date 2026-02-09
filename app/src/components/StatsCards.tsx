@@ -1,16 +1,18 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Target, Zap, Dna, Skull } from 'lucide-react';
+import { Target, Zap, Dna, Skull, Scale, TrendingUp } from 'lucide-react';
 
 interface StatsCardsProps {
   bestPnl: number;
   avgWinRate: number;
   totalGenerations: number;
   totalDeaths: number;
+  avgProfitFactor?: number;
+  avgExpectedValue?: number;
 }
 
-export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths }: StatsCardsProps) {
+export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths, avgProfitFactor, avgExpectedValue }: StatsCardsProps) {
   const cards = [
     {
       label: 'Best PnL',
@@ -27,6 +29,22 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
       accentColor: 'text-accent-primary',
       glowColor: 'rgba(59, 130, 246, 0.08)',
       iconBg: 'bg-accent-primary/10',
+    },
+    {
+      label: 'Profit Factor',
+      value: avgProfitFactor != null ? avgProfitFactor.toFixed(2) : '—',
+      icon: Scale,
+      accentColor: avgProfitFactor != null && avgProfitFactor >= 1 ? 'text-success' : 'text-warning',
+      glowColor: 'rgba(234, 179, 8, 0.08)',
+      iconBg: 'bg-warning/10',
+    },
+    {
+      label: 'Avg EV/Trade',
+      value: avgExpectedValue != null ? `${avgExpectedValue >= 0 ? '+' : ''}${avgExpectedValue.toFixed(2)}%` : '—',
+      icon: TrendingUp,
+      accentColor: avgExpectedValue != null && avgExpectedValue >= 0 ? 'text-success' : 'text-danger',
+      glowColor: 'rgba(16, 185, 129, 0.08)',
+      iconBg: 'bg-success/10',
     },
     {
       label: 'Generations',
@@ -47,7 +65,7 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       {cards.map((card, i) => {
         const Icon = card.icon;
         return (
