@@ -366,13 +366,18 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
 
   // Compounded leveraged PnL — simulates actual account growth
   // Start with $10,000 account
-  let balance = 10000;
-  let peakBalance = 10000;
+  // Balance is capped at 100x starting ($1M) to model realistic liquidity/slippage limits
+  const STARTING_BALANCE = 10000;
+  const MAX_BALANCE = STARTING_BALANCE * 100; // $1M cap — beyond this, market impact makes results unrealistic
+  let balance = STARTING_BALANCE;
+  let peakBalance = STARTING_BALANCE;
   let maxDD = 0;
 
   for (const t of trades) {
+    // Cap balance for position sizing (profits above cap are banked but don't compound)
+    const effectiveBalance = Math.min(balance, MAX_BALANCE);
     // Position size = balance * positionSizePct (capped at riskPerTrade for risk management)
-    const posSize = Math.min(balance * riskPerTrade, balance * positionSizeFrac);
+    const posSize = Math.min(effectiveBalance * riskPerTrade, effectiveBalance * positionSizeFrac);
     // Leveraged PnL on this trade
     const tradePnl = posSize * leverage * (t.pnlPct / 100);
 
