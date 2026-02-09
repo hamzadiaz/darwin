@@ -182,10 +182,12 @@ export default function Dashboard() {
 
     // Save current run to history before continuing
     if (data?.generations && data.generations.length > 0) {
+      // Compute best PnL from this run's generations (not from bestEverPnl which may be stale)
+      const runBestPnl = Math.max(...data.generations.map(g => g.bestPnl), 0);
       const newRecord: RunRecord = {
         runNumber: currentRunNumber,
         generations: data.generations.length,
-        bestPnl: data.bestEverPnl ?? 0,
+        bestPnl: runBestPnl,
       };
       setRunHistory(prev => [...prev, newRecord]);
       setCurrentRunNumber(prev => prev + 1);

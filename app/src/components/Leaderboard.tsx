@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Trophy, Skull, TrendingUp, TrendingDown } from 'lucide-react';
 import { AgentGenome } from '@/types';
-import { cn, formatBps } from '@/lib/utils';
+import { cn, formatBpsUncapped } from '@/lib/utils';
 
 interface LeaderboardProps {
   agents: AgentGenome[];
@@ -93,7 +93,7 @@ export function Leaderboard({ agents }: LeaderboardProps) {
                 ) : (
                   <TrendingDown className="w-3 h-3" />
                 )}
-                {formatBps(agent.totalPnl)}
+                {formatBpsUncapped(agent.totalPnl)}
               </p>
             </div>
           </motion.div>

@@ -17,14 +17,26 @@ interface AgentCardProps {
 function describeStrategy(genome: number[]): string {
   const d = decodeGenome(genome);
   const parts: string[] = [];
-  if (d.momentumWeight > 0.6) parts.push('Momentum');
-  else if (d.volatilityFilter > 0.6) parts.push('Vol-aware');
-  else parts.push('Balanced');
-  if (d.stopLossPct < 3) parts.push('tight SL');
-  else if (d.stopLossPct > 7) parts.push('wide SL');
-  if (d.takeProfitPct > 15) parts.push('high TP');
+
+  // Primary indicator
+  if (d.donchianPeriod > 35) parts.push('Donchian breakout');
+  else if (d.momentumWeight > 0.65) parts.push('RSI-driven');
+  else if (d.macdFast <= 10 && d.macdSlow >= 28) parts.push('MACD crossover');
+  else if (d.bbStd < 2.0) parts.push('BB squeeze');
+  else if (d.stochK > 15) parts.push('Stoch-driven');
+  else parts.push('Multi-signal');
+
+  // Leverage
+  if (d.leverage >= 10) parts.push(`${d.leverage}× lev`);
+  else if (d.leverage >= 5) parts.push(`${d.leverage}× lev`);
+
+  // Risk profile with actual numbers
+  parts.push(`SL ${d.stopLossPct.toFixed(1)}%/TP ${d.takeProfitPct.toFixed(0)}%`);
+
+  // Tempo
   if (d.tradeCooldown > 12) parts.push('patient');
-  else if (d.tradeCooldown < 4) parts.push('aggressive');
+  else if (d.tradeCooldown < 4) parts.push('rapid-fire');
+
   return parts.join(' · ');
 }
 
@@ -74,7 +86,7 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
         <div className="flex items-center gap-1.5">
           {pnlPositive ? <TrendingUp className="w-3.5 h-3.5 text-success" /> : <TrendingDown className="w-3.5 h-3.5 text-danger" />}
           <span className={`text-lg font-mono font-bold leading-none ${pnlPositive ? 'text-success' : 'text-danger'}`}>
-            {pnlPositive ? '+' : ''}{formatBps(agent.totalPnl)}
+            {formatBps(agent.totalPnl)}
           </span>
         </div>
         <span className="text-[10px] text-text-muted font-mono">
