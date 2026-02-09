@@ -1,89 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
-import { motion, AnimatePresence, useInView } from 'framer-motion';
-import { Header } from '@/components/Header';
-import { CandleChart } from '@/components/CandleChart';
-import { Leaderboard } from '@/components/Leaderboard';
-import { StatsCards } from '@/components/StatsCards';
-import { GenerationProgress } from '@/components/GenerationProgress';
-import { BreedingView } from '@/components/BreedingView';
+import { useState, useEffect, useRef } from 'react';
+import { motion, useInView } from 'framer-motion';
+import Link from 'next/link';
+import { Dna, Swords, GitBranch, Rocket, ArrowRight, Brain, Target, Crosshair, Shield, Activity, LineChart, Zap, ChevronDown, Wallet } from 'lucide-react';
 import { DnaHelix } from '@/components/DnaHelix';
-import { Graveyard } from '@/components/Graveyard';
-import { AgentCard } from '@/components/AgentCard';
-import { AiAnalyst } from '@/components/AiAnalyst';
-import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket, Download, BarChart3, ChevronDown, Target, Crosshair, GitBranch, Shield, Cpu, Activity, LineChart } from 'lucide-react';
-import { AgentGenome, Generation } from '@/types';
-import { SolanaPanel } from '@/components/SolanaPanel';
-import { LiveTrading } from '@/components/LiveTrading';
-import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
-import type { TradingPair } from '@/lib/engine/market';
-import { BattleTestCard } from '@/components/BattleTestCard';
-
-const PERIODS: { id: string; label: string }[] = [
-  { id: '', label: 'Default' },
-  { id: 'last-30d', label: '30d' },
-  { id: 'last-90d', label: '90d' },
-  { id: 'last-1y', label: '1Y' },
-  { id: 'bull-2024', label: 'Bull 2024' },
-  { id: 'bear-2022', label: 'Bear 2022' },
-  { id: 'crash-2021', label: 'Crash 2021' },
-  { id: 'full-history', label: 'Full' },
-];
-
-const PAIRS: { symbol: TradingPair; label: string; icon: string }[] = [
-  { symbol: 'SOLUSDT', label: 'SOL', icon: '◎' },
-  { symbol: 'BTCUSDT', label: 'BTC', icon: '₿' },
-  { symbol: 'ETHUSDT', label: 'ETH', icon: 'Ξ' },
-];
-
-const FamilyTree = lazy(() => import('@/components/FamilyTree').then(m => ({ default: m.FamilyTree })));
-
-interface EvolutionData {
-  status: 'idle' | 'running' | 'paused' | 'complete';
-  currentGeneration: number;
-  maxGenerations: number;
-  populationSize: number;
-  agents: AgentGenome[];
-  allAgents: AgentGenome[];
-  generations: Generation[];
-  candles: { time: number; open: number; high: number; low: number; close: number }[];
-  trades: Record<number, { entryIdx: number; entryPrice: number; exitIdx: number; exitPrice: number; pnlPct: number; side: string; exitReason: string }[]>;
-  bestEverPnl: number;
-  bestEverAgentId: number;
-  aiGuidedEvolution?: boolean;
-  lastAIBreedingResult?: AIBreedingResult | null;
-  candleInfo?: {
-    count: number;
-    interval: string;
-    startDate: string;
-    endDate: string;
-    days: number;
-    pair: string;
-  } | null;
-  period?: string | null;
-}
-
-const TABS = [
-  { id: 'arena', label: 'Arena', icon: Swords },
-  { id: 'lab', label: 'Lab', icon: FlaskConical },
-  { id: 'analyst', label: 'AI Analyst', icon: Brain },
-  { id: 'live', label: 'Live', icon: Rocket },
-  { id: 'tree', label: 'Family Tree', icon: GitFork },
-  { id: 'graveyard', label: 'Graveyard', icon: Skull },
-] as const;
-
-type TabId = typeof TABS[number]['id'];
 
 const SAMPLE_GENOME = [720, 350, 680, 500, 300, 750, 250, 600, 450, 200, 550, 800, 400, 600, 500, 650, 450, 550, 400, 350];
-
-// ─── Landing Page Components ───────────────────────────────────────
 
 function AnimatedCounter({ value, suffix = '', prefix = '' }: { value: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const isInView = useInView(ref, { once: true });
-  
+
   useEffect(() => {
     if (!isInView) return;
     const duration = 2000;
@@ -107,19 +36,25 @@ function AnimatedCounter({ value, suffix = '', prefix = '' }: { value: number; s
 
 function SectionHeading({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) {
   return (
-    <div className="text-center mb-12 lg:mb-16">
-      <p className="text-[10px] uppercase tracking-[0.4em] text-accent-primary font-bold mb-3">{eyebrow}</p>
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-text-primary tracking-tight mb-4">{title}</h2>
-      <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed">{description}</p>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+      className="text-center mb-12 lg:mb-20"
+    >
+      <p className="text-[10px] uppercase tracking-[0.4em] text-[#00ff88] font-bold mb-4">{eyebrow}</p>
+      <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-5">{title}</h2>
+      <p className="text-sm sm:text-base text-[#8B949E] max-w-2xl mx-auto leading-relaxed">{description}</p>
+    </motion.div>
   );
 }
 
 const HOW_IT_WORKS = [
-  { step: '01', icon: Dna, title: 'Spawn', desc: 'Random genomes are generated — each encoding a unique trading strategy across 22 genes', color: 'from-accent-primary to-accent-tertiary' },
-  { step: '02', icon: Swords, title: 'Compete', desc: 'Agents trade against real historical market data. Realistic fees, slippage, and leverage included', color: 'from-accent-tertiary to-success' },
-  { step: '03', icon: GitBranch, title: 'Evolve', desc: 'Top performers breed. Bottom 80% die. AI guides crossover and mutation for smarter offspring', color: 'from-evolution-purple to-accent-primary' },
-  { step: '04', icon: Rocket, title: 'Deploy', desc: 'Export your winning strategy or deploy it live on Solana via Jupiter DEX', color: 'from-success to-evolution-purple' },
+  { step: '01', icon: Dna, title: 'Spawn', desc: 'Random genomes are generated — each encoding a unique trading strategy across 22 genes', color: 'from-[#00ff88] to-[#06B6D4]' },
+  { step: '02', icon: Swords, title: 'Compete', desc: 'Agents trade against real historical market data. Realistic fees, slippage, and leverage included', color: 'from-[#06B6D4] to-[#8B5CF6]' },
+  { step: '03', icon: GitBranch, title: 'Evolve', desc: 'Top performers breed. Bottom 80% die. AI guides crossover and mutation for smarter offspring', color: 'from-[#8B5CF6] to-[#00ff88]' },
+  { step: '04', icon: Rocket, title: 'Deploy', desc: 'Export your winning strategy or deploy it live on Solana via Jupiter DEX', color: 'from-[#00ff88] to-[#8B5CF6]' },
 ];
 
 const BENTO_FEATURES = [
@@ -133,29 +68,44 @@ const BENTO_FEATURES = [
   { icon: Zap, title: 'Leverage & Shorts', desc: 'Up to 15x leverage with short selling support', size: 'sm' },
 ];
 
-function LandingPage({ 
-  selectedPair, setSelectedPair, 
-  selectedPeriod, setSelectedPeriod, 
-  startEvolution, isStarting 
-}: { 
-  selectedPair: TradingPair; 
-  setSelectedPair: (p: TradingPair) => void;
-  selectedPeriod: string;
-  setSelectedPeriod: (p: string) => void;
-  startEvolution: () => void;
-  isStarting: boolean;
-}) {
+export default function LandingPage() {
   return (
-    <div className="space-y-0">
+    <div className="min-h-screen bg-[#0a0a0a]">
+      {/* ─── Navbar ─── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/[0.06]" style={{ background: 'rgba(10,10,10,0.8)', backdropFilter: 'blur(20px)' }}>
+        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00ff88] to-[#06B6D4] flex items-center justify-center shadow-[0_0_20px_rgba(0,255,136,0.2)]">
+              <Dna className="w-[18px] h-[18px] text-black" />
+            </div>
+            <div>
+              <h1 className="text-base font-bold tracking-tight text-white">DARWIN</h1>
+              <p className="text-[9px] text-[#484F58] hidden sm:block uppercase tracking-[0.2em]">Evolutionary Trading</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <a href="https://github.com" target="_blank" className="text-[11px] text-[#8B949E] hover:text-white transition-colors hidden sm:block">Docs</a>
+            <Link
+              href="/app"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ff88]/10 border border-[#00ff88]/20 text-[#00ff88] text-[11px] font-semibold hover:bg-[#00ff88]/15 transition-all cursor-pointer"
+            >
+              Launch App
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       {/* ─── HERO ─── */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        {/* Background effects */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-accent-primary/[0.03] rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-evolution-purple/[0.03] rounded-full blur-[120px]" />
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+          <div className="absolute top-1/3 left-1/4 w-[800px] h-[800px] bg-[#00ff88]/[0.03] rounded-full blur-[150px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-[#8B5CF6]/[0.04] rounded-full blur-[150px]" />
+          <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '80px 80px' }} />
         </div>
 
-        <div className="relative z-10 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center py-12">
+        <div className="relative z-10 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center px-6 py-16">
           <motion.div
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
@@ -165,90 +115,58 @@ function LandingPage({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-evolution-purple/8 border border-evolution-purple/15 mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#8B5CF6]/20 mb-8"
+              style={{ background: 'rgba(139,92,246,0.06)' }}
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-evolution-purple animate-pulse" />
-              <span className="text-[10px] uppercase tracking-[0.3em] text-evolution-purple font-bold">Colosseum Hackathon · Solana</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.3em] text-[#8B5CF6] font-bold">Colosseum Hackathon · Solana</span>
             </motion.div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-text-primary tracking-tight leading-[1.1] mb-6">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-white tracking-tight leading-[1.05] mb-8">
               Trading Agents{' '}
               <br />
               That{' '}
-              <span className="dna-strand">Evolve</span>
+              <span className="bg-gradient-to-r from-[#00ff88] to-[#06B6D4] bg-clip-text text-transparent">Evolve</span>
             </h1>
 
-            <p className="text-base sm:text-lg text-text-secondary leading-relaxed mb-8 max-w-lg">
-              Spawn AI agents with random genomes. Watch them compete on real market data. 
+            <p className="text-base sm:text-lg text-[#8B949E] leading-relaxed mb-10 max-w-lg">
+              Spawn AI agents with random genomes. Watch them compete on real market data.
               The fittest breed, the weak die. After 50 generations, only the strongest strategy survives.
             </p>
 
-            {/* Pair Selector */}
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold">Pair</span>
-              {PAIRS.map(p => (
-                <button
-                  key={p.symbol}
-                  onClick={() => setSelectedPair(p.symbol)}
-                  className={`group flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
-                    selectedPair === p.symbol
-                      ? 'bg-accent-primary/10 text-accent-primary border border-accent-primary/25'
-                      : 'bg-white/[0.02] text-text-muted border border-white/[0.04] hover:bg-white/[0.04] hover:text-text-secondary'
-                  }`}
-                >
-                  <span className="text-sm">{p.icon}</span>
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Period Selector */}
-            <div className="flex items-center gap-1.5 mb-6 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-text-muted font-bold mr-1">Period</span>
-              {PERIODS.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => setSelectedPeriod(p.id)}
-                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-200 cursor-pointer ${
-                    selectedPeriod === p.id
-                      ? 'bg-evolution-purple/10 text-evolution-purple border border-evolution-purple/25'
-                      : 'bg-white/[0.02] text-text-muted border border-white/[0.04] hover:bg-white/[0.04] hover:text-text-secondary'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
             {/* CTA */}
-            <div className="flex items-center gap-4 flex-wrap">
-              <button
-                onClick={startEvolution}
-                disabled={isStarting}
-                className="group relative flex items-center gap-3 px-7 py-3.5 rounded-xl bg-gradient-to-r from-success to-emerald-500 text-white text-sm font-bold transition-all duration-200 shadow-[0_0_24px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
+            <div className="flex items-center gap-5 flex-wrap">
+              <Link
+                href="/app"
+                className="group relative flex items-center gap-3 px-8 py-4 rounded-xl text-black text-sm font-bold transition-all duration-200 shadow-[0_0_30px_rgba(0,255,136,0.25)] hover:shadow-[0_0_50px_rgba(0,255,136,0.35)] hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                style={{ background: 'linear-gradient(135deg, #00ff88, #00cc6a)' }}
               >
-                {isStarting ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Play className="w-5 h-5" />
-                )}
-                <span>Start Evolution</span>
+                <Rocket className="w-5 h-5" />
+                <span>Launch App</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
-              </button>
-              <div className="flex items-center gap-2 text-xs text-text-muted">
-                <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+              </Link>
+              <div className="flex items-center gap-2 text-xs text-[#484F58]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] animate-pulse" />
                 <span className="font-mono">20 agents · 50 gens · ~30s</span>
               </div>
             </div>
 
             {/* Tags */}
-            <div className="flex items-center gap-2 mt-5 flex-wrap">
+            <div className="flex items-center gap-2 mt-6 flex-wrap">
               {[
-                { label: 'AI-Guided', color: 'evolution-purple' },
-                { label: 'Live Trading', color: 'success' },
-                { label: 'Jupiter DEX', color: 'accent-secondary' },
+                { label: 'AI-Guided', color: '#8B5CF6' },
+                { label: 'Live Trading', color: '#00ff88' },
+                { label: 'Jupiter DEX', color: '#06B6D4' },
               ].map(tag => (
-                <span key={tag.label} className={`text-[9px] px-2.5 py-1 rounded-full bg-${tag.color}/8 text-${tag.color} font-bold border border-${tag.color}/15`}>
+                <span
+                  key={tag.label}
+                  className="text-[9px] px-2.5 py-1 rounded-full font-bold border"
+                  style={{
+                    color: tag.color,
+                    borderColor: `${tag.color}20`,
+                    background: `${tag.color}08`,
+                  }}
+                >
                   {tag.label}
                 </span>
               ))}
@@ -260,10 +178,11 @@ function LandingPage({
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 1, ease: 'easeOut' }}
-            className="hidden lg:flex justify-center items-center relative mx-auto max-w-[400px]"
+            className="hidden lg:flex justify-center items-center relative mx-auto max-w-[420px]"
           >
+            <div className="absolute inset-0 bg-[#00ff88]/[0.03] rounded-full blur-[80px]" />
             <div className="relative">
-              <DnaHelix genome={SAMPLE_GENOME} height={450} />
+              <DnaHelix genome={SAMPLE_GENOME} height={480} />
             </div>
           </motion.div>
         </div>
@@ -272,12 +191,12 @@ function LandingPage({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2"
         >
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="flex flex-col items-center gap-2 text-text-muted"
+            className="flex flex-col items-center gap-2 text-[#484F58]"
           >
             <span className="text-[9px] uppercase tracking-[0.3em] font-bold">Scroll</span>
             <ChevronDown className="w-4 h-4" />
@@ -286,24 +205,31 @@ function LandingPage({
       </section>
 
       {/* ─── LIVE STATS BAR ─── */}
-      <section className="py-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <section className="py-10 px-6">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: '22-Gene Genome', value: <AnimatedCounter value={22} suffix=" genes" />, color: 'text-success' },
-            { label: 'Technical Indicators', value: <AnimatedCounter value={9} />, color: 'text-accent-primary' },
-            { label: 'Population Size', value: <AnimatedCounter value={20} suffix=" agents" />, color: 'text-evolution-purple' },
-            { label: 'Generations', value: <AnimatedCounter value={50} suffix=" per run" />, color: 'text-accent-tertiary' },
+            { label: '22-Gene Genome', value: <AnimatedCounter value={22} suffix=" genes" />, color: 'text-[#00ff88]' },
+            { label: 'Technical Indicators', value: <AnimatedCounter value={9} />, color: 'text-[#06B6D4]' },
+            { label: 'Population Size', value: <AnimatedCounter value={20} suffix=" agents" />, color: 'text-[#8B5CF6]' },
+            { label: 'Generations', value: <AnimatedCounter value={50} suffix=" per run" />, color: 'text-[#00ff88]' },
           ].map((stat) => (
-            <div key={stat.label} className="glass-card rounded-xl p-4 text-center">
-              <p className="text-[9px] uppercase tracking-[0.3em] text-text-muted font-bold mb-1">{stat.label}</p>
-              <p className={`text-2xl sm:text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-            </div>
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="rounded-xl p-5 text-center border border-white/[0.06]"
+              style={{ background: 'rgba(255,255,255,0.02)', backdropFilter: 'blur(12px)' }}
+            >
+              <p className="text-[9px] uppercase tracking-[0.3em] text-[#484F58] font-bold mb-2">{stat.label}</p>
+              <p className={`text-3xl sm:text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+            </motion.div>
           ))}
         </div>
       </section>
 
       {/* ─── WHAT IS DARWIN ─── */}
-      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 px-6">
         <div className="max-w-[1400px] mx-auto">
           <SectionHeading
             eyebrow="What is Darwin"
@@ -311,30 +237,37 @@ function LandingPage({
             description="Darwin applies evolutionary algorithms to trading. Instead of hand-tuning indicators, you let populations of AI agents compete, breed, and evolve — discovering strategies no human would design."
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             {[
-              { icon: '🧬', title: 'Genetic Encoding', desc: 'Every trading strategy is encoded as a genome — 22 genes controlling indicators, thresholds, risk parameters, and position sizing. Each agent is unique.', gradient: 'from-accent-primary/15 to-evolution-purple/15' },
-              { icon: '⚔️', title: 'Survival of the Fittest', desc: 'Agents trade real market data with realistic fees and slippage. Bottom 80% are eliminated each generation. Only profitable strategies pass on their genes.', gradient: 'from-evolution-purple/15 to-accent-tertiary/15' },
-              { icon: '🤖', title: 'AI-Guided Breeding', desc: 'Gemini 3 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-accent-tertiary/15 to-success/15' },
-            ].map((card) => (
-              <div
+              { icon: Dna, title: 'Genetic Encoding', desc: 'Every trading strategy is encoded as a genome — 22 genes controlling indicators, thresholds, risk parameters, and position sizing. Each agent is unique.', gradient: 'from-[#00ff88]/10 to-[#06B6D4]/10' },
+              { icon: Swords, title: 'Survival of the Fittest', desc: 'Agents trade real market data with realistic fees and slippage. Bottom 80% are eliminated each generation. Only profitable strategies pass on their genes.', gradient: 'from-[#8B5CF6]/10 to-[#06B6D4]/10' },
+              { icon: Brain, title: 'AI-Guided Breeding', desc: 'Gemini 3 Flash analyzes top performers and intelligently guides crossover and mutation — combining the best traits from winning strategies.', gradient: 'from-[#06B6D4]/10 to-[#00ff88]/10' },
+            ].map((card, i) => (
+              <motion.div
                 key={card.title}
-                className="group relative glass-card rounded-xl p-6 lg:p-8 overflow-hidden transition-all duration-300 hover:border-white/8"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative rounded-xl p-7 lg:p-9 overflow-hidden transition-all duration-300 border border-white/[0.06] hover:border-white/[0.12]"
+                style={{ background: 'rgba(255,255,255,0.02)' }}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                 <div className="relative z-10">
-                  <span className="text-2xl mb-4 block">{card.icon}</span>
-                  <h3 className="text-base font-semibold text-text-primary mb-3">{card.title}</h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">{card.desc}</p>
+                  <div className="w-11 h-11 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center mb-5 group-hover:border-[#00ff88]/20 transition-colors">
+                    <card.icon className="w-5 h-5 text-[#00ff88]" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white mb-3">{card.title}</h3>
+                  <p className="text-sm text-[#8B949E] leading-relaxed">{card.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-20 lg:py-32 px-6 relative">
         <div className="max-w-[1400px] mx-auto relative z-10">
           <SectionHeading
             eyebrow="How It Works"
@@ -342,28 +275,35 @@ function LandingPage({
             description="From random chaos to optimized trading strategy in under a minute."
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {HOW_IT_WORKS.map((step, i) => (
-              <div key={step.title} className="group relative">
-                <div className="glass-card rounded-xl p-5 h-full transition-all duration-200 hover:border-white/8 hover:-translate-y-1">
-                  <div className={`inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br ${step.color} mb-4`}>
-                    <step.icon className="w-4 h-4 text-white" />
+              <motion.div
+                key={step.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative"
+              >
+                <div className="rounded-xl p-6 h-full transition-all duration-300 border border-white/[0.06] hover:border-white/[0.12] hover:-translate-y-1" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br ${step.color} mb-5 shadow-lg`}>
+                    <step.icon className="w-4.5 h-4.5 text-black" />
                   </div>
-                  <p className="text-[10px] font-mono text-text-muted mb-1">{step.step}</p>
-                  <h3 className="text-base font-semibold text-text-primary mb-2">{step.title}</h3>
-                  <p className="text-xs text-text-secondary leading-relaxed">{step.desc}</p>
+                  <p className="text-[10px] font-mono text-[#484F58] mb-1">{step.step}</p>
+                  <h3 className="text-base font-semibold text-white mb-2">{step.title}</h3>
+                  <p className="text-xs text-[#8B949E] leading-relaxed">{step.desc}</p>
                 </div>
                 {i < HOW_IT_WORKS.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 -right-2.5 w-5 h-px bg-gradient-to-r from-white/6 to-transparent" />
+                  <div className="hidden lg:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-white/[0.08] to-transparent" />
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── FEATURES BENTO GRID ─── */}
-      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+      <section className="py-20 lg:py-32 px-6">
         <div className="max-w-[1400px] mx-auto">
           <SectionHeading
             eyebrow="Key Features"
@@ -371,31 +311,36 @@ function LandingPage({
             description="Every component designed for realistic strategy discovery and deployment."
           />
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {BENTO_FEATURES.map((feature) => (
-              <div
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {BENTO_FEATURES.map((feature, i) => (
+              <motion.div
                 key={feature.title}
-                className={`group glass-card rounded-xl p-4 transition-all duration-200 hover:border-white/8 ${
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className={`group rounded-xl p-5 transition-all duration-300 border border-white/[0.06] hover:border-white/[0.12] ${
                   feature.size === 'lg' ? 'lg:col-span-2' : ''
                 }`}
+                style={{ background: 'rgba(255,255,255,0.02)' }}
               >
                 <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-white/[0.03] flex items-center justify-center group-hover:bg-accent-primary/8 transition-colors duration-200">
-                    <feature.icon className="w-4 h-4 text-text-muted group-hover:text-accent-primary transition-colors duration-200" />
+                  <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center justify-center group-hover:border-[#00ff88]/20 transition-colors">
+                    <feature.icon className="w-4 h-4 text-[#484F58] group-hover:text-[#00ff88] transition-colors duration-200" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-semibold text-text-primary mb-1">{feature.title}</h4>
-                    <p className="text-[11px] text-text-muted leading-relaxed">{feature.desc}</p>
+                    <h4 className="text-xs font-semibold text-white mb-1">{feature.title}</h4>
+                    <p className="text-[11px] text-[#484F58] leading-relaxed">{feature.desc}</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── RESULTS SHOWCASE ─── */}
-      <section className="py-16 lg:py-24 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 relative">
+      <section className="py-20 lg:py-32 px-6 relative">
         <div className="max-w-[1400px] mx-auto relative z-10">
           <SectionHeading
             eyebrow="Results"
@@ -404,557 +349,100 @@ function LandingPage({
           />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-2 glass-card rounded-xl p-8 relative overflow-hidden group hover:border-success/15 transition-all duration-200">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-success/[0.03] rounded-full blur-3xl" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="lg:col-span-2 rounded-xl p-9 relative overflow-hidden group border border-white/[0.06] hover:border-[#00ff88]/15 transition-all duration-300"
+              style={{ background: 'rgba(255,255,255,0.02)' }}
+            >
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#00ff88]/[0.04] rounded-full blur-[60px]" />
               <div className="relative z-10">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-text-muted font-bold mb-2">Search Space</p>
-                <p className="text-5xl sm:text-6xl font-bold text-success font-mono mb-3">10<sup className="text-2xl">66</sup></p>
-                <p className="text-xs text-text-secondary">Possible genome combinations — far too large for brute force. Evolution finds the needle in the haystack.</p>
-                <div className="mt-4 flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.02] border border-white/[0.04]">22 genes × 1001 values</span>
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.02] border border-white/[0.04]">9 indicators</span>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-[#484F58] font-bold mb-3">Search Space</p>
+                <p className="text-6xl sm:text-7xl font-bold text-[#00ff88] font-mono mb-4">10<sup className="text-3xl">66</sup></p>
+                <p className="text-xs text-[#8B949E] leading-relaxed">Possible genome combinations — far too large for brute force. Evolution finds the needle in the haystack.</p>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="text-[10px] font-mono text-[#484F58] px-2.5 py-1 rounded-lg border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>22 genes × 1001 values</span>
+                  <span className="text-[10px] font-mono text-[#484F58] px-2.5 py-1 rounded-lg border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>9 indicators</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue', color: 'text-success' },
-                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15×', color: 'text-evolution-purple' },
-                { label: 'Best Win Rate', value: '75%', sub: 'Top evolved agents', color: 'text-accent-primary' },
-                { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-warning' },
-                { label: 'Battle Tested', value: '3/4', sub: 'Periods passed', color: 'text-accent-tertiary' },
-                { label: 'Strategies/Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
-              ].map((stat) => (
-                <div key={stat.label} className="glass-card rounded-xl p-4 hover:border-white/8 transition-all duration-200">
-                  <p className="text-[8px] uppercase tracking-[0.15em] text-text-muted font-bold mb-1 leading-tight">{stat.label}</p>
+                { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue', color: 'text-[#00ff88]' },
+                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15×', color: 'text-[#8B5CF6]' },
+                { label: 'Best Win Rate', value: '75%', sub: 'Top evolved agents', color: 'text-[#06B6D4]' },
+                { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-[#F59E0B]' },
+                { label: 'Battle Tested', value: '3/4', sub: 'Periods passed', color: 'text-[#06B6D4]' },
+                { label: 'Strategies/Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-white' },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="rounded-xl p-4 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200"
+                  style={{ background: 'rgba(255,255,255,0.02)' }}
+                >
+                  <p className="text-[8px] uppercase tracking-[0.15em] text-[#484F58] font-bold mb-1.5 leading-tight">{stat.label}</p>
                   <p className={`text-xl font-bold font-mono ${stat.color} mb-0.5`}>{stat.value}</p>
-                  <p className="text-[10px] text-text-muted">{stat.sub}</p>
-                </div>
+                  <p className="text-[10px] text-[#484F58]">{stat.sub}</p>
+                </motion.div>
               ))}
             </div>
           </div>
+
+          {/* Disclaimer */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="mt-6 rounded-xl px-5 py-3 border border-[#F59E0B]/15 flex items-center gap-3"
+            style={{ background: 'rgba(245,158,11,0.04)' }}
+          >
+            <span className="text-[10px] text-[#F59E0B]/80">⚠️ Simulated returns on historical data. Real-world results will differ due to liquidity, slippage, and market impact.</span>
+          </motion.div>
         </div>
       </section>
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-20 lg:py-28 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 lg:py-36 px-6">
         <div className="max-w-[900px] mx-auto text-center relative">
-          <div className="absolute inset-0 bg-gradient-radial from-evolution-purple/[0.03] via-transparent to-transparent blur-3xl pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-text-primary tracking-tight mb-5 leading-tight">
+          <div className="absolute inset-0 bg-gradient-radial from-[#8B5CF6]/[0.04] via-transparent to-transparent blur-[80px] pointer-events-none" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative z-10"
+          >
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight mb-6 leading-tight">
               Start Evolving Your<br />
-              <span className="dna-strand">Trading Strategy</span>
+              <span className="bg-gradient-to-r from-[#00ff88] to-[#06B6D4] bg-clip-text text-transparent">Trading Strategy</span>
             </h2>
-            <p className="text-base text-text-secondary mb-8 max-w-lg mx-auto">
+            <p className="text-base text-[#8B949E] mb-10 max-w-lg mx-auto">
               No code. No manual backtesting. Just evolution. Let natural selection find alpha in the chaos.
             </p>
-            <button
-              onClick={startEvolution}
-              disabled={isStarting}
-              className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-gradient-to-r from-evolution-purple to-accent-primary text-white text-base font-bold transition-all duration-200 shadow-[0_0_32px_rgba(139,92,246,0.2)] hover:shadow-[0_0_48px_rgba(139,92,246,0.3)] hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100 cursor-pointer"
+            <Link
+              href="/app"
+              className="group relative inline-flex items-center gap-3 px-10 py-5 rounded-xl text-black text-base font-bold transition-all duration-200 shadow-[0_0_40px_rgba(0,255,136,0.25)] hover:shadow-[0_0_60px_rgba(0,255,136,0.35)] hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
+              style={{ background: 'linear-gradient(135deg, #00ff88, #00cc6a)' }}
             >
-              {isStarting ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Dna className="w-5 h-5" />
-              )}
-              <span>Launch Evolution</span>
+              <Dna className="w-5 h-5" />
+              <span>Launch App</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
-            </button>
-          </div>
+            </Link>
+          </motion.div>
         </div>
       </section>
-    </div>
-  );
-}
 
-// ─── Main Dashboard Component ───────────────────────────────────────
-
-export default function Dashboard() {
-  const [data, setData] = useState<EvolutionData | null>(null);
-  const [isStarting, setIsStarting] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>('arena');
-  const [selectedAgent, setSelectedAgent] = useState<AgentGenome | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedPair, setSelectedPair] = useState<TradingPair>('SOLUSDT');
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('');
-  const [strategyJson, setStrategyJson] = useState<string | null>(null);
-  const [paperTradeData, setPaperTradeData] = useState<Record<string, unknown> | null>(null);
-  const [loadingStrategy, setLoadingStrategy] = useState(false);
-  const [loadingPaperTrade, setLoadingPaperTrade] = useState(false);
-
-  const evolutionRef = useRef(false);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch('/api/evolution?action=status');
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
-      const json = await res.json();
-      if (json.status && json.status !== 'idle') setData(json);
-      else if (json.agents) setData(json);
-      setError(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to connect');
-    }
-  }, []);
-
-  const runEvolutionLoop = useCallback(async () => {
-    evolutionRef.current = true;
-    try {
-      const res = await fetch('/api/evolution', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'run-all' }),
-      });
-      if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
-      const result = await res.json();
-      if (result.snapshot) setData(result.snapshot);
-      await fetchStatus();
-      fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Evolution failed. Try again.');
-    } finally {
-      evolutionRef.current = false;
-    }
-  }, [fetchStatus]);
-
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, data?.status === 'running' ? 2000 : 5000);
-    return () => clearInterval(interval);
-  }, [fetchStatus, data?.status]);
-
-  const startEvolution = async () => {
-    if (isStarting || (data?.status === 'running')) return;
-    setIsStarting(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/evolution', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
-      });
-      if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
-      await fetchStatus();
-      runEvolutionLoop();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to start evolution');
-    }
-    setIsStarting(false);
-  };
-
-  const continueEvolution = async () => {
-    if (isStarting || (data?.status === 'running')) return;
-    setIsStarting(true);
-    setError(null);
-    try {
-      const res = await fetch('/api/evolution', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
-      });
-      if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
-      await fetchStatus();
-      runEvolutionLoop();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to continue evolution');
-    }
-    setIsStarting(false);
-  };
-
-  const stopEvolution = async () => {
-    evolutionRef.current = false;
-    try {
-      await fetch('/api/evolution', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'stop' }),
-      });
-    } catch { /* ignore */ }
-  };
-
-  const exportStrategy = async () => {
-    setLoadingStrategy(true);
-    try {
-      const res = await fetch('/api/strategy');
-      const json = await res.json();
-      setStrategyJson(JSON.stringify(json, null, 2));
-    } catch { setStrategyJson('{"error": "Failed to fetch strategy"}'); }
-    setLoadingStrategy(false);
-  };
-
-  const fetchPaperTrade = async () => {
-    setLoadingPaperTrade(true);
-    try {
-      const res = await fetch('/api/paper-trade');
-      const json = await res.json();
-      setPaperTradeData(json);
-    } catch { setPaperTradeData({ error: 'Failed to fetch paper trade data' }); }
-    setLoadingPaperTrade(false);
-  };
-
-  const agents = data?.agents ?? [];
-  const allAgents = data?.allAgents ?? [];
-  const generations = data?.generations ?? [];
-  const candles = data?.candles ?? [];
-  const evStatus = data?.status ?? 'idle';
-  const generation = data?.currentGeneration ?? 0;
-  const aliveAgents = agents.filter((a) => a.isAlive);
-  const bestPnl = data?.bestEverPnl ?? 0;
-  const avgWinRate = agents.length > 0
-    ? Math.round(agents.reduce((s, a) => s + a.winRate, 0) / agents.length) : 0;
-  const totalDeaths = allAgents.filter((a) => !a.isAlive).length;
-
-  const showHero = evStatus === 'idle' && generations.length === 0;
-
-  const tradeMarkers: { time: number; price: number; type: 'entry' | 'exit'; agentId: number; pnl?: number }[] = [];
-  if (data?.trades && candles.length > 0) {
-    for (const [agentIdStr, trades] of Object.entries(data.trades)) {
-      const agentId = Number(agentIdStr);
-      for (const t of trades) {
-        if (t.entryIdx < candles.length) tradeMarkers.push({ time: candles[t.entryIdx].time, price: t.entryPrice, type: 'entry', agentId });
-        if (t.exitIdx < candles.length) tradeMarkers.push({ time: candles[t.exitIdx].time, price: t.exitPrice, type: 'exit', agentId, pnl: t.pnlPct });
-      }
-    }
-  }
-
-  return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto">
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-        {!showHero && <Header generation={generation} agentCount={data?.populationSize ?? 20} aliveCount={aliveAgents.length} />}
-
-        {/* Error Banner */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="glass-card rounded-lg px-4 py-2.5 border-danger/20 bg-danger/[0.06] flex items-center gap-3"
-            >
-              <span className="text-danger text-[11px] font-medium">{error}</span>
-              <button onClick={() => setError(null)} className="ml-auto text-danger/40 hover:text-danger text-xs cursor-pointer">✕</button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Landing Page or Dashboard */}
-        {showHero ? (
-          <LandingPage
-            selectedPair={selectedPair}
-            setSelectedPair={setSelectedPair}
-            selectedPeriod={selectedPeriod}
-            setSelectedPeriod={setSelectedPeriod}
-            startEvolution={startEvolution}
-            isStarting={isStarting}
-          />
-        ) : (
-          <>
-            {/* ─── Controls Bar ─── */}
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Pair & Period selectors */}
-              <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-bg-secondary/60 border border-white/[0.04]">
-                {PAIRS.map(p => (
-                  <button
-                    key={p.symbol}
-                    onClick={() => setSelectedPair(p.symbol)}
-                    disabled={evStatus === 'running'}
-                    className={`px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
-                      selectedPair === p.symbol
-                        ? 'bg-accent-primary/15 text-accent-primary'
-                        : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
-                    }`}
-                  >
-                    {p.icon} {p.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-0.5 p-0.5 rounded-lg bg-bg-secondary/60 border border-white/[0.04]">
-                {PERIODS.filter(p => ['', 'last-30d', 'last-90d', 'last-1y', 'bull-2024', 'bear-2022'].includes(p.id)).map(p => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedPeriod(p.id)}
-                    disabled={evStatus === 'running'}
-                    className={`px-2 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
-                      selectedPeriod === p.id
-                        ? 'bg-evolution-purple/15 text-evolution-purple'
-                        : 'text-text-muted hover:text-text-secondary disabled:opacity-40'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Action buttons */}
-              {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
-                <div className="flex items-center gap-2">
-                  <button onClick={startEvolution} disabled={isStarting}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success/10 border border-success/20 text-success text-[11px] font-semibold hover:bg-success/15 transition-colors disabled:opacity-50 cursor-pointer">
-                    {isStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-                    {evStatus === 'complete' ? 'Restart' : 'Start'}
-                  </button>
-                  {evStatus === 'complete' && (
-                    <button onClick={continueEvolution} disabled={isStarting}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-semibold hover:bg-evolution-purple/15 transition-colors disabled:opacity-50 cursor-pointer">
-                      {isStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Dna className="w-3.5 h-3.5" />}
-                      Continue
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <button onClick={stopEvolution}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-danger/10 border border-danger/20 text-danger text-[11px] font-semibold hover:bg-danger/15 transition-colors cursor-pointer">
-                  <Square className="w-3.5 h-3.5" /> Stop
-                </button>
-              )}
-
-              {/* Status indicator */}
-              <div className="flex items-center gap-2 text-[11px] text-text-muted font-mono">
-                <div className={`w-1.5 h-1.5 rounded-full ${evStatus === 'running' ? 'bg-success animate-pulse' : evStatus === 'complete' ? 'bg-accent-primary' : 'bg-text-muted/40'}`} />
-                {evStatus === 'running' && (
-                  <motion.span key={generation} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    Gen {generation + 1}/{data?.maxGenerations ?? '?'}
-                  </motion.span>
-                )}
-                {evStatus === 'complete' && `Complete · ${generations.length} gens`}
-                {evStatus === 'idle' && 'Ready'}
-                {evStatus === 'paused' && 'Paused'}
-              </div>
-
-              {/* Candle info */}
-              {data?.candleInfo && (
-                <div className="text-[10px] font-mono text-text-muted bg-bg-elevated/30 px-2 py-1 rounded border border-white/[0.03]">
-                  {data.candleInfo.pair} · {data.candleInfo.interval} · {data.candleInfo.count}c · {data.candleInfo.days}d{data.period ? ` · ${data.period}` : ''}
-                </div>
-              )}
-            </div>
-
-            {/* ─── Progress Bar ─── */}
-            {(evStatus === 'running' || generations.length > 0) && (
-              <GenerationProgress
-                currentGeneration={generation}
-                maxGenerations={data?.maxGenerations ?? 50}
-                generations={generations}
-                aliveCount={aliveAgents.length}
-                status={evStatus}
-              />
-            )}
-
-            {/* ─── KPI Stats ─── */}
-            <StatsCards bestPnl={bestPnl} avgWinRate={avgWinRate} totalGenerations={generations.length} totalDeaths={totalDeaths} />
-
-            {/* ─── Tab Navigation ─── */}
-            <nav className="flex gap-0.5 p-1 rounded-lg bg-bg-secondary/50 border border-white/[0.04] w-full sm:w-fit overflow-x-auto scrollbar-custom">
-              {TABS.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-md text-[11px] font-semibold transition-all duration-150 whitespace-nowrap flex-shrink-0 cursor-pointer ${
-                    activeTab === tab.id
-                      ? 'bg-white/[0.06] text-text-primary'
-                      : 'text-text-muted hover:text-text-secondary hover:bg-white/[0.02]'
-                  }`}
-                >
-                  <tab.icon className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                </button>
-              ))}
-            </nav>
-
-            {/* ─── Tab Content ─── */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
-              >
-                {activeTab === 'arena' && (
-                  <div className="space-y-5">
-                    {/* Chart + Leaderboard — hero layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-                      <div className="lg:col-span-3">
-                        <CandleChart candles={candles} markers={tradeMarkers} />
-                      </div>
-                      <div className="lg:col-span-2 max-h-[420px] sm:max-h-none">
-                        <Leaderboard agents={agents} />
-                      </div>
-                    </div>
-
-                    {/* Top Agents */}
-                    {agents.length > 0 && (
-                      <div>
-                        <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">Top Agents</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                          {[...agents].filter(a => a.isAlive).sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 5).map(agent => (
-                            <AgentCard key={agent.id} agent={agent} compact onSelect={setSelectedAgent} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Battle Test */}
-                    {evStatus === 'complete' && agents.length > 0 && (
-                      <BattleTestCard
-                        genome={agents[0]?.genome ?? null}
-                        agentId={data?.bestEverAgentId ?? agents[0]?.id ?? 0}
-                        symbol={selectedPair}
-                      />
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'lab' && (
-                  <div className="space-y-5">
-                    <BreedingView agents={agents} allAgents={allAgents} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="glass-card rounded-xl p-5">
-                        <h3 className="section-title text-sm mb-4">DNA Structure</h3>
-                        <div className="flex justify-center">
-                          <DnaHelix genome={agents[0]?.genome ?? SAMPLE_GENOME} height={320} />
-                        </div>
-                      </div>
-                      {selectedAgent && (
-                        <AgentCard agent={selectedAgent} />
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'tree' && (
-                  <Suspense fallback={
-                    <div className="glass-card rounded-xl p-12 flex items-center justify-center" style={{ height: 480 }}>
-                      <div className="text-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-evolution-purple mx-auto mb-2" />
-                        <p className="text-[11px] text-text-muted">Loading Family Tree...</p>
-                      </div>
-                    </div>
-                  }>
-                    <FamilyTree agents={allAgents.length > 0 ? allAgents : agents} onSelectAgent={setSelectedAgent} />
-                  </Suspense>
-                )}
-
-                {activeTab === 'analyst' && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <AiAnalyst
-                      genome={agents[0]?.genome ?? SAMPLE_GENOME}
-                      generation={generation}
-                      totalPnl={agents[0]?.totalPnl ?? 0}
-                      winRate={agents[0]?.winRate ?? 0}
-                      totalTrades={agents[0]?.totalTrades ?? 0}
-                      avgPnl={generations.length > 0 ? generations[generations.length - 1].avgPnl : 0}
-                      bestPnl={bestPnl}
-                      populationSize={data?.populationSize ?? 20}
-                      candles={candles}
-                      autoAnalyze={evStatus === 'running'}
-                      aiBreedingResult={data?.lastAIBreedingResult}
-                    />
-                    {agents[0] && (
-                      <AgentCard agent={agents[0]} highlight />
-                    )}
-                  </div>
-                )}
-
-                {activeTab === 'live' && (
-                  <div className="space-y-4">
-                    <LiveTrading hasEvolutionData={agents.length > 0} />
-                    <div className="glass-card rounded-lg px-3 py-2 border-accent-primary/15 bg-accent-primary/[0.04] flex items-center gap-2">
-                      <BarChart3 className="w-3.5 h-3.5 text-accent-primary" />
-                      <span className="text-[10px] font-medium text-accent-primary/80">Includes 0.1% taker fee + 0.05% slippage per trade (0.30% round trip)</span>
-                    </div>
-
-                    {/* Export Strategy */}
-                    <div className="glass-card rounded-xl p-4 sm:p-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="section-title text-sm">Export Strategy</h3>
-                        <button
-                          onClick={exportStrategy}
-                          disabled={loadingStrategy || agents.length === 0}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-evolution-purple/10 border border-evolution-purple/20 text-evolution-purple text-[11px] font-medium hover:bg-evolution-purple/15 transition-colors disabled:opacity-50 cursor-pointer"
-                        >
-                          {loadingStrategy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-                          Export
-                        </button>
-                      </div>
-                      {strategyJson && (
-                        <pre className="bg-bg-primary/60 rounded-lg p-3 text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[360px] overflow-y-auto border border-white/[0.03] scrollbar-custom">
-                          {strategyJson}
-                        </pre>
-                      )}
-                    </div>
-
-                    {/* Paper Trade */}
-                    <div className="glass-card rounded-xl p-4 sm:p-5">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="section-title text-sm">Paper Trade (Forward Test)</h3>
-                        <button
-                          onClick={fetchPaperTrade}
-                          disabled={loadingPaperTrade || agents.length === 0}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/10 border border-success/20 text-success text-[11px] font-medium hover:bg-success/15 transition-colors disabled:opacity-50 cursor-pointer"
-                        >
-                          {loadingPaperTrade ? <Loader2 className="w-3 h-3 animate-spin" /> : <TrendingUp className="w-3 h-3" />}
-                          Run
-                        </button>
-                      </div>
-                      {paperTradeData && (
-                        <div className="space-y-3">
-                          {paperTradeData.error ? (
-                            <p className="text-[11px] text-danger">{String(paperTradeData.error)}</p>
-                          ) : (
-                            <>
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                {[
-                                  { label: 'Balance', value: `$${Number(paperTradeData.currentBalance ?? 0).toLocaleString()}`, color: 'text-text-primary' },
-                                  { label: 'PnL', value: `${Number(paperTradeData.pnlPct ?? 0) > 0 ? '+' : ''}${Number(paperTradeData.pnlPct ?? 0).toFixed(2)}%`, color: Number(paperTradeData.pnlPct ?? 0) >= 0 ? 'text-success' : 'text-danger' },
-                                  { label: 'Win Rate', value: `${Number(paperTradeData.winRate ?? 0).toFixed(1)}%`, color: 'text-accent-primary' },
-                                  { label: 'Trades', value: String(paperTradeData.totalTrades ?? 0), color: 'text-text-secondary' },
-                                ].map(s => (
-                                  <div key={s.label} className="bg-bg-elevated/30 rounded-lg p-2.5 border border-white/[0.03]">
-                                    <p className="text-[9px] uppercase tracking-wider text-text-muted mb-0.5">{s.label}</p>
-                                    <p className={`text-sm font-bold font-mono ${s.color}`}>{s.value}</p>
-                                  </div>
-                                ))}
-                              </div>
-                              <p className="text-[10px] text-text-muted">{String(paperTradeData.feesNote ?? '')}</p>
-                            </>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'graveyard' && (
-                  <Graveyard agents={allAgents.length > 0 ? allAgents : agents} />
-                )}
-              </motion.div>
-            </AnimatePresence>
-
-            {/* ─── Solana Panel ─── */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-1">
-                <SolanaPanel
-                  generationsComplete={generations.length}
-                  isRunning={evStatus === 'running'}
-                  bestPnl={bestPnl}
-                  bestAgentId={data?.bestEverAgentId ?? 0}
-                />
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Footer */}
-        <div className="text-center py-6">
-          <p className="text-[10px] text-text-muted/60">
-            Built for Colosseum Agent Hackathon · Powered by Solana
-          </p>
-        </div>
-      </motion.div>
+      {/* Footer */}
+      <div className="text-center py-8 border-t border-white/[0.04]">
+        <p className="text-[10px] text-[#484F58]/60">
+          Built for Colosseum Agent Hackathon · Powered by Solana
+        </p>
+      </div>
     </div>
   );
 }

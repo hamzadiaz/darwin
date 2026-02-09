@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Dna, Activity, Users, Zap, Wallet, Copy, CheckCircle } from 'lucide-react';
+import { Activity, Users, Zap, Wallet, Copy, CheckCircle } from 'lucide-react';
 
 interface HeaderProps {
   generation: number;
@@ -38,67 +37,46 @@ export function Header({ generation, agentCount, aliveCount }: HeaderProps) {
   };
 
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between py-4"
-    >
-      {/* Left: Logo */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg gradient-evolution flex items-center justify-center glow-evolution">
-          <Dna className="w-[18px] h-[18px] text-white" />
-        </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-base font-bold tracking-tight text-text-primary">DARWIN</h1>
-            <span className="text-[10px] font-mono text-accent-tertiary/80 bg-accent-tertiary/8 px-1.5 py-0.5 rounded">v0.2</span>
-          </div>
-          <p className="text-[10px] text-text-muted hidden sm:block">Evolutionary Trading Agents</p>
-        </div>
+    <div className="flex items-center gap-4">
+      {/* Stats */}
+      <div className="hidden md:flex items-center gap-4">
+        <HeaderStat icon={<Zap className="w-3.5 h-3.5 text-[#8B5CF6]" />} label="Gen" value={`${generation}`} />
+        <div className="w-px h-4 bg-white/[0.06]" />
+        <HeaderStat icon={<Users className="w-3.5 h-3.5 text-[#06B6D4]" />} label="Pop" value={`${agentCount}`} />
+        <div className="w-px h-4 bg-white/[0.06]" />
+        <HeaderStat icon={<Activity className="w-3.5 h-3.5 text-[#00ff88]" />} label="Alive" value={`${aliveCount}`} />
       </div>
 
-      {/* Center: Key Stats */}
-      <div className="hidden md:flex items-center gap-6">
-        <HeaderStat icon={<Zap className="w-3.5 h-3.5 text-evolution-purple" />} label="Generation" value={`${generation}`} />
-        <div className="w-px h-5 bg-border" />
-        <HeaderStat icon={<Users className="w-3.5 h-3.5 text-accent-tertiary" />} label="Population" value={`${agentCount}`} />
-        <div className="w-px h-5 bg-border" />
-        <HeaderStat icon={<Activity className="w-3.5 h-3.5 text-success" />} label="Alive" value={`${aliveCount}`} />
-      </div>
-
-      {/* Right: Wallet */}
-      <div className="flex items-center gap-3">
-        {walletAddress ? (
-          <button
-            onClick={copyAddress}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-success/8 border border-success/15 text-success text-[11px] font-mono hover:bg-success/12 transition-colors cursor-pointer"
-          >
-            {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-            {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
-          </button>
-        ) : (
-          <button
-            onClick={connectWallet}
-            disabled={connecting}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-secondary/10 border border-accent-secondary/20 text-accent-secondary text-[11px] font-medium hover:bg-accent-secondary/15 transition-colors disabled:opacity-50 cursor-pointer"
-          >
-            <Wallet className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{connecting ? 'Connecting...' : 'Connect Wallet'}</span>
-            <span className="sm:hidden">{connecting ? '...' : 'Wallet'}</span>
-          </button>
-        )}
-      </div>
-    </motion.header>
+      {/* Wallet */}
+      {walletAddress ? (
+        <button
+          onClick={copyAddress}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00ff88]/8 border border-[#00ff88]/15 text-[#00ff88] text-[11px] font-mono hover:bg-[#00ff88]/12 transition-colors cursor-pointer"
+        >
+          {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+          {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}
+        </button>
+      ) : (
+        <button
+          onClick={connectWallet}
+          disabled={connecting}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 text-[#8B5CF6] text-[11px] font-medium hover:bg-[#8B5CF6]/15 transition-colors disabled:opacity-50 cursor-pointer"
+        >
+          <Wallet className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">{connecting ? 'Connecting...' : 'Connect'}</span>
+        </button>
+      )}
+    </div>
   );
 }
 
 function HeaderStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       {icon}
       <div>
-        <p className="text-[10px] text-text-muted leading-none mb-0.5">{label}</p>
-        <p className="text-sm font-mono font-semibold text-text-primary leading-none">{value}</p>
+        <p className="text-[9px] text-[#484F58] leading-none">{label}</p>
+        <p className="text-xs font-mono font-semibold text-white leading-none">{value}</p>
       </div>
     </div>
   );
