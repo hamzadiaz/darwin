@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Trophy, Skull, TrendingUp, TrendingDown } from 'lucide-react';
 import { AgentGenome } from '@/types';
 import { cn, formatBpsUncapped } from '@/lib/utils';
+import { Tooltip } from './Tooltip';
 
 interface LeaderboardProps {
   agents: AgentGenome[];
@@ -76,7 +77,7 @@ export function Leaderboard({ agents }: LeaderboardProps) {
                 {!agent.isAlive && <Skull className="w-2.5 h-2.5 text-danger/60" />}
               </p>
               <p className="text-[10px] text-text-muted font-mono leading-none">
-                Gen {agent.generation} · {agent.totalTrades}t · {(agent.winRate / 100).toFixed(0)}% WR{agent.riskReward ? ` · ${agent.riskReward} R:R` : ''}
+                Gen {agent.generation} · {agent.totalTrades}t · <Tooltip content="Percentage of trades that were profitable. Low WR with high R:R ratio can still be very profitable."><span className="cursor-help border-b border-dotted border-white/10">{(agent.winRate / 100).toFixed(0)}% WR</span></Tooltip>{agent.riskReward ? <> · <Tooltip content="Average winning trade size divided by average losing trade size. A 1:5 R:R means winners are 5x larger than losers."><span className="cursor-help border-b border-dotted border-white/10">{agent.riskReward} R:R</span></Tooltip></> : ''}
               </p>
             </div>
 

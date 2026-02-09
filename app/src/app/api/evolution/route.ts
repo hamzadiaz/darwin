@@ -138,6 +138,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: complete ? 'complete' : 'running', snapshot });
   }
 
+  if (action === 'battle-run-all') {
+    const populationSize = body.populationSize ?? 20;
+    const generations = body.generations ?? 50;
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
+    try {
+      await startBattleEvolution(populationSize, generations, symbol);
+      let complete = false;
+      while (!complete) {
+        complete = await stepBattleEvolution();
+      }
+      const snapshot = getArenaSnapshot();
+      return NextResponse.json({ status: 'complete', snapshot, mode: 'battle' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message }, { status: 500 });
+    }
+  }
+
   if (action === 'battle-test') {
     const genome = body.genome as number[] | undefined;
     if (!genome || !Array.isArray(genome)) {

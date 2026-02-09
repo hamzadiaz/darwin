@@ -2,6 +2,16 @@
 
 import { motion } from 'framer-motion';
 import { Target, Zap, Dna, Skull, Scale, TrendingUp } from 'lucide-react';
+import { Tooltip } from './Tooltip';
+
+const TOOLTIPS: Record<string, string> = {
+  'Best PnL': 'Highest cumulative return achieved by any agent in this evolution run. Includes compounding, fees, and slippage.',
+  'Win Rate': 'Percentage of trades that were profitable. Low WR with high R:R ratio can still be very profitable. Trend-following strategies typically have 30-45% WR.',
+  'Profit Factor': 'Gross profits divided by gross losses. >1.0 is profitable, >2.0 is excellent, >3.0 is exceptional.',
+  'Avg EV/Trade': 'Average profit/loss per trade. Positive EV means the strategy is profitable over time. EV = (WR × avg_win) - ((1-WR) × avg_loss).',
+  'Generations': 'Number of evolution cycles completed. Each generation: all agents trade, bottom 80% die, survivors breed children with mutations.',
+  'Deaths': 'Total agents eliminated during evolution. Higher death count means more aggressive natural selection.',
+};
 
 interface StatsCardsProps {
   bestPnl: number;
@@ -82,7 +92,9 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths,
                 <Icon className={`w-4 h-4 ${card.accentColor}`} />
               </div>
             </div>
-            <p className="metric-label mb-1">{card.label}</p>
+            <Tooltip content={TOOLTIPS[card.label] || card.label}>
+              <p className="metric-label mb-1 cursor-help border-b border-dotted border-white/10">{card.label}</p>
+            </Tooltip>
             <p className={`text-2xl sm:text-3xl font-mono font-bold ${card.accentColor} tracking-tighter leading-none`}>
               {card.value}
             </p>

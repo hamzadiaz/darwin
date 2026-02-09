@@ -5,6 +5,7 @@ import { Skull, TrendingUp, TrendingDown, Dna } from 'lucide-react';
 import { AgentGenome, decodeGenome } from '@/types';
 import { formatBpsUncapped } from '@/lib/utils';
 import { GenomeRadar } from './GenomeRadar';
+import { Tooltip } from './Tooltip';
 
 interface AgentCardProps {
   agent: AgentGenome;
@@ -90,7 +91,7 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
           </span>
         </div>
         <span className="text-[10px] text-text-muted font-mono">
-          {(agent.winRate / 100).toFixed(0)}% WR{agent.riskReward ? ` · ${agent.riskReward} R:R` : ''} · {agent.totalTrades}t
+          <Tooltip content="Percentage of trades that were profitable. Low WR with high R:R can still be very profitable."><span className="cursor-help border-b border-dotted border-white/10">{(agent.winRate / 100).toFixed(0)}% WR</span></Tooltip>{agent.riskReward ? <> · <Tooltip content="Average winning trade size divided by average losing trade size."><span className="cursor-help border-b border-dotted border-white/10">{agent.riskReward} R:R</span></Tooltip></> : ''} · {agent.totalTrades}t
         </span>
       </div>
 

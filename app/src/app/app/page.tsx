@@ -13,7 +13,7 @@ import { DnaHelix } from '@/components/DnaHelix';
 import { Graveyard } from '@/components/Graveyard';
 import { AgentCard } from '@/components/AgentCard';
 import { AiAnalyst } from '@/components/AiAnalyst';
-import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket, Download, BarChart3, Target, AlertTriangle } from 'lucide-react';
+import { Play, Square, Loader2, RotateCcw, Swords, FlaskConical, GitFork, Skull, Dna, Zap, TrendingUp, ArrowRight, Brain, Rocket, Download, BarChart3, Target, AlertTriangle, Link2, Shield } from 'lucide-react';
 import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
 import { LiveTrading } from '@/components/LiveTrading';
@@ -72,6 +72,7 @@ const TABS = [
   { id: 'live', label: 'Live', icon: Rocket },
   { id: 'tree', label: 'Family Tree', icon: GitFork },
   { id: 'graveyard', label: 'Graveyard', icon: Skull },
+  { id: 'solana', label: 'Solana', icon: Link2 },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -97,6 +98,7 @@ export default function Dashboard() {
   const [paperTradeData, setPaperTradeData] = useState<Record<string, unknown> | null>(null);
   const [loadingStrategy, setLoadingStrategy] = useState(false);
   const [loadingPaperTrade, setLoadingPaperTrade] = useState(false);
+  const [battleMode, setBattleMode] = useState(true); // Battle mode default ON
 
   // ─── Generation Tracking State ───
   const [runHistory, setRunHistory] = useState<RunRecord[]>([]);
@@ -161,14 +163,28 @@ export default function Dashboard() {
     setTotalGenerationsAllRuns(0);
     setCurrentRunNumber(1);
     try {
-      const res = await fetch('/api/evolution', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
-      });
-      if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
-      await fetchStatus();
-      runEvolutionLoop();
+      if (battleMode) {
+        // Battle Evolution: train on ALL periods simultaneously
+        const res = await fetch('/api/evolution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair }),
+        });
+        if (!res.ok) throw new Error(`Failed to start battle evolution: ${res.status}`);
+        const result = await res.json();
+        if (result.snapshot) setData(result.snapshot);
+        await fetchStatus();
+        fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+      } else {
+        const res = await fetch('/api/evolution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
+        });
+        if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
+        await fetchStatus();
+        runEvolutionLoop();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to start evolution');
     }
@@ -364,6 +380,38 @@ export default function Dashboard() {
                 </button>
               ))}
             </div>
+
+            {/* Battle Mode Toggle */}
+            <div className="flex items-center gap-0.5 p-0.5 rounded-lg border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+              <button
+                onClick={() => setBattleMode(true)}
+                disabled={evStatus === 'running'}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
+                  battleMode
+                    ? 'bg-[#F59E0B]/10 text-[#F59E0B]'
+                    : 'text-[#484F58] hover:text-[#8B949E] disabled:opacity-40'
+                }`}
+              >
+                <Shield className="w-3 h-3" /> Battle
+              </button>
+              <button
+                onClick={() => setBattleMode(false)}
+                disabled={evStatus === 'running'}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[10px] font-bold transition-all duration-150 cursor-pointer ${
+                  !battleMode
+                    ? 'bg-[#8B5CF6]/10 text-[#8B5CF6]'
+                    : 'text-[#484F58] hover:text-[#8B949E] disabled:opacity-40'
+                }`}
+              >
+                Single
+              </button>
+            </div>
+
+            {battleMode && (
+              <div className="text-[9px] font-mono text-[#F59E0B]/60 bg-[#F59E0B]/5 px-2 py-1 rounded border border-[#F59E0B]/10">
+                ⚔️ Trains on ALL periods · Recommended
+              </div>
+            )}
 
             {/* Action buttons */}
             {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
@@ -630,20 +678,19 @@ export default function Dashboard() {
                   {activeTab === 'graveyard' && (
                     <Graveyard agents={allAgents.length > 0 ? allAgents : agents} />
                   )}
+
+                  {activeTab === 'solana' && (
+                    <SolanaPanel
+                      generationsComplete={generations.length}
+                      isRunning={evStatus === 'running'}
+                      bestPnl={bestPnl}
+                      bestAgentId={data?.bestEverAgentId ?? 0}
+                    />
+                  )}
                 </motion.div>
               </AnimatePresence>
 
-              {/* ─── Solana Panel ─── */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-1">
-                  <SolanaPanel
-                    generationsComplete={generations.length}
-                    isRunning={evStatus === 'running'}
-                    bestPnl={bestPnl}
-                    bestAgentId={data?.bestEverAgentId ?? 0}
-                  />
-                </div>
-              </div>
+              {/* Solana is now a tab */}
             </>
           )}
 

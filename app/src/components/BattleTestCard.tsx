@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Loader2, Trophy, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { TradingPair } from '@/lib/engine/market';
+import { Tooltip } from './Tooltip';
 
 interface BattleTestPeriodResult {
   periodId: string;
@@ -65,7 +66,9 @@ export function BattleTestCard({ genome, agentId, symbol }: Props) {
           <div className="w-7 h-7 rounded-lg bg-evolution-purple/10 flex items-center justify-center">
             <Shield className="w-3.5 h-3.5 text-evolution-purple" />
           </div>
-          <h3 className="section-title text-sm">Battle Test</h3>
+          <Tooltip content="Tests the best-evolved strategy against market periods it WASN'T trained on. Passing multiple periods proves the strategy generalizes and isn't overfitted to one market condition.">
+            <h3 className="section-title text-sm cursor-help border-b border-dotted border-white/10">Battle Test</h3>
+          </Tooltip>
         </div>
         <button
           onClick={runTest}
