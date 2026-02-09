@@ -2,7 +2,7 @@
 
 ## What is Darwin?
 
-Darwin is a genetic algorithm protocol where trading agents breed, mutate, and evolve through natural selection. Each agent has a 12-gene genome that controls its entire trading strategy — from technical indicators to risk management. Agents compete against real market data, the best survive and reproduce, and the worst get eliminated.
+Darwin is a genetic algorithm protocol where trading agents breed, mutate, and evolve through natural selection. Each agent has a 22-gene genome encoding 9 technical indicators, stop-loss/take-profit, leverage, and position sizing. Agents compete against real market data, the best survive and reproduce, and the worst get eliminated.
 
 ## How It Works
 

@@ -481,8 +481,8 @@ export async function stepBattleEvolution(): Promise<boolean> {
   while (state.agents.filter(a => a.isAlive).length < popSize) {
     const p1 = survivors[Math.floor(Math.random() * survivors.length)];
     const p2 = survivors[Math.floor(Math.random() * survivors.length)];
-    const childGenome = crossover(p1.genome, p2.genome);
-    mutate(childGenome);
+    const crossed = crossover(p1.genome, p2.genome);
+    const childGenome = mutate(crossed);
     state.nextAgentId++;
     state.agents.push({
       id: state.nextAgentId,

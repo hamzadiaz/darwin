@@ -444,7 +444,7 @@ function LandingPage({
               {[
                 { label: 'Avg Generation PnL Growth', value: '+47%', sub: 'Per generation', color: 'text-accent-primary' },
                 { label: 'Survival Rate', value: '20%', sub: 'Top 4 of 20 survive', color: 'text-evolution-purple' },
-                { label: 'Mutation Rate', value: '15%', sub: 'Per gene per generation', color: 'text-accent-tertiary' },
+                { label: 'Mutation Rate', value: '20%', sub: 'Per gene per generation', color: 'text-accent-tertiary' },
                 { label: 'Max Drawdown (Best)', value: '-18%', sub: 'Risk-adjusted returns', color: 'text-warning' },
                 { label: 'Sharpe Ratio', value: '2.4', sub: 'Best evolved agent', color: 'text-success' },
                 { label: 'Total Strategies Tested', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },

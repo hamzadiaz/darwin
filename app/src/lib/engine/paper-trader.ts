@@ -44,9 +44,9 @@ export function paperTrade(genome: number[], candles: OHLCV[]): PaperTradeResult
   let balance = STARTING_BALANCE;
   const leverage = decoded.leverage;
   const riskPerTrade = decoded.riskPerTrade / 100;
-
+  const positionSizeFrac = decoded.positionSizePct / 100;
   for (const t of result.trades) {
-    const posSize = Math.min(balance, balance * riskPerTrade);
+    const posSize = Math.min(balance * riskPerTrade, balance * positionSizeFrac);
     const tradePnl = posSize * leverage * (t.pnlPct / 100);
     const cappedPnl = Math.max(tradePnl, -posSize);
     balance += cappedPnl;

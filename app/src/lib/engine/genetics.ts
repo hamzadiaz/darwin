@@ -6,7 +6,7 @@ import { GENOME_SIZE } from '@/types';
 
 export interface AgentResult {
   id: number;
-  genome: number[];       // 20 genes, 0-1000
+  genome: number[];       // 22 genes, 0-1000
   totalPnlPct: number;
   winRate: number;
   totalTrades: number;
@@ -18,7 +18,7 @@ export interface NewGeneration {
   parentage: { parentA: number; parentB: number }[];
 }
 
-/** Create a random genome (20 genes, each 0-1000) */
+/** Create a random genome (22 genes, each 0-1000) */
 export function createRandomGenome(): number[] {
   return Array.from({ length: GENOME_SIZE }, () => Math.floor(Math.random() * 1001));
 }

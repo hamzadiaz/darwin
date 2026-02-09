@@ -1,10 +1,10 @@
-/** Expanded genome encoding a trading strategy (20 genes) */
+/** Expanded genome encoding a trading strategy (22 genes) */
 export interface AgentGenome {
   id: number;
   generation: number;
   parentA: number | null;
   parentB: number | null;
-  genome: number[]; // 20 genes, each 0-1000 (scaled)
+  genome: number[]; // 22 genes, each 0-1000 (scaled)
   bornAt: number;
   diedAt: number | null;
   totalPnl: number; // basis points

@@ -203,6 +203,8 @@ const SLIPPAGE_PCT = 0.05;
 const ROUND_TRIP_COST_PCT = (TAKER_FEE_PCT + SLIPPAGE_PCT) * 2;
 /** Per-side cost for applying to entry/exit individually */
 const PER_SIDE_COST_PCT = TAKER_FEE_PCT + SLIPPAGE_PCT; // 0.15%
+/** Funding rate: ~0.01% per 8h on perpetual futures (applied per 4h candle = 0.005%) */
+const FUNDING_RATE_PER_CANDLE = 0.005;
 
 // ─── Main strategy runner ───
 
@@ -235,22 +237,38 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
   // Cooldown in candle-units (candles are 4h, cooldown is in hours)
   const cooldownCandles = Math.max(1, Math.round(g.tradeCooldown / 4));
 
+  // Liquidation threshold: at Nx leverage, ~100/N % adverse move = liquidation
+  // We use 95/leverage to account for fees eating into margin
+  const liquidationPct = 95 / g.leverage;
+
   for (let i = warmup; i < candles.length; i++) {
     const price = closes[i];
     const atrPct = atr[i] / price;
 
     if (position !== 'none') {
-      // Calculate PnL based on position direction
+      // Calculate PnL based on position direction (raw price change %)
       const pnl = position === 'long'
         ? ((price - entryPrice) / entryPrice) * 100
         : ((entryPrice - price) / entryPrice) * 100;
 
-      // Check stop loss (fees already included — stop is hit on raw price, but PnL includes fees)
-      if (pnl <= -g.stopLossPct) {
+      // Also check intra-candle worst price (wick) for liquidation
+      const worstPrice = position === 'long' ? candles[i].low : candles[i].high;
+      const worstPnl = position === 'long'
+        ? ((worstPrice - entryPrice) / entryPrice) * 100
+        : ((entryPrice - worstPrice) / entryPrice) * 100;
+
+      // Funding cost: accumulated per candle the position is held
+      // Note: this is in raw price % terms — leverage is applied in the compounding loop
+      const holdingCandles = i - entryIdx;
+      const fundingCostPct = FUNDING_RATE_PER_CANDLE * holdingCandles;
+
+      // Check LIQUIDATION first — if leveraged loss exceeds margin, position is liquidated
+      // At 15x leverage, ~6.33% adverse move = liquidation (95/15)
+      if (g.leverage > 1 && worstPnl <= -liquidationPct) {
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: -g.stopLossPct - ROUND_TRIP_COST_PCT,
+          side: position, pnlPct: -liquidationPct, // lose entire margin (no fees matter, it's all gone)
           exitReason: 'sl',
         });
         position = 'none';
@@ -258,12 +276,25 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
         continue;
       }
 
-      // Check take profit (fees subtracted from profit)
+      // Check stop loss
+      if (pnl <= -g.stopLossPct) {
+        trades.push({
+          entryIdx, entryPrice,
+          exitIdx: i, exitPrice: price,
+          side: position, pnlPct: -g.stopLossPct - ROUND_TRIP_COST_PCT - fundingCostPct,
+          exitReason: 'sl',
+        });
+        position = 'none';
+        lastTradeIdx = i;
+        continue;
+      }
+
+      // Check take profit (fees + funding subtracted from profit)
       if (pnl >= g.takeProfitPct) {
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: g.takeProfitPct - ROUND_TRIP_COST_PCT,
+          side: position, pnlPct: g.takeProfitPct - ROUND_TRIP_COST_PCT - fundingCostPct,
           exitReason: 'tp',
         });
         position = 'none';
@@ -277,7 +308,7 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
         trades.push({
           entryIdx, entryPrice,
           exitIdx: i, exitPrice: price,
-          side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT,
+          side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT - fundingCostPct,
           exitReason: 'signal',
         });
         position = 'none';
@@ -311,10 +342,12 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
     const pnl = position === 'long'
       ? ((lastPrice - entryPrice) / entryPrice) * 100
       : ((entryPrice - lastPrice) / entryPrice) * 100;
+    const holdCandles = (candles.length - 1) - entryIdx;
+    const fundCost = FUNDING_RATE_PER_CANDLE * holdCandles;
     trades.push({
       entryIdx, entryPrice,
       exitIdx: candles.length - 1, exitPrice: lastPrice,
-      side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT,
+      side: position, pnlPct: pnl - ROUND_TRIP_COST_PCT - fundCost,
       exitReason: 'signal',
     });
   }
@@ -323,6 +356,7 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
   const leverage = g.leverage; // 1-15x
   const positionSizeFrac = g.positionSizePct / 100; // fraction of balance for position size (5-25%)
   const riskPerTrade = g.riskPerTrade / 100; // max risk per trade as drawdown cap (5-30%)
+  // Note: positionSize * leverage can exceed 100% (isolated margin — risk is capped at margin/posSize)
 
   const wins = trades.filter((t) => t.pnlPct > 0).length;
   const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
@@ -337,7 +371,7 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
   let maxDD = 0;
 
   for (const t of trades) {
-    // Position size = balance * positionSizePct (capped at balance * riskPerTrade for risk management)
+    // Position size = balance * positionSizePct (capped at riskPerTrade for risk management)
     const posSize = Math.min(balance * riskPerTrade, balance * positionSizeFrac);
     // Leveraged PnL on this trade
     const tradePnl = posSize * leverage * (t.pnlPct / 100);

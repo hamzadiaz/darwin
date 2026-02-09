@@ -3,7 +3,7 @@
  * Lightweight: just enough to show on-chain activity for the hackathon.
  */
 
-import { Connection, PublicKey, Transaction, SystemProgram, Keypair } from '@solana/web3.js';
+import { Connection } from '@solana/web3.js';
 
 const DEVNET_RPC = 'https://api.devnet.solana.com';
 const PROGRAM_ID = '3Ka7DjJ3i6r1zoCrv7jBSBMzyUgWCDB9rqgwkr3hZS5A';
