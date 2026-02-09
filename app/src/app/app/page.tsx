@@ -20,6 +20,7 @@ import { LiveTrading } from '@/components/LiveTrading';
 import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
 import type { TradingPair } from '@/lib/engine/market';
 import { BattleTestCard } from '@/components/BattleTestCard';
+import { BattleEvolutionDashboard } from '@/components/BattleEvolutionDashboard';
 
 const PERIODS: { id: string; label: string }[] = [
   { id: '', label: 'Default' },
@@ -63,6 +64,9 @@ interface EvolutionData {
     pair: string;
   } | null;
   period?: string | null;
+  battleEvents?: { gen: number; type: string; agentId: number; pnl?: number; parentA?: number; parentB?: number; message: string }[];
+  battlePeriodsLoaded?: string[];
+  totalDeaths?: number;
 }
 
 const TABS = [
@@ -106,6 +110,9 @@ export default function Dashboard() {
   const [currentRunNumber, setCurrentRunNumber] = useState(0);
 
   const evolutionRef = useRef(false);
+  const [genTimes, setGenTimes] = useState<number[]>([]);
+  const [prevBestPnl, setPrevBestPnl] = useState<number>(-Infinity);
+  const battleStepRef = useRef(false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -164,17 +171,54 @@ export default function Dashboard() {
     setCurrentRunNumber(1);
     try {
       if (battleMode) {
-        // Battle Evolution: train on ALL periods simultaneously
-        const res = await fetch('/api/evolution', {
+        // Battle Evolution: init then poll step-by-step
+        const initRes = await fetch('/api/evolution', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair }),
+          body: JSON.stringify({ action: 'battle-evolve', populationSize: 20, generations: 50, symbol: selectedPair }),
         });
-        if (!res.ok) throw new Error(`Failed to start battle evolution: ${res.status}`);
-        const result = await res.json();
-        if (result.snapshot) setData(result.snapshot);
-        await fetchStatus();
-        fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+        if (!initRes.ok) throw new Error(`Failed to start battle evolution: ${initRes.status}`);
+        setIsStarting(false);
+        setGenTimes([]);
+        setPrevBestPnl(-Infinity);
+        // Run step loop
+        battleStepRef.current = true;
+        (async () => {
+          let complete = false;
+          while (!complete && battleStepRef.current) {
+            const stepStart = Date.now();
+            try {
+              const res = await fetch('/api/evolution', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'battle-step' }),
+              });
+              if (!res.ok) throw new Error(`Step failed: ${res.status}`);
+              const result = await res.json();
+              const stepTime = Date.now() - stepStart;
+              setGenTimes(prev => [...prev.slice(-20), stepTime]);
+              if (result.snapshot) {
+                setPrevBestPnl(prev => {
+                  const current = result.snapshot.bestEverPnl ?? -Infinity;
+                  return prev; // we set prev for next render
+                });
+                setData((old) => {
+                  setPrevBestPnl(old?.bestEverPnl ?? -Infinity);
+                  return result.snapshot;
+                });
+              }
+              complete = result.status === 'complete';
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'Battle step failed');
+              break;
+            }
+            if (!complete) await new Promise(r => setTimeout(r, 100));
+          }
+          battleStepRef.current = false;
+          await fetchStatus();
+          fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+        })();
+        return;
       } else {
         const res = await fetch('/api/evolution', {
           method: 'POST',
@@ -235,6 +279,7 @@ export default function Dashboard() {
 
   const stopEvolution = async () => {
     evolutionRef.current = false;
+    battleStepRef.current = false;
     try {
       await fetch('/api/evolution', {
         method: 'POST',
@@ -477,6 +522,24 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* ─── Battle Evolution Dashboard ─── */}
+          {battleMode && evStatus === 'running' && (
+            <BattleEvolutionDashboard
+              generation={generation}
+              maxGenerations={data?.maxGenerations ?? 50}
+              aliveCount={aliveAgents.length}
+              populationSize={data?.populationSize ?? 20}
+              bestPnl={bestPnl}
+              bestAgentId={data?.bestEverAgentId ?? 0}
+              avgPnl={generations.length > 0 ? generations[generations.length - 1].avgPnl : 0}
+              totalDeaths={data?.totalDeaths ?? totalDeaths}
+              battleEvents={(data?.battleEvents ?? []) as any}
+              battlePeriods={data?.battlePeriodsLoaded ?? []}
+              generationTimes={genTimes}
+              prevBestPnl={prevBestPnl}
+            />
+          )}
+
           {/* ─── Progress Bar ─── */}
           {(evStatus === 'running' || generations.length > 0) && (
             <GenerationProgress
@@ -696,21 +759,80 @@ export default function Dashboard() {
 
           {/* Empty state when no evolution has run */}
           {generations.length === 0 && evStatus === 'idle' && (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00ff88]/10 to-[#06B6D4]/10 border border-white/[0.06] flex items-center justify-center mb-6">
-                <Dna className="w-7 h-7 text-[#00ff88]" />
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              {/* Animated DNA graphic */}
+              <div className="relative mb-8">
+                <motion.div
+                  className="w-24 h-24 rounded-3xl flex items-center justify-center relative overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(6,182,212,0.08))',
+                    border: '1px solid rgba(0,255,136,0.15)',
+                  }}
+                  animate={{
+                    boxShadow: [
+                      '0 0 30px rgba(0,255,136,0.1)',
+                      '0 0 60px rgba(0,255,136,0.2)',
+                      '0 0 30px rgba(0,255,136,0.1)',
+                    ],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <Dna className="w-10 h-10 text-[#00ff88]" />
+                  {/* Floating particles */}
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1 h-1 rounded-full bg-[#00ff88]/40"
+                      animate={{
+                        y: [20, -20, 20],
+                        x: [Math.random() * 20 - 10, Math.random() * 20 - 10],
+                        opacity: [0, 0.8, 0],
+                      }}
+                      transition={{
+                        duration: 2 + Math.random() * 2,
+                        repeat: Infinity,
+                        delay: i * 0.4,
+                      }}
+                      style={{ left: `${20 + i * 12}%`, top: '50%' }}
+                    />
+                  ))}
+                </motion.div>
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Ready to Evolve</h2>
-              <p className="text-sm text-[#484F58] mb-6 max-w-md">Select a trading pair and period above, then hit Start to begin evolution.</p>
-              <button
+
+              <h2 className="text-2xl font-black text-white mb-3 tracking-tight">Evolve Trading Agents</h2>
+              <p className="text-sm text-[#8B949E] mb-2 max-w-lg leading-relaxed">
+                Deploy AI trading agents into the arena. They&apos;ll compete on real market data, 
+                evolve through natural selection, and discover strategies no human would design.
+              </p>
+              <p className="text-[11px] text-[#484F58] mb-8 max-w-md">
+                20 agents × 50 generations × {battleMode ? '4 market periods' : 'selected period'} · ~30 seconds
+              </p>
+
+              <motion.button
                 onClick={startEvolution}
                 disabled={isStarting}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-black text-sm font-bold transition-all duration-200 shadow-[0_0_24px_rgba(0,255,136,0.2)] hover:shadow-[0_0_40px_rgba(0,255,136,0.3)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                className="group relative flex items-center gap-3 px-8 py-4 rounded-2xl text-black text-sm font-black tracking-wide transition-all duration-200 disabled:opacity-50 cursor-pointer"
                 style={{ background: 'linear-gradient(135deg, #00ff88, #00cc6a)' }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
-                {isStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                Start Evolution
-              </button>
+                <div
+                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ boxShadow: '0 0 40px rgba(0,255,136,0.4), 0 0 80px rgba(0,255,136,0.15)' }}
+                />
+                {isStarting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                Launch Evolution
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </motion.button>
+
+              {/* Feature pills */}
+              <div className="flex items-center gap-2 mt-6 flex-wrap justify-center">
+                {['Natural Selection', 'Multi-Period Testing', 'Genetic Crossover', 'Auto-Mutation'].map(f => (
+                  <span key={f} className="text-[9px] font-mono text-[#484F58] px-2.5 py-1 rounded-full border border-white/[0.06]" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    {f}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 

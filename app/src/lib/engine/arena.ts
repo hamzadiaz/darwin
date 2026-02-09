@@ -10,6 +10,16 @@ import { AIBreedingResult, applyMutationBias, getLatestBreedingResult } from './
 import { BATTLE_TEST_PERIODS, PeriodId } from './periods';
 import { crossover } from './genetics';
 
+export interface BattleEvent {
+  gen: number;
+  type: 'kill' | 'survive' | 'born' | 'new-best';
+  agentId: number;
+  pnl?: number;
+  parentA?: number;
+  parentB?: number;
+  message: string;
+}
+
 export interface ArenaState {
   status: 'idle' | 'running' | 'paused' | 'complete';
   currentGeneration: number;
@@ -26,6 +36,8 @@ export interface ArenaState {
   lastAIBreedingResult: AIBreedingResult | null;
   symbol: TradingPair;
   period: string | null; // period ID or null for default (last 500 candles)
+  battleEvents: BattleEvent[];
+  battlePeriodsLoaded: string[];
 }
 
 let arena: ArenaState | null = null;
@@ -70,6 +82,8 @@ export function initArena(populationSize = 20, maxGenerations = 50, symbol: Trad
     lastAIBreedingResult: null,
     symbol,
     period,
+    battleEvents: [],
+    battlePeriodsLoaded: [],
   };
 
   return arena;
@@ -428,6 +442,8 @@ export function getArenaSnapshot() {
     lastAIBreedingResult: arena.lastAIBreedingResult,
     totalDeaths: arena.agents.filter(a => !a.isAlive).length,
     period: arena.period,
+    battleEvents: arena.battleEvents?.slice(-50) ?? [],
+    battlePeriodsLoaded: arena.battlePeriodsLoaded ?? [],
   };
 }
 
@@ -458,6 +474,7 @@ export async function startBattleEvolution(
   }
 
   const state = initArena(populationSize, maxGenerations, symbol, 'battle');
+  state.battlePeriodsLoaded = [...battleCandles.keys()];
   // Use first period candles as default display
   const firstPeriod = [...battleCandles.values()][0];
   if (firstPeriod) state.candles = firstPeriod;
@@ -473,52 +490,77 @@ export async function stepBattleEvolution(): Promise<boolean> {
   const state = arena;
   if (state.currentGeneration >= state.maxGenerations) return true;
 
+  const genStart = Date.now();
   const aliveAgents = state.agents.filter(a => a.isAlive);
+  const gen = state.currentGeneration;
 
   // Evaluate each agent across ALL periods
   for (const agent of aliveAgents) {
     let totalFitness = 0;
     let periodCount = 0;
+    let totalTrades = 0;
+    let totalWins = 0;
 
-    for (const [periodId, candles] of battleCandles) {
+    for (const [, candles] of battleCandles) {
       const result = runStrategy(agent.genome, candles);
       totalFitness += result.totalPnlPct;
+      totalTrades += result.trades.length;
+      totalWins += result.trades.filter(t => t.pnlPct > 0).length;
       periodCount++;
     }
 
-    // Average fitness across all periods (in basis points)
     agent.totalPnl = periodCount > 0 ? Math.round((totalFitness / periodCount) * 100) : -10000;
-    agent.totalTrades = periodCount; // repurpose as period count for display
-    agent.winRate = periodCount > 0 ? Math.round((battleCandles.size / periodCount) * 10000) : 0;
+    agent.totalTrades = totalTrades;
+    agent.winRate = totalTrades > 0 ? Math.round((totalWins / totalTrades) * 10000) : 0;
   }
 
-  // Use standard selection/breeding from here
+  // Selection
   const fitness = (a: AgentGenome) => a.totalPnl;
   const sorted = [...aliveAgents].sort((a, b) => fitness(b) - fitness(a));
   const best = sorted[0];
 
+  const prevBest = state.bestEverPnl;
   if (best && best.totalPnl > state.bestEverPnl) {
     state.bestEverPnl = best.totalPnl;
     state.bestEverAgentId = best.id;
+    state.battleEvents.push({
+      gen, type: 'new-best', agentId: best.id, pnl: best.totalPnl,
+      message: `🏆 New best! Agent #${best.id} (+${(best.totalPnl / 100).toFixed(1)}%)`,
+    });
   }
 
   // Kill bottom 75%
   const keepCount = Math.max(Math.ceil(sorted.length * 0.25), 2);
+  let deaths = 0;
   for (let i = keepCount; i < sorted.length; i++) {
     sorted[i].isAlive = false;
     sorted[i].diedAt = Date.now();
+    deaths++;
+    state.battleEvents.push({
+      gen, type: 'kill', agentId: sorted[i].id, pnl: sorted[i].totalPnl,
+      message: `💀 Agent #${sorted[i].id} eliminated (${(sorted[i].totalPnl / 100).toFixed(1)}%)`,
+    });
+  }
+
+  // Log survivors
+  for (let i = 0; i < keepCount && i < sorted.length; i++) {
+    state.battleEvents.push({
+      gen, type: 'survive', agentId: sorted[i].id, pnl: sorted[i].totalPnl,
+      message: `✅ Agent #${sorted[i].id} survived (+${(sorted[i].totalPnl / 100).toFixed(1)}%)`,
+    });
   }
 
   // Breed survivors
   const survivors = sorted.slice(0, keepCount);
-  const popSize = state.agents.length;
-  while (state.agents.filter(a => a.isAlive).length < popSize) {
+  let born = 0;
+  const targetPop = state.populationSize;
+  while (state.agents.filter(a => a.isAlive).length < targetPop) {
     const p1 = survivors[Math.floor(Math.random() * survivors.length)];
     const p2 = survivors[Math.floor(Math.random() * survivors.length)];
     const crossed = crossover(p1.genome, p2.genome);
     const childGenome = mutate(crossed);
     state.nextAgentId++;
-    state.agents.push({
+    const child: AgentGenome = {
       id: state.nextAgentId,
       genome: childGenome,
       parentA: p1.id,
@@ -531,7 +573,34 @@ export async function stepBattleEvolution(): Promise<boolean> {
       totalPnl: 0,
       totalTrades: 0,
       winRate: 0,
+    };
+    state.agents.push(child);
+    born++;
+    state.battleEvents.push({
+      gen, type: 'born', agentId: child.id, parentA: p1.id, parentB: p2.id,
+      message: `🧒 Agent #${child.id} born (child of #${p1.id} × #${p2.id})`,
     });
+  }
+
+  // Record generation
+  const avgPnl = aliveAgents.length > 0
+    ? Math.round(aliveAgents.reduce((s, a) => s + a.totalPnl, 0) / aliveAgents.length)
+    : 0;
+
+  state.generations.push({
+    number: gen,
+    startedAt: genStart,
+    endedAt: Date.now(),
+    bestPnl: best?.totalPnl ?? 0,
+    bestAgent: best?.id ?? 0,
+    avgPnl,
+    agentsBorn: born,
+    agentsDied: deaths,
+  });
+
+  // Trim events to last 200 to prevent memory bloat
+  if (state.battleEvents.length > 200) {
+    state.battleEvents = state.battleEvents.slice(-200);
   }
 
   state.currentGeneration++;
