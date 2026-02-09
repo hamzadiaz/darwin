@@ -114,13 +114,26 @@ export async function POST(req: NextRequest) {
 
   if (action === 'run-all') {
     // Run the complete evolution in a single request (for serverless environments)
-    // This avoids state loss between cold starts
-    let complete = false;
-    while (!complete) {
-      complete = await stepEvolution();
+    // Init + run all in one shot to avoid state loss between cold starts
+    const populationSize = body.populationSize || 20;
+    const generations = body.generations || 50;
+    const seedGenomes = body.seedGenomes as number[][] | undefined;
+    const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
+      ? body.symbol as TradingPair : 'SOLUSDT';
+    const period = (body.period && body.period in MARKET_PERIODS) ? body.period as string : null;
+
+    try {
+      await startEvolution(populationSize, generations, seedGenomes, symbol, period);
+      let complete = false;
+      while (!complete) {
+        complete = await stepEvolution();
+      }
+      const snapshot = getArenaSnapshot();
+      return NextResponse.json({ status: 'complete', snapshot });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message }, { status: 500 });
     }
-    const snapshot = getArenaSnapshot();
-    return NextResponse.json({ status: 'complete', snapshot });
   }
 
   if (action === 'battle-evolve') {

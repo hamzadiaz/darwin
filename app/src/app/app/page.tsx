@@ -220,14 +220,17 @@ export default function Dashboard() {
         })();
         return;
       } else {
+        // Single mode: run-all does init + full evolution in one request (serverless safe)
         const res = await fetch('/api/evolution', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'start', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
+          body: JSON.stringify({ action: 'run-all', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
         });
-        if (!res.ok) throw new Error(`Failed to start: ${res.status}`);
+        if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
+        const result = await res.json();
+        if (result.snapshot) setData(result.snapshot);
         await fetchStatus();
-        runEvolutionLoop();
+        fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to start evolution');
