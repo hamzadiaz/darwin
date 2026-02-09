@@ -26,6 +26,7 @@ export interface BattleTestResult {
   passedCount: number;
   totalPeriods: number;
   battleTested: boolean; // passed majority of periods
+  errors?: string[];
   timestamp: number;
 }
 
