@@ -155,10 +155,11 @@ export async function POST(req: NextRequest) {
   if (action === 'battle-run-all') {
     const populationSize = body.populationSize ?? 20;
     const generations = body.generations ?? 50;
+    const seedGenomes = body.seedGenomes as number[][] | undefined;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
     try {
-      await startBattleEvolution(populationSize, generations, symbol);
+      await startBattleEvolution(populationSize, generations, symbol, seedGenomes);
       let complete = false;
       while (!complete) {
         complete = await stepBattleEvolution();

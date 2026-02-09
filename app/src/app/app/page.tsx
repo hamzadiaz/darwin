@@ -171,54 +171,17 @@ export default function Dashboard() {
     setCurrentRunNumber(1);
     try {
       if (battleMode) {
-        // Battle Evolution: init then poll step-by-step
-        const initRes = await fetch('/api/evolution', {
+        // Battle Evolution: run all in single request (serverless safe)
+        const res = await fetch('/api/evolution', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'battle-evolve', populationSize: 20, generations: 50, symbol: selectedPair }),
+          body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair }),
         });
-        if (!initRes.ok) throw new Error(`Failed to start battle evolution: ${initRes.status}`);
-        setIsStarting(false);
-        setGenTimes([]);
-        setPrevBestPnl(-Infinity);
-        // Run step loop
-        battleStepRef.current = true;
-        (async () => {
-          let complete = false;
-          while (!complete && battleStepRef.current) {
-            const stepStart = Date.now();
-            try {
-              const res = await fetch('/api/evolution', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'battle-step' }),
-              });
-              if (!res.ok) throw new Error(`Step failed: ${res.status}`);
-              const result = await res.json();
-              const stepTime = Date.now() - stepStart;
-              setGenTimes(prev => [...prev.slice(-20), stepTime]);
-              if (result.snapshot) {
-                setPrevBestPnl(prev => {
-                  const current = result.snapshot.bestEverPnl ?? -Infinity;
-                  return prev; // we set prev for next render
-                });
-                setData((old) => {
-                  setPrevBestPnl(old?.bestEverPnl ?? -Infinity);
-                  return result.snapshot;
-                });
-              }
-              complete = result.status === 'complete';
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Battle step failed');
-              break;
-            }
-            if (!complete) await new Promise(r => setTimeout(r, 100));
-          }
-          battleStepRef.current = false;
-          await fetchStatus();
-          fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: data?.agents?.slice(0, 5), generation: data?.currentGeneration || 0 }) }).catch(() => {});
-        })();
-        return;
+        if (!res.ok) throw new Error(`Battle evolution failed: ${res.status}`);
+        const result = await res.json();
+        if (result.snapshot) setData(result.snapshot);
+        await fetchStatus();
+        fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: result.snapshot?.agents?.slice(0, 5), generation: result.snapshot?.currentGeneration || 0 }) }).catch(() => {});
       } else {
         // Single mode: run-all does init + full evolution in one request (serverless safe)
         const res = await fetch('/api/evolution', {
@@ -265,47 +228,17 @@ export default function Dashboard() {
         ?.map((a: AgentGenome) => [...a.genome]) ?? [];
 
       if (battleMode) {
-        // Battle continue: init with seeds then step loop
-        const initRes = await fetch('/api/evolution', {
+        // Battle continue: run all in single request with seeds (serverless safe)
+        const res = await fetch('/api/evolution', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'battle-evolve', populationSize: 20, generations: 50, symbol: selectedPair, seedGenomes: topGenomes }),
+          body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair, seedGenomes: topGenomes }),
         });
-        if (!initRes.ok) throw new Error(`Failed to continue battle: ${initRes.status}`);
+        if (!res.ok) throw new Error(`Failed to continue battle: ${res.status}`);
+        const result = await res.json();
+        if (result.snapshot) setData(result.snapshot);
+        await fetchStatus();
         setIsStarting(false);
-        setGenTimes([]);
-        setPrevBestPnl(-Infinity);
-        battleStepRef.current = true;
-        (async () => {
-          let complete = false;
-          while (!complete && battleStepRef.current) {
-            const stepStart = Date.now();
-            try {
-              const res = await fetch('/api/evolution', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'battle-step' }),
-              });
-              if (!res.ok) throw new Error(`Step failed: ${res.status}`);
-              const result = await res.json();
-              const stepTime = Date.now() - stepStart;
-              setGenTimes(prev => [...prev.slice(-20), stepTime]);
-              if (result.snapshot) {
-                setData((old) => {
-                  setPrevBestPnl(old?.bestEverPnl ?? -Infinity);
-                  return result.snapshot;
-                });
-              }
-              complete = result.status === 'complete';
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Battle step failed');
-              break;
-            }
-            if (!complete) await new Promise(r => setTimeout(r, 100));
-          }
-          battleStepRef.current = false;
-          await fetchStatus();
-        })();
         return;
       }
 
