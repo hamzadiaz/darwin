@@ -16,7 +16,7 @@ export interface BattleTestPeriodResult {
   candleCount: number;
   startDate: string;
   endDate: string;
-  passed: boolean; // PnL > -20%
+  passed: boolean; // PnL > 0% (profitable)
 }
 
 export interface BattleTestResult {
@@ -73,7 +73,7 @@ export async function runBattleTest(
       candleCount: candles.length,
       startDate: new Date(candles[0].time * 1000).toISOString().slice(0, 10),
       endDate: new Date(candles[candles.length - 1].time * 1000).toISOString().slice(0, 10),
-      passed: pnlPct > -20,
+      passed: pnlPct > 0,
     });
   }
 
