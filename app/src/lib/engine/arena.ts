@@ -459,6 +459,7 @@ export async function startBattleEvolution(
   populationSize: number = 20,
   maxGenerations: number = 50,
   symbol: TradingPair = 'SOLUSDT',
+  seedGenomes?: number[][],
 ): Promise<void> {
   // Pre-fetch all period candles
   battleCandles = new Map();
@@ -478,6 +479,16 @@ export async function startBattleEvolution(
   // Use first period candles as default display
   const firstPeriod = [...battleCandles.values()][0];
   if (firstPeriod) state.candles = firstPeriod;
+
+  // Seed top genomes from previous run if provided
+  if (seedGenomes && seedGenomes.length > 0) {
+    const seedCount = Math.min(seedGenomes.length, Math.floor(populationSize * 0.5));
+    for (let i = 0; i < seedCount; i++) {
+      state.agents[i].genome = seedGenomes[i];
+      state.agents[i].parentA = -1; // marker: seeded
+    }
+  }
+
   arena = state;
 }
 
@@ -500,18 +511,41 @@ export async function stepBattleEvolution(): Promise<boolean> {
     let periodCount = 0;
     let totalTrades = 0;
     let totalWins = 0;
+    let grossWins = 0;
+    let grossLosses = 0;
+    let allWinPcts: number[] = [];
+    let allLossPcts: number[] = [];
 
     for (const [, candles] of battleCandles) {
       const result = runStrategy(agent.genome, candles);
       totalFitness += result.totalPnlPct;
       totalTrades += result.trades.length;
-      totalWins += result.trades.filter(t => t.pnlPct > 0).length;
+      for (const t of result.trades) {
+        if (t.pnlPct > 0) {
+          totalWins++;
+          grossWins += t.pnlPct;
+          allWinPcts.push(t.pnlPct);
+        } else {
+          grossLosses += Math.abs(t.pnlPct);
+          allLossPcts.push(Math.abs(t.pnlPct));
+        }
+      }
       periodCount++;
     }
 
     agent.totalPnl = periodCount > 0 ? Math.round((totalFitness / periodCount) * 100) : -10000;
     agent.totalTrades = totalTrades;
     agent.winRate = totalTrades > 0 ? Math.round((totalWins / totalTrades) * 10000) : 0;
+
+    // Compute trading metrics
+    const avgWin = allWinPcts.length > 0 ? allWinPcts.reduce((s, v) => s + v, 0) / allWinPcts.length : 0;
+    const avgLoss = allLossPcts.length > 0 ? allLossPcts.reduce((s, v) => s + v, 0) / allLossPcts.length : 0;
+    const wr = totalTrades > 0 ? totalWins / totalTrades : 0;
+    agent.avgWin = +avgWin.toFixed(2);
+    agent.avgLoss = +avgLoss.toFixed(2);
+    agent.profitFactor = grossLosses > 0 ? +(grossWins / grossLosses).toFixed(2) : grossWins > 0 ? 999 : 0;
+    agent.riskReward = avgLoss > 0 ? `1:${(avgWin / avgLoss).toFixed(1)}` : '—';
+    agent.expectedValue = +((wr * avgWin) - ((1 - wr) * avgLoss)).toFixed(2);
   }
 
   // Selection
@@ -604,5 +638,9 @@ export async function stepBattleEvolution(): Promise<boolean> {
   }
 
   state.currentGeneration++;
-  return state.currentGeneration >= state.maxGenerations;
+  if (state.currentGeneration >= state.maxGenerations) {
+    state.status = 'complete';
+    return true;
+  }
+  return false;
 }

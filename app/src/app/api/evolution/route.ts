@@ -141,8 +141,9 @@ export async function POST(req: NextRequest) {
     const generations = body.generations ?? 50;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
-    await startBattleEvolution(populationSize, generations, symbol);
-    return NextResponse.json({ status: 'started', mode: 'battle-evolve', populationSize, generations, symbol });
+    const seedGenomes = body.seedGenomes as number[][] | undefined;
+    await startBattleEvolution(populationSize, generations, symbol, seedGenomes);
+    return NextResponse.json({ status: 'started', mode: 'battle-evolve', populationSize, generations, symbol, seeded: seedGenomes?.length ?? 0 });
   }
 
   if (action === 'battle-step') {

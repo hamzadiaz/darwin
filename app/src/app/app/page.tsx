@@ -264,6 +264,51 @@ export default function Dashboard() {
         ?.slice(0, 10)
         ?.map((a: AgentGenome) => [...a.genome]) ?? [];
 
+      if (battleMode) {
+        // Battle continue: init with seeds then step loop
+        const initRes = await fetch('/api/evolution', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'battle-evolve', populationSize: 20, generations: 50, symbol: selectedPair, seedGenomes: topGenomes }),
+        });
+        if (!initRes.ok) throw new Error(`Failed to continue battle: ${initRes.status}`);
+        setIsStarting(false);
+        setGenTimes([]);
+        setPrevBestPnl(-Infinity);
+        battleStepRef.current = true;
+        (async () => {
+          let complete = false;
+          while (!complete && battleStepRef.current) {
+            const stepStart = Date.now();
+            try {
+              const res = await fetch('/api/evolution', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'battle-step' }),
+              });
+              if (!res.ok) throw new Error(`Step failed: ${res.status}`);
+              const result = await res.json();
+              const stepTime = Date.now() - stepStart;
+              setGenTimes(prev => [...prev.slice(-20), stepTime]);
+              if (result.snapshot) {
+                setData((old) => {
+                  setPrevBestPnl(old?.bestEverPnl ?? -Infinity);
+                  return result.snapshot;
+                });
+              }
+              complete = result.status === 'complete';
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'Battle step failed');
+              break;
+            }
+            if (!complete) await new Promise(r => setTimeout(r, 100));
+          }
+          battleStepRef.current = false;
+          await fetchStatus();
+        })();
+        return;
+      }
+
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -489,7 +534,7 @@ export default function Dashboard() {
               <div className={`w-1.5 h-1.5 rounded-full ${evStatus === 'running' ? 'bg-[#00ff88] animate-pulse' : evStatus === 'complete' ? 'bg-[#06B6D4]' : 'bg-[#484F58]/40'}`} />
               {evStatus === 'running' && (
                 <motion.span key={generation} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                  Gen {generation + 1}/{data?.maxGenerations ?? '?'}
+                  Gen {Math.min(generation + 1, data?.maxGenerations ?? 50)}/{data?.maxGenerations ?? '?'}
                 </motion.span>
               )}
               {evStatus === 'complete' && `Complete · ${generations.length} gens`}
