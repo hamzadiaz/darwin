@@ -13,7 +13,7 @@ Darwin is a genetic algorithm protocol where trading agents breed, mutate, and e
 5. **Mutate** — Random tweaks prevent local minima
 6. **Kill** — Bottom 75% eliminated. Repeat.
 
-After 15 generations, the population converges on profitable strategies that nobody designed — they evolved.
+After 50 generations, the population converges on profitable strategies that nobody designed — they evolved.
 
 ## What Makes It Unique
 
@@ -29,7 +29,7 @@ Next.js 16 + React 19 + Tailwind 4 + Framer Motion for the frontend. Anchor (Rus
 ## Current Status
 
 ✅ Full evolution engine (arena, genetics, strategy, market data)
-✅ Interactive dashboard with 4 tabs (Arena, Lab, Family Tree, Graveyard)
+✅ Interactive dashboard with 6 tabs (Arena, Lab, AI Analyst, Live, Family Tree, Graveyard)
 ✅ Anchor program written and tested
 ✅ Solana integration for recording winners on-chain
 ✅ Deployed to Vercel

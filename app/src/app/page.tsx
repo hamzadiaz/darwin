@@ -126,7 +126,7 @@ const HOW_IT_WORKS = [
 
 const BENTO_FEATURES = [
   { icon: Dna, title: '22-Gene Genome', desc: 'Full strategy encoded in DNA — entry/exit rules, risk params, indicator weights', size: 'lg' },
-  { icon: Activity, title: '9 Technical Indicators', desc: 'RSI, MACD, Bollinger, ATR, Stochastic, EMA, SMA, VWAP, OBV', size: 'sm' },
+  { icon: Activity, title: '9 Technical Indicators', desc: 'EMA, RSI, MACD, Bollinger Bands, Stochastic, Donchian, OBV, VWAP, ATR', size: 'sm' },
   { icon: LineChart, title: 'Multi-Pair Trading', desc: 'SOL/BTC/ETH with real Binance data', size: 'sm' },
   { icon: Brain, title: 'AI Analyst', desc: 'Gemini 3 Flash guides breeding decisions and analyzes genome fitness', size: 'sm' },
   { icon: Target, title: 'Battle Testing', desc: 'Forward-test winners against unseen market periods', size: 'sm' },
@@ -298,10 +298,10 @@ function LandingPage({
       <section className="py-8 -mx-2.5 sm:-mx-4 lg:-mx-6 px-2.5 sm:px-4 lg:px-6">
         <div className="max-w-[1400px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: 'Best PnL', value: <AnimatedCounter value={2341} suffix="%" prefix="+" />, color: 'text-success' },
-            { label: 'Agents Evolved', value: <AnimatedCounter value={12840} />, color: 'text-accent-primary' },
-            { label: 'Win Rate (Best)', value: <AnimatedCounter value={67} suffix="%" />, color: 'text-evolution-purple' },
-            { label: 'Generations Run', value: <AnimatedCounter value={5200} />, color: 'text-accent-tertiary' },
+            { label: '22-Gene Genome', value: <AnimatedCounter value={22} suffix=" genes" />, color: 'text-success' },
+            { label: 'Technical Indicators', value: <AnimatedCounter value={9} />, color: 'text-accent-primary' },
+            { label: 'Population Size', value: <AnimatedCounter value={20} suffix=" agents" />, color: 'text-evolution-purple' },
+            { label: 'Generations', value: <AnimatedCounter value={50} suffix=" per run" />, color: 'text-accent-tertiary' },
           ].map((stat, i) => (
             <div
               key={stat.label}
@@ -429,12 +429,12 @@ function LandingPage({
             >
               <div className="absolute top-0 right-0 w-40 h-40 bg-success/5 rounded-full blur-3xl group-hover:bg-success/10 transition-colors duration-500" />
               <div className="relative z-10">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-text-muted font-bold mb-2">Best Strategy PnL</p>
-                <p className="text-5xl sm:text-6xl font-bold text-success font-mono mb-3">+2,341%</p>
-                <p className="text-xs text-text-secondary">Evolved over 50 generations on SOL/USDT historical data with realistic fees</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-text-muted font-bold mb-2">Search Space</p>
+                <p className="text-5xl sm:text-6xl font-bold text-success font-mono mb-3">10<sup className="text-2xl">66</sup></p>
+                <p className="text-xs text-text-secondary">Possible genome combinations — far too large for brute force. Evolution finds the needle in the haystack.</p>
                 <div className="mt-4 flex items-center gap-3">
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">Win Rate: 67.8%</span>
-                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">142 Trades</span>
+                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">22 genes × 1001 values</span>
+                  <span className="text-[10px] font-mono text-text-muted px-2 py-1 rounded bg-white/[0.03] border border-white/[0.06]">9 indicators</span>
                 </div>
               </div>
             </div>
@@ -442,12 +442,12 @@ function LandingPage({
             {/* Smaller stats */}
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: 'Avg Generation PnL Growth', value: '+47%', sub: 'Per generation', color: 'text-accent-primary' },
-                { label: 'Survival Rate', value: '20%', sub: 'Top 4 of 20 survive', color: 'text-evolution-purple' },
+                { label: 'Elite Survival', value: '20%', sub: 'Top 4 of 20 survive', color: 'text-evolution-purple' },
                 { label: 'Mutation Rate', value: '20%', sub: 'Per gene per generation', color: 'text-accent-tertiary' },
-                { label: 'Max Drawdown (Best)', value: '-18%', sub: 'Risk-adjusted returns', color: 'text-warning' },
-                { label: 'Sharpe Ratio', value: '2.4', sub: 'Best evolved agent', color: 'text-success' },
-                { label: 'Total Strategies Tested', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
+                { label: 'Immigration Rate', value: '15%', sub: 'Fresh random genomes', color: 'text-accent-primary' },
+                { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-warning' },
+                { label: 'Trading Pairs', value: '3', sub: 'SOL · BTC · ETH', color: 'text-success' },
+                { label: 'Strategies Per Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
               ].map((stat, i) => (
                 <div
                   key={stat.label}

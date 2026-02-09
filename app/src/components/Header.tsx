@@ -24,13 +24,11 @@ export function Header({ generation, agentCount, aliveCount }: HeaderProps) {
         const resp = await solana.connect();
         setWalletAddress(resp.publicKey.toString());
       } else {
-        // Simulated wallet for demo
-        const simAddr = 'DRwN' + Math.random().toString(36).slice(2, 10) + '...' + Math.random().toString(36).slice(2, 6);
-        setWalletAddress(simAddr);
+        // No Phantom wallet detected — prompt user to install
+        window.open('https://phantom.app/', '_blank');
       }
     } catch {
-      // Demo fallback
-      setWalletAddress('DRwN' + Math.random().toString(36).slice(2, 10) + '...demo');
+      // Wallet connection rejected or unavailable
     }
     setConnecting(false);
   };

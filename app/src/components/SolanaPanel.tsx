@@ -56,7 +56,7 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
             <Link2 className="w-4 h-4 text-accent-secondary" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Solana Devnet</h3>
+            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Solana <span className="text-accent-secondary text-[10px] ml-1 px-1.5 py-0.5 rounded bg-accent-secondary/10 border border-accent-secondary/20">DEVNET</span></h3>
             <p className="text-[10px] text-text-muted font-mono">Program: {PROGRAM_ID.slice(0, 8)}...{PROGRAM_ID.slice(-4)}</p>
           </div>
         </div>

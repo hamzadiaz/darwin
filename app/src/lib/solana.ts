@@ -37,19 +37,11 @@ export async function recordGenerationOnChain(
   try {
     const connection = new Connection(DEVNET_RPC, 'confirmed');
     
-    // Create a deterministic "record" — in production this would call the Anchor program
-    // For the hackathon demo, we create a memo-style transaction
-    const memoData = JSON.stringify({
-      protocol: 'darwin',
-      gen: generation,
-      winner: agentId,
-      pnl: winnerPnl,
-      genome: winnerGenome.slice(0, 6), // first 6 genes for space
-      ts: Date.now(),
-    });
-
+    // Devnet simulation: generates a local record ID (not a real transaction).
+    // In production, this would call the Anchor program to create an on-chain memo transaction.
+    // The connection object above verifies devnet connectivity.
     const record: OnChainRecord = {
-      txSignature: `darwin_gen${generation}_${Date.now().toString(36)}`,
+      txSignature: `devnet_sim_gen${generation}_${Date.now().toString(36)}`,
       generation,
       winnerGenome,
       winnerPnl,
