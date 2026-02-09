@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildBreedingPrompt, parseBreedingResponse, setLatestBreedingResult } from '@/lib/engine/ai-breeder';
-import { getArenaState } from '@/lib/engine/arena';
 
 export async function POST(req: NextRequest) {
   try {
-    const arena = getArenaState();
-    if (!arena) {
-      return NextResponse.json({ error: 'No evolution running' }, { status: 400 });
+    // Stateless: accept agents from request body (no server state needed)
+    let body: { agents?: any[]; candles?: number[][]; generation?: number } = {};
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const { agents, candles, generation = 0 } = body;
+
+    if (!agents || !Array.isArray(agents)) {
+      return NextResponse.json({ error: 'agents array required in body' }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -14,16 +22,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No API key' }, { status: 500 });
     }
 
-    const aliveAgents = arena.agents
-      .filter(a => a.isAlive)
-      .sort((a, b) => b.totalPnl - a.totalPnl)
+    const aliveAgents = agents
+      .filter((a: any) => a.isAlive)
+      .sort((a: any, b: any) => (b.totalPnl || 0) - (a.totalPnl || 0))
       .slice(0, 5);
 
     if (aliveAgents.length < 2) {
       return NextResponse.json({ error: 'Not enough agents' }, { status: 400 });
     }
 
-    const prompt = buildBreedingPrompt(aliveAgents, arena.candles, arena.currentGeneration);
+    const prompt = buildBreedingPrompt(aliveAgents, (candles || []) as any, generation);
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,

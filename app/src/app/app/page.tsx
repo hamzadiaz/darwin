@@ -139,7 +139,7 @@ export default function Dashboard() {
       const result = await res.json();
       if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
-      fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+      fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: data?.agents?.slice(0, 5), generation: data?.currentGeneration || 0 }) }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Evolution failed. Try again.');
     } finally {
@@ -216,7 +216,7 @@ export default function Dashboard() {
           }
           battleStepRef.current = false;
           await fetchStatus();
-          fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+          fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: data?.agents?.slice(0, 5), generation: data?.currentGeneration || 0 }) }).catch(() => {});
         })();
         return;
       } else {
@@ -230,7 +230,7 @@ export default function Dashboard() {
         const result = await res.json();
         if (result.snapshot) setData(result.snapshot);
         await fetchStatus();
-        fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+        fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: data?.agents?.slice(0, 5), generation: data?.currentGeneration || 0 }) }).catch(() => {});
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to start evolution');
@@ -318,7 +318,7 @@ export default function Dashboard() {
       const result = await res.json();
       if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
-      fetch('/api/ai-breed', { method: 'POST' }).catch(() => {});
+      fetch('/api/ai-breed', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agents: data?.agents?.slice(0, 5), generation: data?.currentGeneration || 0 }) }).catch(() => {});
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to continue evolution');
     }
