@@ -442,11 +442,11 @@ function LandingPage({
             {/* Smaller stats */}
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: 'Typical Best PnL', value: '+190%', sub: 'SOL/USDT 4h · 50 gens', color: 'text-success' },
-                { label: 'After 5× Continue', value: '+500%', sub: 'Seeded evolution compounds', color: 'text-evolution-purple' },
-                { label: 'Avg Win Rate', value: '55%', sub: 'Across all tested scenarios', color: 'text-accent-primary' },
+                { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue evolution', color: 'text-success' },
+                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15× leverage', color: 'text-evolution-purple' },
+                { label: 'Best Win Rate', value: '75%', sub: 'Top evolved agents', color: 'text-accent-primary' },
                 { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-warning' },
-                { label: 'Battle Test Pass', value: '2/4', sub: 'Best agents survive bear markets', color: 'text-accent-tertiary' },
+                { label: 'Battle Tested', value: '3/4', sub: 'Periods passed by best agents', color: 'text-accent-tertiary' },
                 { label: 'Strategies Per Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
               ].map((stat, i) => (
                 <div
