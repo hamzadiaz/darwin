@@ -1,4 +1,18 @@
 {
+  "functions": {
+    "src/app/api/evolution/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/analyze/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/ai-breed/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/paper-trade/route.ts": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

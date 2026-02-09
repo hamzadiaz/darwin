@@ -39,21 +39,24 @@ export async function runBattleTest(
 ): Promise<BattleTestResult> {
   const periods = periodIds ?? BATTLE_TEST_PERIODS;
   const results: BattleTestPeriodResult[] = [];
+  const errors: string[] = [];
 
   for (const periodId of periods) {
     const period = MARKET_PERIODS[periodId];
-    if (!period) continue;
+    if (!period) { errors.push(`${periodId}: unknown period`); continue; }
 
     let candles: OHLCV[];
     try {
       candles = await fetchCandlesForPeriod(symbol, periodId, '4h');
     } catch (err) {
-      console.warn(`Battle test: failed to fetch ${periodId}:`, (err as Error).message);
+      const msg = `${periodId}: fetch failed — ${(err as Error).message}`;
+      console.warn(`Battle test: ${msg}`);
+      errors.push(msg);
       continue;
     }
 
     if (candles.length < 10) {
-      console.warn(`Battle test: insufficient candles for ${periodId} (${candles.length})`);
+      errors.push(`${periodId}: only ${candles.length} candles`);
       continue;
     }
 
@@ -87,6 +90,7 @@ export async function runBattleTest(
     passedCount,
     totalPeriods: results.length,
     battleTested,
+    errors: errors.length > 0 ? errors : undefined,
     timestamp: Date.now(),
   };
 }
