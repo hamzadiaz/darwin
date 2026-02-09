@@ -442,11 +442,11 @@ function LandingPage({
             {/* Smaller stats */}
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
-                { label: 'Elite Survival', value: '20%', sub: 'Top 4 of 20 survive', color: 'text-evolution-purple' },
-                { label: 'Mutation Rate', value: '20%', sub: 'Per gene per generation', color: 'text-accent-tertiary' },
-                { label: 'Immigration Rate', value: '15%', sub: 'Fresh random genomes', color: 'text-accent-primary' },
+                { label: 'Typical Best PnL', value: '+190%', sub: 'SOL/USDT 4h · 50 gens', color: 'text-success' },
+                { label: 'After 5× Continue', value: '+500%', sub: 'Seeded evolution compounds', color: 'text-evolution-purple' },
+                { label: 'Avg Win Rate', value: '55%', sub: 'Across all tested scenarios', color: 'text-accent-primary' },
                 { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-warning' },
-                { label: 'Trading Pairs', value: '3', sub: 'SOL · BTC · ETH', color: 'text-success' },
+                { label: 'Battle Test Pass', value: '2/4', sub: 'Best agents survive bear markets', color: 'text-accent-tertiary' },
                 { label: 'Strategies Per Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-text-primary' },
               ].map((stat, i) => (
                 <div
