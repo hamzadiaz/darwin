@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Skull, TrendingUp, TrendingDown, Dna } from 'lucide-react';
 import { AgentGenome, decodeGenome } from '@/types';
-import { formatBps } from '@/lib/utils';
+import { formatBpsUncapped } from '@/lib/utils';
 import { GenomeRadar } from './GenomeRadar';
 
 interface AgentCardProps {
@@ -86,7 +86,7 @@ export function AgentCard({ agent, onSelect, compact, highlight, parentGenome }:
         <div className="flex items-center gap-1.5">
           {pnlPositive ? <TrendingUp className="w-3.5 h-3.5 text-success" /> : <TrendingDown className="w-3.5 h-3.5 text-danger" />}
           <span className={`text-lg font-mono font-bold leading-none ${pnlPositive ? 'text-success' : 'text-danger'}`}>
-            {formatBps(agent.totalPnl)}
+            {formatBpsUncapped(agent.totalPnl)}
           </span>
         </div>
         <span className="text-[10px] text-text-muted font-mono">

@@ -204,7 +204,7 @@ export default function Dashboard() {
       const res = await fetch('/api/evolution', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined, seedGenomes: topGenomes }),
+        body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || data?.period || undefined, seedGenomes: topGenomes }),
       });
       if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
       const result = await res.json();
@@ -421,7 +421,7 @@ export default function Dashboard() {
                     <span className="text-[#8B949E]">{run.generations} gens</span>
                     <span className="text-[#484F58]">·</span>
                     <span className={run.bestPnl >= 0 ? 'text-[#00ff88]' : 'text-red-400'}>
-                      {run.bestPnl > 1000000 ? '+10,000%+' : `${run.bestPnl >= 0 ? '+' : ''}${(run.bestPnl / 100).toFixed(1)}%`}
+                      {(() => { const pct = run.bestPnl / 100; const sign = pct >= 0 ? '+' : ''; return Math.abs(pct) >= 1000 ? `${sign}${pct.toLocaleString('en-US', { maximumFractionDigits: 0 })}%` : `${sign}${pct.toFixed(1)}%`; })()}
                     </span>
                   </div>
                 ))}

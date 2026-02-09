@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Skull, TrendingDown, TrendingUp } from 'lucide-react';
 import { AgentGenome } from '@/types';
-import { formatBps } from '@/lib/utils';
+import { formatBpsUncapped } from '@/lib/utils';
 
 interface GraveyardProps {
   agents: AgentGenome[];
@@ -52,7 +52,7 @@ export function Graveyard({ agents }: GraveyardProps) {
               agent.totalPnl >= 0 ? 'text-success/60' : 'text-danger/60'
             }`}>
               {agent.totalPnl >= 0 ? <TrendingUp className="w-2.5 h-2.5" /> : <TrendingDown className="w-2.5 h-2.5" />}
-              {formatBps(agent.totalPnl)}
+              {formatBpsUncapped(agent.totalPnl)}
             </span>
             <span className="text-[10px] font-mono text-text-muted text-right">{agent.totalTrades}</span>
           </motion.div>

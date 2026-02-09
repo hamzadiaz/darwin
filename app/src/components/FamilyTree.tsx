@@ -13,7 +13,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { AgentGenome } from '@/types';
-import { formatBps } from '@/lib/utils';
+import { formatBpsUncapped } from '@/lib/utils';
 
 interface FamilyTreeProps {
   agents: AgentGenome[];
@@ -37,7 +37,7 @@ function AgentNode({ data }: { data: { agent: AgentGenome; selected: boolean } }
     >
       <div className="text-[10px] font-mono font-bold text-text-primary">#{agent.id}</div>
       <div className={`text-xs font-mono font-bold ${pnlPos ? 'text-success' : 'text-danger'}`}>
-        {formatBps(agent.totalPnl)}
+        {formatBpsUncapped(agent.totalPnl)}
       </div>
       <div className="text-[8px] text-text-muted font-mono">Gen {agent.generation}</div>
       {!agent.isAlive && <div className="text-[8px] text-text-muted">💀</div>}

@@ -14,7 +14,7 @@ export function StatsCards({ bestPnl, avgWinRate, totalGenerations, totalDeaths 
   const cards = [
     {
       label: 'Best PnL',
-      value: bestPnl <= -9999 ? '—' : bestPnl > 1000000 ? '+10,000%+' : `${bestPnl >= 0 ? '+' : ''}${(bestPnl / 100).toFixed(2)}%`,
+      value: bestPnl <= -9999 ? '—' : (() => { const pct = bestPnl / 100; const sign = pct >= 0 ? '+' : ''; return Math.abs(pct) >= 1000 ? `${sign}${pct.toLocaleString('en-US', { maximumFractionDigits: 0 })}%` : `${sign}${pct.toFixed(2)}%`; })(),
       icon: Target,
       accentColor: 'text-success',
       glowColor: 'rgba(16, 185, 129, 0.08)',

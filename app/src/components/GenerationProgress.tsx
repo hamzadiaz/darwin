@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Zap, Users } from 'lucide-react';
 import { Generation } from '@/types';
-import { formatBps } from '@/lib/utils';
+import { formatBpsUncapped } from '@/lib/utils';
 
 interface GenerationProgressProps {
   currentGeneration: number;
@@ -100,13 +100,13 @@ export function GenerationProgress({ currentGeneration, maxGenerations, generati
         <div>
           <p className="text-[10px] text-text-muted mb-0.5">Best PnL</p>
           <p className={`text-xs font-mono font-bold ${bestPnl >= 0 ? 'text-success' : 'text-danger'}`}>
-            {formatBps(bestPnl)}
+            {formatBpsUncapped(bestPnl)}
           </p>
         </div>
         <div>
           <p className="text-[10px] text-text-muted mb-0.5">Avg PnL</p>
           <p className={`text-xs font-mono font-bold ${avgPnl >= 0 ? 'text-success' : 'text-danger'}`}>
-            {formatBps(avgPnl)}
+            {formatBpsUncapped(avgPnl)}
           </p>
         </div>
         <div>
