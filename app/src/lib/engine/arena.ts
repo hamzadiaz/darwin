@@ -315,16 +315,28 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   const parentB = arena.agents.find(a => a.id === parentBId);
   if (!parentA || !parentB) return null;
 
-  // Crossover + mutation — use higher mutation rate for manual lab breeding
-  const crossed = parentA.genome.map((g, i) =>
-    Math.random() > 0.5 ? g : parentB.genome[i]
-  );
-  // Check if parents are clones (identical genomes) — if so, use aggressive mutation
+  // Breed multiple children and pick the best (like a mini-evolution)
   const areClones = parentA.genome.every((g, i) => g === parentB.genome[i]);
-  const childGenome = mutate(crossed, areClones ? 0.50 : 0.25);
-
-  // Backtest the child against current candle data
-  const result = runStrategy(childGenome, arena.candles);
+  const mutationRate = areClones ? 0.40 : 0.25;
+  const NUM_CHILDREN = 20;
+  
+  let bestChildGenome = parentA.genome;
+  let bestResult = runStrategy(parentA.genome, arena.candles);
+  
+  for (let i = 0; i < NUM_CHILDREN; i++) {
+    const crossed = parentA.genome.map((g, idx) =>
+      Math.random() > 0.5 ? g : parentB.genome[idx]
+    );
+    const candidate = mutate(crossed, mutationRate);
+    const candidateResult = runStrategy(candidate, arena.candles);
+    if (candidateResult.totalPnlPct > bestResult.totalPnlPct) {
+      bestChildGenome = candidate;
+      bestResult = candidateResult;
+    }
+  }
+  
+  const childGenome = bestChildGenome;
+  const result = bestResult;
 
   // Compute trading metrics for child
   const cWins = result.trades.filter(t => t.pnlPct > 0);
