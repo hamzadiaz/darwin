@@ -46,7 +46,7 @@ export interface DecodedGenome {
   stochD: number;             // 3-9
   signalThreshold: number;    // 0.2-0.8 (aggressiveness)
   // Leverage genes (added for Donchian-style compounded returns)
-  leverage: number;           // 1-5x
+  leverage: number;           // 1-10x
   riskPerTrade: number;       // 2-10% of balance risked per trade
 }
 
@@ -105,7 +105,7 @@ export function decodeGenome(raw: number[]): DecodedGenome {
     stochK: Math.round(scale(raw[17], 5, 21)),
     stochD: Math.round(scale(raw[18], 3, 9)),
     signalThreshold: +scale(raw[19], 0.2, 0.8).toFixed(2),
-    leverage: +scale(raw[20] ?? 500, 1, 5).toFixed(1),
+    leverage: +scale(raw[20] ?? 500, 1, 10).toFixed(1),
     riskPerTrade: +scale(raw[21] ?? 500, 2, 10).toFixed(1),
   };
 }
