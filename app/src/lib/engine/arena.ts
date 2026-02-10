@@ -315,11 +315,13 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   const parentB = arena.agents.find(a => a.id === parentBId);
   if (!parentA || !parentB) return null;
 
-  // Crossover + mutation using genetics.mutate() for consistency
+  // Crossover + mutation — use higher mutation rate for manual lab breeding
   const crossed = parentA.genome.map((g, i) =>
     Math.random() > 0.5 ? g : parentB.genome[i]
   );
-  const childGenome = mutate(crossed);
+  // Check if parents are clones (identical genomes) — if so, use aggressive mutation
+  const areClones = parentA.genome.every((g, i) => g === parentB.genome[i]);
+  const childGenome = mutate(crossed, areClones ? 0.50 : 0.25);
 
   // Backtest the child against current candle data
   const result = runStrategy(childGenome, arena.candles);

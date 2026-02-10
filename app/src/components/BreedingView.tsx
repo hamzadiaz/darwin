@@ -26,7 +26,8 @@ export function BreedingView({ agents, allAgents }: BreedingViewProps) {
     if (sorted.length < 2) return;
 
     const pA = sorted[0];
-    const pB = sorted[1];
+    // Pick the first parent with a DIFFERENT genome (not a clone)
+    const pB = sorted.find(a => a.id !== pA.id && a.genome.some((g, i) => Math.abs(g - pA.genome[i]) > 10)) || sorted[1];
     setParentA(pA);
     setParentB(pB);
     setStage('parents');
