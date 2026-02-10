@@ -368,7 +368,7 @@ export function runStrategy(rawGenome: number[], candles: OHLCV[]): StrategyResu
   // Start with $10,000 account
   // Balance is capped at 100x starting ($1M) to model realistic liquidity/slippage limits
   const STARTING_BALANCE = 10000;
-  const MAX_BALANCE = STARTING_BALANCE * 100; // $1M cap — beyond this, market impact makes results unrealistic
+  const MAX_BALANCE = STARTING_BALANCE * 10; // $100K cap — beyond this, market impact makes results unrealistic
   let balance = STARTING_BALANCE;
   let peakBalance = STARTING_BALANCE;
   let maxDD = 0;

@@ -55,7 +55,7 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 }
 
 export function GenerationProgress({ currentGeneration, maxGenerations, generations, aliveCount, status }: GenerationProgressProps) {
-  const progress = maxGenerations > 0 ? ((currentGeneration + 1) / maxGenerations) * 100 : 0;
+  const progress = maxGenerations > 0 ? (Math.min(currentGeneration + 1, maxGenerations) / maxGenerations) * 100 : 0;
   const bestPnls = generations.map(g => g.bestPnl);
   const avgPnls = generations.map(g => g.avgPnl);
   const bestPnl = bestPnls.length > 0 ? bestPnls[bestPnls.length - 1] : 0;
@@ -81,7 +81,7 @@ export function GenerationProgress({ currentGeneration, maxGenerations, generati
         </div>
         <div className="flex-1">
           <div className="flex justify-between text-[10px] font-mono text-text-muted mb-1">
-            <span>Gen {currentGeneration + 1} / {maxGenerations}</span>
+            <span>Gen {Math.min(currentGeneration + 1, maxGenerations)} / {maxGenerations}</span>
             <span>{progress.toFixed(0)}%</span>
           </div>
           <div className="h-1.5 rounded-full bg-bg-elevated overflow-hidden">
