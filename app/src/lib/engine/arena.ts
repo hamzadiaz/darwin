@@ -335,15 +335,17 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
     return { totalPnlPct: r.totalPnlPct, totalTrades: r.totalTrades, winRate: r.winRate, trades: r.trades };
   };
 
-  // Breed multiple children and pick the best
+  // Breed multiple children and pick the best CHILD (never return parent unchanged)
   const areClones = parentA.genome.every((g, i) => g === parentB.genome[i]);
   const mutationRate = areClones ? 0.40 : 0.25;
-  const NUM_CHILDREN = 20;
+  const NUM_CHILDREN = 50;
   
-  let bestChildGenome = [...parentA.genome];
-  let bestEval = evalGenome(parentA.genome);
+  // First child as initial best
+  const firstCrossed = parentA.genome.map((g, idx) => Math.random() > 0.5 ? g : parentB.genome[idx]);
+  let bestChildGenome = mutate(firstCrossed, mutationRate);
+  let bestEval = evalGenome(bestChildGenome);
   
-  for (let i = 0; i < NUM_CHILDREN; i++) {
+  for (let i = 1; i < NUM_CHILDREN; i++) {
     const crossed = parentA.genome.map((g, idx) =>
       Math.random() > 0.5 ? g : parentB.genome[idx]
     );
@@ -357,16 +359,17 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   
   const childGenome = bestChildGenome;
   // Collect all trades for detailed metrics
-  let allTrades: { pnlPct: number; side: string }[] = [];
+  const allTradesFull: ReturnType<typeof runStrategy>['trades'] = [];
   if (isBattle) {
     for (const candles of battleCandles.values()) {
       const r = runStrategy(childGenome, candles);
-      allTrades.push(...r.trades);
+      allTradesFull.push(...r.trades);
     }
   } else {
     const r = runStrategy(childGenome, arena.candles);
-    allTrades = r.trades;
+    allTradesFull.push(...r.trades);
   }
+  const allTrades = allTradesFull;
 
   const cWins = allTrades.filter(t => t.pnlPct > 0);
   const cLosses = allTrades.filter(t => t.pnlPct <= 0);
@@ -398,7 +401,7 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
 
   // Add to arena
   arena.agents.push(child);
-  arena.agentTrades.set(child.id, result.trades);
+  arena.agentTrades.set(child.id, allTrades);
 
   return child;
 }
