@@ -315,37 +315,63 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   const parentB = arena.agents.find(a => a.id === parentBId);
   if (!parentA || !parentB) return null;
 
-  // Breed multiple children and pick the best (like a mini-evolution)
+  // In battle mode, evaluate across ALL periods (same as evolution)
+  const isBattle = arena.period?.includes('battle') && battleCandles.size > 0;
+  const evalGenome = (genome: number[]) => {
+    if (isBattle) {
+      let totalPnl = 0, totalTrades = 0, totalWins = 0;
+      for (const candles of battleCandles.values()) {
+        const r = runStrategy(genome, candles);
+        totalPnl += r.totalPnlPct;
+        totalTrades += r.totalTrades;
+        totalWins += r.trades.filter(t => t.pnlPct > 0).length;
+      }
+      return { totalPnlPct: totalPnl, totalTrades, winRate: totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0, trades: [] as { pnlPct: number; side: string }[] };
+    }
+    const r = runStrategy(genome, arena!.candles);
+    return { totalPnlPct: r.totalPnlPct, totalTrades: r.totalTrades, winRate: r.winRate, trades: r.trades };
+  };
+
+  // Breed multiple children and pick the best
   const areClones = parentA.genome.every((g, i) => g === parentB.genome[i]);
   const mutationRate = areClones ? 0.40 : 0.25;
   const NUM_CHILDREN = 20;
   
-  let bestChildGenome = parentA.genome;
-  let bestResult = runStrategy(parentA.genome, arena.candles);
+  let bestChildGenome = [...parentA.genome];
+  let bestEval = evalGenome(parentA.genome);
   
   for (let i = 0; i < NUM_CHILDREN; i++) {
     const crossed = parentA.genome.map((g, idx) =>
       Math.random() > 0.5 ? g : parentB.genome[idx]
     );
     const candidate = mutate(crossed, mutationRate);
-    const candidateResult = runStrategy(candidate, arena.candles);
-    if (candidateResult.totalPnlPct > bestResult.totalPnlPct) {
+    const candidateEval = evalGenome(candidate);
+    if (candidateEval.totalPnlPct > bestEval.totalPnlPct) {
       bestChildGenome = candidate;
-      bestResult = candidateResult;
+      bestEval = candidateEval;
     }
   }
   
   const childGenome = bestChildGenome;
-  const result = bestResult;
+  // Collect all trades for detailed metrics
+  let allTrades: { pnlPct: number; side: string }[] = [];
+  if (isBattle) {
+    for (const candles of battleCandles.values()) {
+      const r = runStrategy(childGenome, candles);
+      allTrades.push(...r.trades);
+    }
+  } else {
+    const r = runStrategy(childGenome, arena.candles);
+    allTrades = r.trades;
+  }
 
-  // Compute trading metrics for child
-  const cWins = result.trades.filter(t => t.pnlPct > 0);
-  const cLosses = result.trades.filter(t => t.pnlPct <= 0);
+  const cWins = allTrades.filter(t => t.pnlPct > 0);
+  const cLosses = allTrades.filter(t => t.pnlPct <= 0);
   const cAvgWin = cWins.length > 0 ? cWins.reduce((s, t) => s + t.pnlPct, 0) / cWins.length : 0;
   const cAvgLoss = cLosses.length > 0 ? Math.abs(cLosses.reduce((s, t) => s + t.pnlPct, 0) / cLosses.length) : 0;
   const cGrossWins = cWins.reduce((s, t) => s + t.pnlPct, 0);
   const cGrossLosses = Math.abs(cLosses.reduce((s, t) => s + t.pnlPct, 0));
-  const cWr = result.winRate / 100;
+  const cWr = allTrades.length > 0 ? (cWins.length / allTrades.length) * 100 : 0;
 
   const child: AgentGenome = {
     id: arena.nextAgentId++,
@@ -355,9 +381,9 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
     genome: childGenome,
     bornAt: Date.now(),
     diedAt: null,
-    totalPnl: Math.round(result.totalPnlPct * 100),
-    totalTrades: result.totalTrades,
-    winRate: Math.round(result.winRate * 100),
+    totalPnl: Math.round(bestEval.totalPnlPct * 100),
+    totalTrades: allTrades.length,
+    winRate: Math.round(cWr * 100),
     isAlive: true,
     owner: '11111111111111111111111111111111',
     avgWin: +cAvgWin.toFixed(2),
