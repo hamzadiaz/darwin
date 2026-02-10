@@ -271,16 +271,14 @@ export async function startEvolution(
   const state = initArena(populationSize, maxGenerations, symbol, period);
   state.status = 'running';
 
-  // If we have seed genomes (from "Continue Evolution"), use them with progressive mutation
+  // Seed top genomes: keep top 2 exact, gently mutate the rest
   if (seedGenomes && seedGenomes.length > 0) {
     const seedCount = Math.min(seedGenomes.length, Math.floor(populationSize * 0.5));
     for (let i = 0; i < seedCount; i++) {
-      if (i === 0) {
-        // Keep #1 elite as exact copy
+      if (i < 2) {
         state.agents[i].genome = [...seedGenomes[i]];
       } else {
-        // Mutate seeds with increasing aggression to force exploration
-        state.agents[i].genome = mutate(seedGenomes[i], 0.30 + i * 0.05);
+        state.agents[i].genome = mutate(seedGenomes[i], 0.15 + i * 0.03);
       }
       state.agents[i].parentA = -1; // marker: seeded from previous run
     }
@@ -537,14 +535,16 @@ export async function startBattleEvolution(
   const firstPeriod = [...battleCandles.values()][0];
   if (firstPeriod) state.candles = firstPeriod;
 
-  // Seed top genomes from previous run with progressive mutation
+  // Seed top genomes: keep top 2 exact, gently mutate the rest
   if (seedGenomes && seedGenomes.length > 0) {
     const seedCount = Math.min(seedGenomes.length, Math.floor(populationSize * 0.5));
     for (let i = 0; i < seedCount; i++) {
-      if (i === 0) {
+      if (i < 2) {
+        // Keep top 2 as exact elites
         state.agents[i].genome = [...seedGenomes[i]];
       } else {
-        state.agents[i].genome = mutate(seedGenomes[i], 0.30 + i * 0.05);
+        // Gentle progressive mutation (15-30%)
+        state.agents[i].genome = mutate(seedGenomes[i], 0.15 + i * 0.03);
       }
       state.agents[i].parentA = -1; // marker: seeded
     }
