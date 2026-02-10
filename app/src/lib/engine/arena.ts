@@ -319,14 +319,17 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
   const isBattle = arena.period?.includes('battle') && battleCandles.size > 0;
   const evalGenome = (genome: number[]) => {
     if (isBattle) {
-      let totalPnl = 0, totalTrades = 0, totalWins = 0;
+      let totalPnl = 0, totalTrades = 0, totalWins = 0, periodCount = 0;
       for (const candles of battleCandles.values()) {
         const r = runStrategy(genome, candles);
         totalPnl += r.totalPnlPct;
         totalTrades += r.totalTrades;
         totalWins += r.trades.filter(t => t.pnlPct > 0).length;
+        periodCount++;
       }
-      return { totalPnlPct: totalPnl, totalTrades, winRate: totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0, trades: [] as { pnlPct: number; side: string }[] };
+      // AVERAGE across periods (same as battle evolution scoring)
+      const avgPnl = periodCount > 0 ? totalPnl / periodCount : 0;
+      return { totalPnlPct: avgPnl, totalTrades, winRate: totalTrades > 0 ? (totalWins / totalTrades) * 100 : 0, trades: [] as { pnlPct: number; side: string }[] };
     }
     const r = runStrategy(genome, arena!.candles);
     return { totalPnlPct: r.totalPnlPct, totalTrades: r.totalTrades, winRate: r.winRate, trades: r.trades };
