@@ -298,8 +298,9 @@ export default function Dashboard() {
   const generation = data?.currentGeneration ?? 0;
   const aliveAgents = agents.filter((a) => a.isAlive);
   const bestPnl = data?.bestEverPnl ?? 0;
-  const avgWinRate = agents.length > 0
-    ? Math.round(agents.reduce((s, a) => s + a.winRate, 0) / agents.length) : 0;
+  const activeAgents = agents.filter(a => a.isAlive && a.totalTrades > 0);
+  const avgWinRate = activeAgents.length > 0
+    ? Math.round(activeAgents.reduce((s, a) => s + a.winRate, 0) / activeAgents.length) : 0;
   const totalDeaths = allAgents.filter((a) => !a.isAlive).length;
 
   const tradeMarkers: { time: number; price: number; type: 'entry' | 'exit'; agentId: number; pnl?: number }[] = [];
