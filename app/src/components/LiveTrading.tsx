@@ -172,7 +172,7 @@ export function LiveTrading({ hasEvolutionData }: LiveTradingProps) {
                 { label: 'SOL Price', value: state.currentPrice > 0 ? `$${state.currentPrice.toFixed(2)}` : '—', icon: <DollarSign className="w-3 h-3 text-accent-primary" />, cls: 'text-text-primary' },
                 { label: 'Position', value: state.position.toUpperCase(), icon: state.position === 'long' ? <TrendingUp className="w-3 h-3 text-success" /> : state.position === 'short' ? <TrendingDown className="w-3 h-3 text-danger" /> : <Minus className="w-3 h-3 text-text-muted" />, cls: positionColor },
                 { label: 'Portfolio', value: `$${state.portfolioValue.toFixed(2)}`, icon: <DollarSign className="w-3 h-3 text-accent-secondary" />, cls: 'text-text-primary' },
-                { label: 'Total PnL', value: `${state.totalPnl >= 0 ? '+' : ''}${state.totalPnl.toFixed(2)}%`, icon: <TrendingUp className="w-3 h-3" />, cls: state.totalPnl >= 0 ? 'text-success' : 'text-danger' },
+                { label: 'Total PnL', value: `${state.totalPnl >= 0 ? '+' : ''}${(state.totalPnl / 100).toFixed(2)}%`, icon: <TrendingUp className="w-3 h-3" />, cls: state.totalPnl >= 0 ? 'text-success' : 'text-danger' },
               ].map(s => (
                 <div key={s.label} className="p-3 rounded-lg bg-bg-elevated/30">
                   <div className="flex items-center gap-1 mb-1">
