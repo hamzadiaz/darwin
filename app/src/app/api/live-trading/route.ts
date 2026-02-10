@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { deployAgent, stopAgent, updateAgent, getLiveAgentState } from '@/lib/trading/live-agent';
 import { getArenaState } from '@/lib/engine/arena';
+import { createRandomGenome } from '@/lib/engine/genetics';
 
 export async function GET() {
   const state = getLiveAgentState();
@@ -24,7 +25,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (!genome) {
-      return NextResponse.json({ error: 'No genome available' }, { status: 400 });
+      // Fall back to random genome for paper trading demo
+      genome = createRandomGenome();
     }
 
     const state = deployAgent(
