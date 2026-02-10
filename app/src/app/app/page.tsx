@@ -273,7 +273,10 @@ export default function Dashboard() {
   const exportStrategy = async () => {
     setLoadingStrategy(true);
     try {
-      const res = await fetch('/api/strategy');
+      // Pass best genome from client state in case server arena was reset
+      const bestAgent = agents.filter(a => a.isAlive && a.totalTrades > 0).sort((a, b) => b.totalPnl - a.totalPnl)[0];
+      const url = bestAgent ? `/api/strategy?genome=${encodeURIComponent(JSON.stringify(bestAgent.genome))}` : '/api/strategy';
+      const res = await fetch(url);
       const json = await res.json();
       setStrategyJson(JSON.stringify(json, null, 2));
     } catch { setStrategyJson('{"error": "Failed to fetch strategy"}'); }

@@ -1,55 +1,68 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getArenaState } from '@/lib/engine/arena';
 import { decodeGenome } from '@/types';
 import { runStrategy } from '@/lib/engine/strategy';
 import { fetchCandles } from '@/lib/engine/market';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
   const arena = getArenaState();
 
-  if (!arena || arena.agents.length === 0) {
-    return NextResponse.json({
-      error: 'No evolution data. Run evolution first.',
-      usage: 'POST /api/evolution with { action: "start" } then wait for completion.',
-    }, { status: 404 });
+  // Try genome from query param (client-side fallback when arena is reset)
+  let genome: number[] | null = null;
+  let agentId = 0;
+  let agentGen = 0;
+  const genomeParam = searchParams.get('genome');
+  if (genomeParam) {
+    try { genome = JSON.parse(genomeParam); } catch { /* ignore */ }
   }
 
-  // Find best alive agent
-  const best = [...arena.agents]
-    .filter(a => a.isAlive && a.totalTrades > 0)
-    .sort((a, b) => b.totalPnl - a.totalPnl)[0];
-
-  if (!best) {
-    return NextResponse.json({ error: 'No viable agents found' }, { status: 404 });
+  if (!genome) {
+    if (!arena || arena.agents.length === 0) {
+      return NextResponse.json({
+        error: 'No evolution data. Run evolution first.',
+        usage: 'POST /api/evolution with { action: "start" } then wait for completion.',
+      }, { status: 404 });
+    }
+    const best = [...arena.agents]
+      .filter(a => a.isAlive && a.totalTrades > 0)
+      .sort((a, b) => b.totalPnl - a.totalPnl)[0];
+    if (!best) {
+      return NextResponse.json({ error: 'No viable agents found' }, { status: 404 });
+    }
+    genome = best.genome;
+    agentId = best.id;
+    agentGen = best.generation;
   }
 
-  const decoded = decodeGenome(best.genome);
+  const decoded = decodeGenome(genome);
 
   // Get fresh candles for current signal
   let currentSignal = 'UNKNOWN';
   let confidence = 0;
+  let stratResult: { totalPnlPct: number; winRate: number; trades: { side: string }[] } | null = null;
   try {
-    const candles = await fetchCandles(arena.symbol, '4h', 500);
-    const result = runStrategy(best.genome, candles);
-    // Signal based on last trade direction
-    if (result.trades.length > 0) {
-      const lastTrade = result.trades[result.trades.length - 1];
+    const symbol = arena?.symbol || 'SOLUSDT';
+    const candles = await fetchCandles(symbol, '4h', 500);
+    stratResult = runStrategy(genome, candles);
+    if (stratResult.trades.length > 0) {
+      const lastTrade = stratResult.trades[stratResult.trades.length - 1];
       currentSignal = lastTrade.side === 'long' ? 'LONG' : 'SHORT';
-      confidence = Math.min(0.95, Math.max(0.3, result.winRate / 100));
+      confidence = Math.min(0.95, Math.max(0.3, stratResult.winRate / 100));
     }
   } catch {
     // Use cached data
   }
 
-  const candleDays = arena.candles.length > 0
+  const candleDays = arena?.candles?.length
     ? Math.round((arena.candles[arena.candles.length - 1].time - arena.candles[0].time) / 86400)
     : 0;
 
   return NextResponse.json({
-    pair: arena.symbol,
-    agentId: best.id,
-    generation: best.generation,
-    genome: best.genome,
+    pair: arena?.symbol || 'SOLUSDT',
+    agentId,
+    generation: agentGen,
+    genome,
     decoded: {
       emaFast: decoded.emaFast,
       emaSlow: decoded.emaSlow,
@@ -74,9 +87,9 @@ export async function GET() {
       tradeCooldown: decoded.tradeCooldown,
     },
     performance: {
-      pnl: best.totalPnl / 100, // convert from bps to %
-      winRate: best.winRate / 100, // convert from bps to %
-      trades: best.totalTrades,
+      pnl: stratResult ? stratResult.totalPnlPct : 0,
+      winRate: stratResult ? stratResult.winRate : 0,
+      trades: stratResult ? stratResult.trades.length : 0,
       period: `${candleDays}d`,
     },
     signals: {
