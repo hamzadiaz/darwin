@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest, startBattleEvolution, stepBattleEvolution } from '@/lib/engine/arena';
+import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopGenomes, breedAndTest, startBattleEvolution, stepBattleEvolution, resetArena } from '@/lib/engine/arena';
 import { TradingPair, SUPPORTED_PAIRS } from '@/lib/engine/market';
 import { runBattleTest } from '@/lib/engine/battle-test';
 import { MARKET_PERIODS } from '@/lib/engine/periods';
@@ -191,6 +191,11 @@ export async function POST(req: NextRequest) {
   if (action === 'stop') {
     stopEvolution();
     return NextResponse.json({ status: 'stopped' });
+  }
+
+  if (action === 'reset') {
+    resetArena();
+    return NextResponse.json({ status: 'idle' });
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

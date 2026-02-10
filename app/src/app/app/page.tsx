@@ -443,7 +443,7 @@ export default function Dashboard() {
             {/* Action buttons */}
             {evStatus === 'idle' || evStatus === 'complete' || evStatus === 'paused' ? (
               <div className="flex items-center gap-2">
-                <button onClick={evStatus === 'complete' ? () => { setData(null); setRunHistory([]); setTotalGenerationsAllRuns(0); setCurrentRunNumber(1); } : startEvolution} disabled={isStarting}
+                <button onClick={evStatus === 'complete' ? async () => { await fetch('/api/evolution', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset' }) }); setData(null); setRunHistory([]); setTotalGenerationsAllRuns(0); setCurrentRunNumber(1); } : startEvolution} disabled={isStarting}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ff88]/10 border border-[#00ff88]/20 text-[#00ff88] text-[11px] font-semibold hover:bg-[#00ff88]/15 transition-colors disabled:opacity-50 cursor-pointer">
                   {isStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : evStatus === 'complete' ? <RotateCcw className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   {evStatus === 'complete' ? 'Restart' : 'Start'}

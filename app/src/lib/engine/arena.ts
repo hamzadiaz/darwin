@@ -41,6 +41,11 @@ export interface ArenaState {
 }
 
 let arena: ArenaState | null = null;
+
+/** Reset arena to idle (no state) */
+export function resetArena(): void {
+  arena = null;
+}
 let runningPromise: Promise<void> | null = null;
 
 export function getArenaState(): ArenaState | null {
