@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Zap, Link2, CheckCircle, Loader2, Shield, Globe, Wallet } from 'lucide-react';
 import { PROGRAM_ID } from '@/lib/solana';
+import type { Generation, AgentGenome } from '@/types';
 
 interface OnChainRecord {
   txSignature: string;
@@ -14,28 +15,13 @@ interface OnChainRecord {
   explorerUrl: string;
 }
 
-interface GenerationData {
-  number: number;
-  bestPnl: number;
-  bestAgent: number;
-  avgPnl: number;
-  alive: number;
-}
-
-interface AgentData {
-  id: number;
-  genome: number[];
-  totalPnl: number;
-  alive: boolean;
-}
-
 interface SolanaPanelProps {
   generationsComplete: number;
   isRunning: boolean;
   bestPnl: number;
   bestAgentId: number;
-  generations?: GenerationData[];
-  agents?: AgentData[];
+  generations?: Generation[];
+  agents?: AgentGenome[];
 }
 
 export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgentId, generations = [], agents = [] }: SolanaPanelProps) {
