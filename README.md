@@ -49,12 +49,12 @@ No manual tuning. No backtesting hell. Just evolution.
 │       │               │               ▼                 │
 │  ┌──────────┐    ┌────┴─────┐    ┌──────────┐          │
 │  │  MUTATE  │◀───│  BREED   │◀───│  SELECT  │          │
-│  │ 20% rate │    │ crossover│    │ top 20%  │          │
+│  │ 20% rate │    │ crossover│    │ top 25%  │          │
 │  │ + macro  │    │ parents  │    │ elite    │          │
 │  └──────────┘    └──────────┘    └──────────┘          │
 │       │                                                 │
 │  ┌────┴─────┐    ┌──────────┐                          │
-│  │IMMIGRATE │    │   KILL   │  Bottom 80% eliminated   │
+│  │IMMIGRATE │    │   KILL   │  Bottom 75% eliminated   │
 │  │ 15% fresh│    │  💀💀💀  │  each generation          │
 │  │ genomes  │    └──────────┘                          │
 │  └──────────┘                                          │
@@ -67,7 +67,7 @@ No manual tuning. No backtesting hell. Just evolution.
 
 | Mechanism | Detail |
 |-----------|--------|
-| **Elite Preservation** | Top 20% survive unchanged to next generation |
+| **Elite Preservation** | Top 25% survive unchanged to next generation |
 | **Crossover** | Uniform crossover — each gene randomly from parent A or B |
 | **Mutation Rate** | 20% per gene per generation |
 | **Macro Mutation** | 15% chance of full gene randomization (prevents stagnation) |
@@ -105,7 +105,7 @@ Each agent's DNA is a 22-gene array, values 0–1000, decoded into trading param
 | 17 | Stoch K | 5–21 | Stochastic %K period |
 | 18 | Stoch D | 3–9 | Stochastic %D smoothing period |
 | 19 | Aggressiveness | 0.2–0.8 | Signal threshold (lower = more trades) |
-| 20 | Leverage | 1–15x | Position leverage multiplier |
+| 20 | Leverage | 1–10x | Position leverage multiplier |
 | 21 | Risk Per Trade % | 5–30% | Maximum balance risked per trade |
 
 > **Search space**: 1001²² ≈ 10⁶⁶ possible genomes. Far too large for grid search — perfect for evolutionary optimization.
@@ -143,7 +143,7 @@ All backtests include realistic trading costs:
 | **Round trip** | **0.30%** | Entry + exit combined |
 | Funding rate | 0.005% per 4h candle | Perpetual futures holding cost |
 
-Leverage up to 15x with isolated margin. Liquidation at ~95/leverage % adverse move.
+Leverage up to 10x with isolated margin. Liquidation at ~95/leverage % adverse move.
 
 ---
 
@@ -155,7 +155,7 @@ Leverage up to 15x with isolated margin. Liquidation at ~95/leverage % adverse m
 - **Multi-pair support**: SOL/USDT, BTC/USDT, ETH/USDT (real Binance 4h candles)
 - **7 market periods**: Last 30d, 90d, 1Y, Bull 2024, Bear 2022, May 2021 Crash, Full History
 - **AI-guided evolution**: Gemini Flash analyzes genomes and biases mutation direction
-- **Leverage + short selling**: Agents can go long or short with up to 15x leverage
+- **Leverage + short selling**: Agents can go long or short with up to 10x leverage
 - **Compounded returns**: Simulates actual account growth from $10,000 starting balance
 
 ### Interactive Dashboard
