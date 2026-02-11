@@ -394,12 +394,18 @@ export async function breedAndTest(parentAId: number, parentBId: number): Promis
     avgLoss: +cAvgLoss.toFixed(2),
     profitFactor: cGrossLosses > 0 ? +(cGrossWins / cGrossLosses).toFixed(2) : cGrossWins > 0 ? 999 : 0,
     riskReward: cAvgLoss > 0 ? `1:${(cAvgWin / cAvgLoss).toFixed(1)}` : '—',
-    expectedValue: +((cWr * cAvgWin) - ((1 - cWr) * cAvgLoss)).toFixed(2),
+    expectedValue: +(((cWr / 100) * cAvgWin) - ((1 - cWr / 100) * cAvgLoss)).toFixed(2),
   };
 
   // Add to arena
   arena.agents.push(child);
   arena.agentTrades.set(child.id, allTrades);
+
+  // Fix 2: Update bestEverPnl if child beats it
+  if (child.totalPnl > arena.bestEverPnl) {
+    arena.bestEverPnl = child.totalPnl;
+    arena.bestEverAgentId = child.id;
+  }
 
   return child;
 }

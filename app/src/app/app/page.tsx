@@ -588,7 +588,7 @@ export default function Dashboard() {
                         <div>
                           <h3 className="text-xs font-semibold text-[#484F58] uppercase tracking-wider mb-3">Top Agents</h3>
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                            {[...agents].filter(a => a.isAlive).sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 5).map(agent => (
+                            {[...agents].filter(a => a.isAlive && a.totalTrades > 0).sort((a, b) => b.totalPnl - a.totalPnl).slice(0, 5).map(agent => (
                               <AgentCard key={agent.id} agent={agent} compact onSelect={setSelectedAgent} />
                             ))}
                           </div>

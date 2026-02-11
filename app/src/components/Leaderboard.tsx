@@ -12,7 +12,7 @@ interface LeaderboardProps {
 
 export function Leaderboard({ agents }: LeaderboardProps) {
   const sorted = [...agents]
-    .filter((a) => a.isAlive)
+    .filter((a) => a.isAlive && a.totalTrades > 0)
     .sort((a, b) => b.totalPnl - a.totalPnl)
     .slice(0, 10);
 
