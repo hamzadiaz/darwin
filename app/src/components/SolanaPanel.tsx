@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Zap, Link2, CheckCircle, Loader2, Shield, Globe, Wallet } from 'lucide-react';
 import { PROGRAM_ID } from '@/lib/solana';
+import { recordBatchOnChain, isPhantomConnected, type OnChainResult } from '@/lib/solana-client';
 import type { Generation, AgentGenome } from '@/types';
 
 interface OnChainRecord {
   txSignature: string;
   generation: number;
-  winnerGenome: number[];
   winnerPnl: number;
-  timestamp: number;
   explorerUrl: string;
 }
 
@@ -27,38 +26,80 @@ interface SolanaPanelProps {
 export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgentId, generations = [], agents = [] }: SolanaPanelProps) {
   const [records, setRecords] = useState<OnChainRecord[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check wallet connection
+  useEffect(() => {
+    const check = () => setWalletConnected(isPhantomConnected());
+    check();
+    const interval = setInterval(check, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const syncToChain = async () => {
-    if (syncing) return;
+    if (syncing || generations.length === 0) return;
+    setError(null);
+
+    if (!walletConnected) {
+      // Try connecting Phantom first
+      try {
+        const solana = (window as unknown as { solana?: { connect: () => Promise<unknown> } }).solana;
+        if (solana) {
+          await solana.connect();
+          setWalletConnected(true);
+        } else {
+          setError('Phantom wallet not found. Install at phantom.app');
+          return;
+        }
+      } catch {
+        setError('Wallet connection rejected');
+        return;
+      }
+    }
+
     setSyncing(true);
     try {
-      // Build generation data with winner genomes for serverless fallback
-      const genData = generations.map(gen => {
-        const winner = agents.find(a => a.id === gen.bestAgent);
-        return {
-          number: gen.number,
-          bestPnl: gen.bestPnl,
-          bestAgent: gen.bestAgent,
-          winnerGenome: winner?.genome || [],
-        };
+      // Build generation data — only record unrecorded gens
+      const recordedGens = new Set(records.map(r => r.generation));
+      const genData = generations
+        .filter(gen => !recordedGens.has(gen.number))
+        .map(gen => {
+          const winner = agents.find(a => a.id === gen.bestAgent);
+          return {
+            number: gen.number,
+            bestPnl: gen.bestPnl,
+            bestAgent: gen.bestAgent,
+            winnerGenome: winner?.genome || [],
+          };
+        });
+
+      if (genData.length === 0) {
+        setError('All generations already recorded on-chain');
+        setSyncing(false);
+        return;
+      }
+
+      // Record on-chain with real Phantom transactions
+      setProgress({ done: 0, total: genData.length });
+      const results = await recordBatchOnChain(genData, (done, total) => {
+        setProgress({ done, total });
       });
-      const res = await fetch('/api/solana', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'record-winner', generations: genData }),
-      });
-      const data = await res.json();
-      if (data.records) setRecords(data.records);
-    } catch { /* ignore */ }
+
+      // Add new records
+      const newRecords: OnChainRecord[] = results.map(r => ({
+        txSignature: r.signature,
+        generation: r.generation,
+        winnerPnl: r.pnl,
+        explorerUrl: r.explorerUrl,
+      }));
+      setRecords(prev => [...prev, ...newRecords]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to record on-chain');
+    }
     setSyncing(false);
   };
-
-  useEffect(() => {
-    fetch('/api/solana?action=records')
-      .then(r => r.json())
-      .then(d => { if (d.records) setRecords(d.records); })
-      .catch(() => {});
-  }, [generationsComplete]);
 
   const connected = records.length > 0;
 
@@ -76,7 +117,7 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
               <span className="text-[9px] font-mono text-[#14F195]/70 bg-[#14F195]/8 px-2 py-0.5 rounded-full border border-[#14F195]/15">DEVNET</span>
             </div>
             <p className="text-[12px] text-[#8B949E] leading-relaxed">
-              Record your winning evolved strategies on-chain. Each winner&apos;s genome, generation, and PnL is permanently stored on Solana.
+              Record your winning evolved strategies on-chain. Each winner&apos;s genome is stored as a memo transaction on Solana devnet.
             </p>
           </div>
         </div>
@@ -100,11 +141,13 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
           <div className="rounded-lg p-3 border border-white/[0.04]" style={{ background: 'rgba(255,255,255,0.02)' }}>
             <div className="flex items-center gap-2 mb-1.5">
               <Wallet className="w-3.5 h-3.5 text-[#F59E0B]" />
-              <p className="text-[9px] uppercase tracking-wider text-[#484F58] font-bold">Status</p>
+              <p className="text-[9px] uppercase tracking-wider text-[#484F58] font-bold">Wallet</p>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-[#14F195]' : 'bg-[#484F58]/40'}`} />
-              <p className="text-[11px] font-mono text-[#8B949E]">{connected ? `${records.length} on-chain` : 'Not connected'}</p>
+              <div className={`w-1.5 h-1.5 rounded-full ${walletConnected ? 'bg-[#14F195]' : 'bg-[#484F58]/40'}`} />
+              <p className="text-[11px] font-mono text-[#8B949E]">
+                {walletConnected ? 'Phantom Connected' : 'Not connected'}
+              </p>
             </div>
           </div>
         </div>
@@ -119,6 +162,29 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
           View on Solscan <ExternalLink className="w-3 h-3" />
         </a>
 
+        {/* Progress */}
+        {syncing && progress.total > 0 && (
+          <div className="mb-4">
+            <div className="flex justify-between text-[11px] text-[#8B949E] mb-1.5">
+              <span>Recording on Solana...</span>
+              <span>{progress.done}/{progress.total} txs</span>
+            </div>
+            <div className="w-full h-1.5 rounded-full bg-white/5">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#14F195] to-[#9945FF] transition-all duration-300"
+                style={{ width: `${(progress.done / progress.total) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="mb-4 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] text-red-400">
+            {error}
+          </div>
+        )}
+
         {/* CTA */}
         <button
           onClick={syncToChain}
@@ -131,7 +197,9 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
           }}
         >
           {syncing ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Recording on Solana...</>
+            <><Loader2 className="w-4 h-4 animate-spin" /> Signing Transactions... ({progress.done}/{progress.total})</>
+          ) : !walletConnected ? (
+            <><Wallet className="w-4 h-4" /> Connect Wallet & Record On-Chain</>
           ) : (
             <><Zap className="w-4 h-4" /> Record Winners On-Chain</>
           )}
@@ -140,6 +208,12 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
         {generationsComplete === 0 && (
           <p className="text-center text-[11px] text-[#484F58] mt-3">
             Run evolution first, then record your winning strategies on-chain.
+          </p>
+        )}
+
+        {records.length > 0 && (
+          <p className="text-center text-[11px] text-[#14F195]/60 mt-3">
+            ✅ {records.length} generation{records.length > 1 ? 's' : ''} recorded on Solana devnet
           </p>
         )}
       </div>
@@ -154,7 +228,7 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
           >
             <h3 className="text-[10px] uppercase tracking-[0.15em] text-[#484F58] font-bold mb-3 flex items-center gap-2">
               <CheckCircle className="w-3.5 h-3.5 text-[#14F195]" />
-              On-Chain Records
+              On-Chain Records ({records.length} transactions)
             </h3>
             <div className="space-y-1.5 max-h-60 overflow-y-auto scrollbar-custom">
               {records.map((rec, i) => (
