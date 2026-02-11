@@ -61,29 +61,28 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
 
     setSyncing(true);
     try {
-      // Build generation data — only record unrecorded gens
-      const recordedGens = new Set(records.map(r => r.generation));
-      const genData = generations
-        .filter(gen => !recordedGens.has(gen.number))
-        .map(gen => {
-          const winner = agents.find(a => a.id === gen.bestAgent);
-          return {
-            number: gen.number,
-            bestPnl: gen.bestPnl,
-            bestAgent: gen.bestAgent,
-            winnerGenome: winner?.genome || [],
-          };
-        });
-
-      if (genData.length === 0) {
-        setError('All generations already recorded on-chain');
+      // Find the overall best agent
+      const bestAgent = [...agents]
+        .filter(a => a.totalTrades > 0)
+        .sort((a, b) => b.totalPnl - a.totalPnl)[0];
+      
+      if (!bestAgent) {
+        setError('No agents with trades found');
         setSyncing(false);
         return;
       }
 
-      // Record on-chain with real Phantom transactions
-      setProgress({ done: 0, total: genData.length });
-      const results = await recordBatchOnChain(genData, (done, total) => {
+      // Find which generation this agent is from
+      const bestGen = generations.length > 0 ? generations[generations.length - 1] : null;
+
+      // Record just the champion — 1 transaction
+      setProgress({ done: 0, total: 1 });
+      const results = await recordBatchOnChain([{
+        number: bestGen?.number ?? generations.length,
+        bestPnl: bestAgent.totalPnl,
+        bestAgent: bestAgent.id,
+        winnerGenome: bestAgent.genome,
+      }], (done, total) => {
         setProgress({ done, total });
       });
 
@@ -117,7 +116,7 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
               <span className="text-[9px] font-mono text-[#14F195]/70 bg-[#14F195]/8 px-2 py-0.5 rounded-full border border-[#14F195]/15">DEVNET</span>
             </div>
             <p className="text-[12px] text-[#8B949E] leading-relaxed">
-              Record your winning evolved strategies on-chain. Each winner&apos;s genome is stored as a memo transaction on Solana devnet.
+              Record your champion&apos;s genome on-chain. One transaction stores the best evolved strategy permanently on Solana.
             </p>
           </div>
         </div>
@@ -197,11 +196,11 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
           }}
         >
           {syncing ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Signing Transactions... ({progress.done}/{progress.total})</>
+            <><Loader2 className="w-4 h-4 animate-spin" /> Signing Transaction...</>
           ) : !walletConnected ? (
             <><Wallet className="w-4 h-4" /> Connect Wallet & Record On-Chain</>
           ) : (
-            <><Zap className="w-4 h-4" /> Record Winners On-Chain</>
+            <><Zap className="w-4 h-4" /> Record Champion On-Chain</>
           )}
         </button>
 
