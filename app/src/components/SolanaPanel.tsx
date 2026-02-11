@@ -14,14 +14,31 @@ interface OnChainRecord {
   explorerUrl: string;
 }
 
+interface GenerationData {
+  number: number;
+  bestPnl: number;
+  bestAgent: number;
+  avgPnl: number;
+  alive: number;
+}
+
+interface AgentData {
+  id: number;
+  genome: number[];
+  totalPnl: number;
+  alive: boolean;
+}
+
 interface SolanaPanelProps {
   generationsComplete: number;
   isRunning: boolean;
   bestPnl: number;
   bestAgentId: number;
+  generations?: GenerationData[];
+  agents?: AgentData[];
 }
 
-export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgentId }: SolanaPanelProps) {
+export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgentId, generations = [], agents = [] }: SolanaPanelProps) {
   const [records, setRecords] = useState<OnChainRecord[]>([]);
   const [syncing, setSyncing] = useState(false);
 
@@ -29,10 +46,20 @@ export function SolanaPanel({ generationsComplete, isRunning, bestPnl, bestAgent
     if (syncing) return;
     setSyncing(true);
     try {
+      // Build generation data with winner genomes for serverless fallback
+      const genData = generations.map(gen => {
+        const winner = agents.find(a => a.id === gen.bestAgent);
+        return {
+          number: gen.number,
+          bestPnl: gen.bestPnl,
+          bestAgent: gen.bestAgent,
+          winnerGenome: winner?.genome || [],
+        };
+      });
       const res = await fetch('/api/solana', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'record-winner' }),
+        body: JSON.stringify({ action: 'record-winner', generations: genData }),
       });
       const data = await res.json();
       if (data.records) setRecords(data.records);

@@ -733,6 +733,8 @@ export default function Dashboard() {
                       isRunning={evStatus === 'running'}
                       bestPnl={bestPnl}
                       bestAgentId={data?.bestEverAgentId ?? 0}
+                      generations={generations}
+                      agents={data?.agents ?? []}
                     />
                   )}
                 </motion.div>
