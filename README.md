@@ -106,7 +106,7 @@ Each agent's DNA is a 22-gene array, values 0–1000, decoded into trading param
 | 18 | Stoch D | 3–9 | Stochastic %D smoothing period |
 | 19 | Aggressiveness | 0.2–0.8 | Signal threshold (lower = more trades) |
 | 20 | Leverage | 1–10x | Position leverage multiplier |
-| 21 | Risk Per Trade % | 5–30% | Maximum balance risked per trade |
+| 21 | Risk Per Trade % | 2–10% | Maximum balance risked per trade |
 
 > **Search space**: 1001²² ≈ 10⁶⁶ possible genomes. Far too large for grid search — perfect for evolutionary optimization.
 

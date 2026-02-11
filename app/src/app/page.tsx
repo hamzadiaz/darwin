@@ -93,7 +93,7 @@ const BENTO_FEATURES = [
   { icon: Target, title: 'Battle Testing', desc: 'Forward-test winners against unseen market periods', size: 'sm' },
   { icon: Shield, title: 'On-Chain Ready', desc: 'Deploy strategies to Solana via Jupiter DEX aggregator', size: 'lg' },
   { icon: Crosshair, title: 'Realistic Fees', desc: '0.1% taker + 0.05% slippage per trade', size: 'sm' },
-  { icon: Zap, title: 'Leverage & Shorts', desc: 'Up to 15x leverage with short selling support', size: 'sm' },
+  { icon: Zap, title: 'Leverage & Shorts', desc: 'Up to 10x leverage with short selling support', size: 'sm' },
 ];
 
 export default function LandingPage() {
@@ -439,9 +439,9 @@ export default function LandingPage() {
             <div className="lg:col-span-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 { label: 'Best PnL Achieved', value: '+1,179%', sub: 'SOL/USDT 4h · with continue', color: 'text-[#00ff88]' },
-                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 15×', color: 'text-[#8B5CF6]' },
+                { label: 'Bull Market Peak', value: '+6,042%', sub: 'Bull Run 2024 · 10×', color: 'text-[#8B5CF6]' },
                 { label: 'Best Win Rate', value: '75%', sub: 'Top evolved agents', color: 'text-[#06B6D4]' },
-                { label: 'Max Leverage', value: '15×', sub: 'With liquidation modeling', color: 'text-[#F59E0B]' },
+                { label: 'Max Leverage', value: '10×', sub: 'With liquidation modeling', color: 'text-[#F59E0B]' },
                 { label: 'Battle Tested', value: '3/4', sub: 'Periods passed', color: 'text-[#06B6D4]' },
                 { label: 'Strategies/Run', value: '1,000+', sub: '20 agents × 50 gens', color: 'text-white' },
               ].map((stat, i) => (
