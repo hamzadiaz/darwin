@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════
+   WC3UI DESIGN SYSTEM — DARWIN EDITION
+   ═══════════════════════════════════════════════════════════ */
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -12,229 +16,574 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* ─── WC3 Color Tokens ─── */
+  --color-background: #08080f;
+  --color-foreground: #d3ddfb;
   
-  /* ─── Refined Background Palette ─── */
-  --color-bg-primary: #060912;
-  --color-bg-secondary: #0D1117;
-  --color-bg-elevated: #161B22;
-  --color-bg-card: #1C2333;
-  --color-bg-surface: #21283B;
+  --color-card-bg: #111118;
+  --color-card-border: #222233;
+  --color-card-elevated: #1c2333;
   
-  /* ─── Accent Colors ─── */
-  --color-accent-primary: #3B82F6;
-  --color-accent-secondary: #8B5CF6;
-  --color-accent-tertiary: #06B6D4;
+  --color-wc3-white: #ffffff;
+  --color-wc3-gold: #fcd312;
+  --color-wc3-dark-gold: #cca300;
+  --color-wc3-light-gold: #f4d45e;
   
-  /* ─── Semantic Colors ─── */
-  --color-success: #10B981;
-  --color-danger: #EF4444;
-  --color-warning: #F59E0B;
-  --color-info: #3B82F6;
+  /* ─── WC3 Text Colors ─── */
+  --color-text-primary: #e2e9ff;
+  --color-text-body: #d3ddfb;
+  --color-text-secondary: #9aa4c0;
+  --color-text-muted: #6b7489;
   
-  /* ─── Text Colors ─── */
-  --color-text-primary: #F0F6FC;
-  --color-text-secondary: #8B949E;
-  --color-text-muted: #484F58;
+  /* ─── WC3 Borders ─── */
+  --color-border-subtle: #222233;
+  --color-border-medium: #2a3554;
+  --color-border-gold: #f4d45e59;
   
-  /* ─── Borders ─── */
-  --color-border: rgba(240, 246, 252, 0.06);
-  --color-border-focus: rgba(59, 130, 246, 0.4);
-
-  /* ─── Thematic ─── */
-  --color-dna-green: #10B981;
-  --color-mutation-red: #EF4444;
-  --color-evolution-purple: #8B5CF6;
-
+  /* ─── WC3 UI Elements ─── */
+  --color-dialog-bg: #12192d;
+  --color-dialog-border: #2f3d63;
+  --color-chat-bg: #090d18;
+  --color-chat-border: #1f2a46;
+  
+  /* ─── Health/Mana Bar Colors ─── */
+  --color-health: #22c55e;
+  --color-mana: #3b82f6;
+  --color-energy: #f59e0b;
+  
+  /* ─── Chat Colors ─── */
+  --color-chat-ally: #8fc0ff;
+  --color-chat-enemy: #f29090;
+  --color-chat-system: #f0d775;
+  
   /* ─── Typography ─── */
+  --font-primary: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-
-  /* ─── Animations ─── */
-  --animate-shimmer: shimmer 2s linear infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
-  --animate-dna-spin: dna-spin 8s linear infinite;
-  --animate-gradient-x: gradient-x 3s ease infinite;
   
-  @keyframes gradient-x {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  @keyframes shimmer {
+  /* ─── WC3 Text Shadow (MANDATORY) ─── */
+  --wc3-text-shadow: 1px 1px 0 rgba(0,0,0,.92);
+  --wc3-text-shadow-heavy: 0 1px 2px #000, 0 0 2px #000;
+  
+  /* ─── Animations ─── */
+  @keyframes wc3-shimmer {
     from { transform: translateX(-100%); }
     to { transform: translateX(100%); }
   }
-
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 1; filter: drop-shadow(0 0 5px var(--color-success)); }
-    50% { opacity: 0.7; filter: drop-shadow(0 0 15px var(--color-success)); }
+  
+  @keyframes wc3-glow {
+    0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px var(--color-wc3-gold)); }
+    50% { opacity: 0.8; filter: drop-shadow(0 0 8px var(--color-wc3-gold)); }
   }
-
-  @keyframes dna-spin {
-    from { transform: rotateY(0deg); }
-    to { transform: rotateY(360deg); }
+  
+  @keyframes wc3-bar-fill {
+    from { width: 0; }
+    to { width: var(--target-width); }
   }
-
+  
+  @keyframes cooldown-sweep {
+    from {
+      background: conic-gradient(
+        rgba(0,0,0,0.7) 0deg,
+        rgba(0,0,0,0.7) 360deg,
+        transparent 360deg
+      );
+    }
+    to {
+      background: conic-gradient(
+        rgba(0,0,0,0.7) 0deg,
+        transparent 0deg
+      );
+    }
+  }
+  
   @keyframes slideInUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
+  
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-
-  @keyframes countUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: #060912;
-  --foreground: #F0F6FC;
+  --radius: 0.5rem;
+  --background: #08080f;
+  --foreground: #d3ddfb;
 }
 
 @layer base {
   * {
-    @apply border-border outline-accent-primary/50;
+    @apply border-border-subtle outline-wc3-gold/30;
   }
+  
   body {
-    @apply bg-background text-foreground selection:bg-accent-primary/30;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    font-family: var(--font-sans);
+    @apply bg-background text-foreground selection:bg-wc3-gold/20;
+    font-family: var(--font-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* ALL TEXT GETS WC3 SHADOW */
+    text-shadow: var(--wc3-text-shadow);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-wc3-gold);
+    font-weight: 700;
+    text-shadow: var(--wc3-text-shadow);
   }
 }
 
 @layer components {
-  /* ─── Card System ─── */
-  .glass-card {
-    background: rgba(13, 17, 23, 0.7);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(240, 246, 252, 0.06);
-    box-shadow: 
-      0 1px 2px rgba(0, 0, 0, 0.3),
-      0 4px 16px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  /* ══════════════════════════════════════════════
+     WC3 CARD SYSTEM
+     ══════════════════════════════════════════════ */
+  
+  .wc3-card {
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
+    border-radius: 8px;
+    padding: 24px;
+    text-shadow: var(--wc3-text-shadow);
   }
   
-  .glass-card-elevated {
-    background: rgba(22, 27, 34, 0.8);
-    backdrop-filter: blur(24px);
-    border: 1px solid rgba(240, 246, 252, 0.08);
-    box-shadow: 
-      0 2px 4px rgba(0, 0, 0, 0.4),
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  .wc3-card-elevated {
+    background: var(--color-card-elevated);
+    border: 1px solid var(--color-border-medium);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   }
-
-  .glass-panel {
-    background: rgba(6, 9, 18, 0.5);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(240, 246, 252, 0.04);
+  
+  .wc3-dialog {
+    border: 1px solid var(--color-dialog-border);
+    border-radius: 6px;
+    background: linear-gradient(180deg, #12192d, #0b1020);
+    box-shadow: 0 18px 40px rgba(0,0,0,.55);
+    padding: 24px;
   }
-
-  /* ─── Typography Classes ─── */
-  .metric-value {
-    @apply font-mono font-bold tracking-tight leading-none;
+  
+  /* ══════════════════════════════════════════════
+     WC3 HERO CARD
+     ══════════════════════════════════════════════ */
+  
+  .wc3-hero-card {
+    display: flex;
+    gap: 12px;
+    border: 1px solid var(--color-border-medium);
+    border-radius: 6px;
+    background: linear-gradient(180deg, #0d1323, #080d1a);
+    padding: 12px;
+    text-shadow: var(--wc3-text-shadow);
   }
-
-  .metric-label {
-    @apply text-[11px] uppercase tracking-[0.08em] text-text-muted font-medium;
+  
+  .wc3-hero-portrait {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    border-radius: 4px;
+    border: 2px solid var(--color-border-medium);
+    overflow: hidden;
   }
-
-  .section-title {
-    @apply text-sm font-semibold text-text-primary tracking-wide;
+  
+  .wc3-hero-level-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-wc3-gold), var(--color-wc3-dark-gold));
+    border: 2px solid var(--color-card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #000;
+    text-shadow: none;
   }
-
-  /* ─── Gradients ─── */
-  .gradient-success {
-    @apply bg-gradient-to-br from-success to-success/70;
+  
+  /* ══════════════════════════════════════════════
+     WC3 BUTTONS
+     ══════════════════════════════════════════════ */
+  
+  .wc3-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 32px;
+    background: linear-gradient(180deg, #2a2a33, #1a1a22);
+    border: 1px solid var(--color-border-medium);
+    border-radius: 4px;
+    color: var(--color-wc3-gold);
+    font-size: 14px;
+    font-weight: 700;
+    text-shadow: var(--wc3-text-shadow);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
   }
-
-  .gradient-danger {
-    @apply bg-gradient-to-br from-danger to-danger/70;
+  
+  .wc3-btn:hover {
+    border-color: var(--color-wc3-gold);
+    box-shadow: 0 0 12px rgba(252, 211, 18, 0.3);
+    transform: translateY(-1px);
   }
-
-  .gradient-primary {
-    @apply bg-gradient-to-br from-accent-primary to-accent-secondary;
+  
+  .wc3-btn:active {
+    transform: translateY(0);
   }
-
-  .gradient-evolution {
-    @apply bg-gradient-to-br from-evolution-purple to-accent-tertiary;
+  
+  .wc3-btn-primary {
+    background: linear-gradient(135deg, var(--color-wc3-dark-gold), var(--color-wc3-gold));
+    color: #000;
+    text-shadow: none;
+    border: 1px solid var(--color-wc3-gold);
+    font-size: 16px;
+    padding: 14px 40px;
   }
-
-  /* ─── Glows ─── */
-  .glow-success {
-    box-shadow: 0 0 24px -4px rgba(16, 185, 129, 0.15), 0 0 8px -2px rgba(16, 185, 129, 0.1);
+  
+  .wc3-btn-primary:hover {
+    box-shadow: 0 0 20px rgba(252, 211, 18, 0.5);
+    filter: brightness(1.1);
   }
-
-  .glow-danger {
-    box-shadow: 0 0 24px -4px rgba(239, 68, 68, 0.15), 0 0 8px -2px rgba(239, 68, 68, 0.1);
+  
+  /* Command Card Button (64x64 for battle actions) */
+  .wc3-cmd-btn {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(145deg, #1a1a24, #0f0f16);
+    border: 2px solid var(--color-border-medium);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-
-  .glow-primary {
-    box-shadow: 0 0 24px -4px rgba(59, 130, 246, 0.15), 0 0 8px -2px rgba(59, 130, 246, 0.1);
+  
+  .wc3-cmd-btn:hover {
+    border-color: var(--color-wc3-gold);
+    box-shadow: 0 0 16px rgba(252, 211, 18, 0.3);
+    transform: scale(1.05);
   }
-
-  .glow-evolution {
-    box-shadow: 0 0 24px -4px rgba(139, 92, 246, 0.15), 0 0 8px -2px rgba(139, 92, 246, 0.1);
+  
+  .wc3-cmd-btn-hotkey {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 10px;
+    color: var(--color-wc3-gold);
+    background: rgba(0,0,0,0.7);
+    padding: 2px 4px;
+    border-radius: 2px;
+    font-weight: bold;
   }
-
-  /* ─── Interactive States ─── */
-  .card-hover {
-    @apply transition-all duration-200 ease-out;
+  
+  .wc3-cmd-btn-cooldown {
+    position: absolute;
+    inset: 0;
+    border-radius: 4px;
+    pointer-events: none;
   }
-  .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.4),
-      0 8px 32px rgba(0, 0, 0, 0.3);
-    border-color: rgba(240, 246, 252, 0.1);
+  
+  /* ══════════════════════════════════════════════
+     WC3 HEALTH/MANA BARS
+     ══════════════════════════════════════════════ */
+  
+  .wc3-bar {
+    position: relative;
+    width: 100%;
+    height: 16px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
   }
-
-  /* ─── Scrollbar ─── */
-  .scrollbar-custom {
+  
+  .wc3-bar--large {
+    height: 20px;
+  }
+  
+  .wc3-bar-fill {
+    height: 100%;
+    position: relative;
+    transition: width 0.62s ease;
+  }
+  
+  .wc3-bar-fill--health {
+    background: linear-gradient(180deg, #2dd44a, #1ea038);
+    filter: saturate(1.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  
+  .wc3-bar-fill--mana {
+    background: linear-gradient(180deg, #4a9eff, #2366cc);
+    filter: saturate(1.2) hue-rotate(6deg);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  
+  .wc3-bar-fill--energy {
+    background: linear-gradient(180deg, #fbbf24, #d97706);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  
+  /* Segment marks */
+  .wc3-bar-segments {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 19px,
+      rgba(0,0,0,0.3) 19px,
+      rgba(0,0,0,0.3) 20px
+    );
+    pointer-events: none;
+  }
+  
+  .wc3-bar-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 1px 2px #000, 0 0 4px #000;
+    pointer-events: none;
+    font-family: var(--font-mono);
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 CHAT SYSTEM
+     ══════════════════════════════════════════════ */
+  
+  .wc3-chat-log {
+    border: 1px solid var(--color-chat-border);
+    border-radius: 6px;
+    background: var(--color-chat-bg);
+    padding: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .wc3-chat-line {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 4px;
+    text-shadow: var(--wc3-text-shadow);
+  }
+  
+  .wc3-chat-line--ally {
+    color: var(--color-chat-ally);
+  }
+  
+  .wc3-chat-line--enemy {
+    color: var(--color-chat-enemy);
+  }
+  
+  .wc3-chat-line--system {
+    color: var(--color-chat-system);
+    font-style: italic;
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 TOOLTIP
+     ══════════════════════════════════════════════ */
+  
+  .wc3-tooltip {
+    border: 10px solid transparent;
+    border-color: var(--color-border-gold);
+    background-color: #0a0d16;
+    padding: 10px 12px;
+    color: #f4f7ff;
+    border-radius: 4px;
+    text-shadow: var(--wc3-text-shadow);
+    max-width: 280px;
+  }
+  
+  .wc3-tooltip-title {
+    color: var(--color-wc3-gold);
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .wc3-tooltip-desc {
+    color: #f4f7ff;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 RESOURCE COUNTER
+     ══════════════════════════════════════════════ */
+  
+  .wc3-resource-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1rem;
+    color: #eceff7;
+    text-shadow: var(--wc3-text-shadow-heavy);
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 LOADING BAR
+     ══════════════════════════════════════════════ */
+  
+  .wc3-loading-bar {
+    position: relative;
+    width: 100%;
+    height: 24px;
+    background: linear-gradient(180deg, #0a0e14, #060810);
+    border: 1px solid var(--color-border-medium);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .wc3-loading-bar-fill {
+    height: 100%;
+    background: linear-gradient(135deg, var(--color-wc3-dark-gold), var(--color-wc3-gold));
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  
+  .wc3-loading-bar-glow {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: wc3-shimmer 2s infinite;
+  }
+  
+  .wc3-loading-bar-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 1px 2px #000;
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 SCROLLBAR
+     ══════════════════════════════════════════════ */
+  
+  .wc3-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(22, 27, 34, 0.8) transparent;
+    scrollbar-color: #333 #111;
   }
-
-  .scrollbar-custom::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+  
+  .wc3-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
-
-  .scrollbar-custom::-webkit-scrollbar-track {
+  
+  .wc3-scrollbar::-webkit-scrollbar-track {
+    background: #111;
+  }
+  
+  .wc3-scrollbar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
+  }
+  
+  .wc3-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #444;
+  }
+  
+  /* ══════════════════════════════════════════════
+     WC3 NAVIGATION TABS
+     ══════════════════════════════════════════════ */
+  
+  .wc3-nav-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid var(--color-border-subtle);
+    padding: 0 12px;
+  }
+  
+  .wc3-nav-tab {
+    padding: 10px 20px;
     background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    text-shadow: var(--wc3-text-shadow);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
   }
-
-  .scrollbar-custom::-webkit-scrollbar-thumb {
-    background: rgba(72, 79, 88, 0.4);
-    border-radius: 999px;
+  
+  .wc3-nav-tab:hover {
+    color: var(--color-text-primary);
   }
-  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-    background: rgba(72, 79, 88, 0.6);
+  
+  .wc3-nav-tab--active {
+    color: var(--color-wc3-gold);
   }
-
-  /* ─── DNA Gradient Text ─── */
-  .dna-strand {
-    background: linear-gradient(135deg, var(--color-evolution-purple), var(--color-accent-tertiary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  
+  .wc3-nav-tab--active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-wc3-gold);
+    box-shadow: 0 0 8px var(--color-wc3-gold);
   }
-
-  /* ─── Subtle Row Hover ─── */
-  .row-hover {
-    @apply transition-colors duration-150;
+  
+  /* ══════════════════════════════════════════════
+     UTILITY CLASSES
+     ══════════════════════════════════════════════ */
+  
+  .wc3-text-gold {
+    color: var(--color-wc3-gold);
+    text-shadow: var(--wc3-text-shadow);
   }
-  .row-hover:hover {
-    background: rgba(240, 246, 252, 0.03);
+  
+  .wc3-text-primary {
+    color: var(--color-text-primary);
+    text-shadow: var(--wc3-text-shadow);
+  }
+  
+  .wc3-text-secondary {
+    color: var(--color-text-secondary);
+    text-shadow: var(--wc3-text-shadow);
+  }
+  
+  .wc3-glow-gold {
+    box-shadow: 0 0 16px rgba(252, 211, 18, 0.3);
+  }
+  
+  .wc3-hover-glow {
+    transition: all 0.2s ease;
+  }
+  
+  .wc3-hover-glow:hover {
+    filter: brightness(1.2);
+    box-shadow: 0 0 20px rgba(252, 211, 18, 0.4);
+  }
+  
+  /* ══════════════════════════════════════════════
+     SKELETON LOADING
+     ══════════════════════════════════════════════ */
+  
+  .wc3-skeleton {
+    background: linear-gradient(90deg, #1a1a22 25%, #24242e 50%, #1a1a22 75%);
+    background-size: 200% 100%;
+    animation: wc3-shimmer 1.5s infinite;
   }
 }
