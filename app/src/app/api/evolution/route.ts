@@ -6,7 +6,7 @@ import { MARKET_PERIODS } from '@/lib/engine/periods';
 import { checkRateLimit } from '@/lib/rate-limit';
 
 // Rate limits: 3 evolution starts per minute per IP (heavy compute)
-const EVOLUTION_RATE = { max: 3, windowSec: 60 };
+const EVOLUTION_RATE = { max: 25, windowSec: 60 };
 // Input caps
 const MAX_POPULATION = 30;
 const MAX_GENERATIONS = 100;
