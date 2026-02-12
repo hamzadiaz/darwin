@@ -3,6 +3,19 @@ import { startEvolution, stopEvolution, stepEvolution, getArenaSnapshot, getTopG
 import { TradingPair, SUPPORTED_PAIRS } from '@/lib/engine/market';
 import { runBattleTest } from '@/lib/engine/battle-test';
 import { MARKET_PERIODS } from '@/lib/engine/periods';
+import { checkRateLimit } from '@/lib/rate-limit';
+
+// Rate limits: 3 evolution starts per minute per IP (heavy compute)
+const EVOLUTION_RATE = { max: 3, windowSec: 60 };
+// Input caps
+const MAX_POPULATION = 30;
+const MAX_GENERATIONS = 100;
+
+function getIP(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -32,9 +45,21 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const action = body.action || 'start';
 
+  // Rate limit mutation/compute-heavy actions
+  if (['start', 'run-all', 'battle-start', 'battle-run-all'].includes(action)) {
+    const ip = getIP(req);
+    const rl = checkRateLimit(`evolution:${ip}`, EVOLUTION_RATE);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Rate limited. Try again in ${rl.resetIn}s` },
+        { status: 429, headers: { 'Retry-After': String(rl.resetIn) } }
+      );
+    }
+  }
+
   if (action === 'start') {
-    const populationSize = body.populationSize || 20;
-    const generations = body.generations || 50;
+    const populationSize = Math.min(body.populationSize || 20, MAX_POPULATION);
+    const generations = Math.min(body.generations || 50, MAX_GENERATIONS);
     const seedGenomes = body.seedGenomes as number[][] | undefined;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
@@ -62,8 +87,8 @@ export async function POST(req: NextRequest) {
     // Continue evolution: seed new run with top genomes from current run
     // Run the FULL evolution in a single request to avoid serverless state loss
     const topGenomes = body.seedGenomes as number[][] | undefined ?? getTopGenomes(10);
-    const populationSize = body.populationSize || 20;
-    const generations = body.generations || 50;
+    const populationSize = Math.min(body.populationSize || 20, MAX_POPULATION);
+    const generations = Math.min(body.generations || 50, MAX_GENERATIONS);
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
     const period = (body.period && body.period in MARKET_PERIODS) ? body.period as string : null;
@@ -115,8 +140,8 @@ export async function POST(req: NextRequest) {
   if (action === 'run-all') {
     // Run the complete evolution in a single request (for serverless environments)
     // Init + run all in one shot to avoid state loss between cold starts
-    const populationSize = body.populationSize || 20;
-    const generations = body.generations || 50;
+    const populationSize = Math.min(body.populationSize || 20, MAX_POPULATION);
+    const generations = Math.min(body.generations || 50, MAX_GENERATIONS);
     const seedGenomes = body.seedGenomes as number[][] | undefined;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
@@ -137,8 +162,8 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'battle-evolve') {
-    const populationSize = body.populationSize ?? 20;
-    const generations = body.generations ?? 50;
+    const populationSize = Math.min(body.populationSize ?? 20, MAX_POPULATION);
+    const generations = Math.min(body.generations ?? 50, MAX_GENERATIONS);
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';
     const seedGenomes = body.seedGenomes as number[][] | undefined;
@@ -153,8 +178,8 @@ export async function POST(req: NextRequest) {
   }
 
   if (action === 'battle-run-all') {
-    const populationSize = body.populationSize ?? 20;
-    const generations = body.generations ?? 50;
+    const populationSize = Math.min(body.populationSize ?? 20, MAX_POPULATION);
+    const generations = Math.min(body.generations ?? 50, MAX_GENERATIONS);
     const seedGenomes = body.seedGenomes as number[][] | undefined;
     const symbol = (body.symbol && SUPPORTED_PAIRS.some(p => p.symbol === body.symbol))
       ? body.symbol as TradingPair : 'SOLUSDT';

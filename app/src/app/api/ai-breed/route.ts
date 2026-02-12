@@ -1,8 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildBreedingPrompt, parseBreedingResponse, setLatestBreedingResult } from '@/lib/engine/ai-breeder';
+import { checkRateLimit, checkDailyAiLimit } from '@/lib/rate-limit';
+
+// Rate limits: 5 AI breed calls per minute per IP, 100/day global
+const RATE_CONFIG = { max: 5, windowSec: 60 };
+const DAILY_MAX = 100;
+
+function getIP(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getIP(req);
+
+    // Per-IP rate limit
+    const rl = checkRateLimit(`ai-breed:${ip}`, RATE_CONFIG);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Rate limited. Try again in ${rl.resetIn}s` },
+        { status: 429, headers: { 'Retry-After': String(rl.resetIn) } }
+      );
+    }
+
+    // Global daily AI cap
+    const daily = checkDailyAiLimit(DAILY_MAX);
+    if (!daily.allowed) {
+      return NextResponse.json(
+        { error: 'Daily AI limit reached. Try again tomorrow.' },
+        { status: 429 }
+      );
+    }
+
     // Stateless: accept agents from request body (no server state needed)
     let body: { agents?: any[]; candles?: number[][]; generation?: number } = {};
     try {
@@ -15,6 +46,11 @@ export async function POST(req: NextRequest) {
 
     if (!agents || !Array.isArray(agents)) {
       return NextResponse.json({ error: 'agents array required in body' }, { status: 400 });
+    }
+
+    // Input validation: cap agents array size
+    if (agents.length > 50) {
+      return NextResponse.json({ error: 'Max 50 agents allowed' }, { status: 400 });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;

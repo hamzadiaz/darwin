@@ -1,13 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildAnalysisPrompt, generateFallbackAnalysis, type AnalysisRequest } from '@/lib/engine/analyst';
+import { checkRateLimit, checkDailyAiLimit } from '@/lib/rate-limit';
+
+// Rate limits: 10 analysis calls per minute per IP, shares daily cap with ai-breed
+const RATE_CONFIG = { max: 10, windowSec: 60 };
+const DAILY_MAX = 100;
+
+function getIP(req: NextRequest): string {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+         req.headers.get('x-real-ip') || 
+         'unknown';
+}
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getIP(req);
+
+    // Per-IP rate limit
+    const rl = checkRateLimit(`analyze:${ip}`, RATE_CONFIG);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: `Rate limited. Try again in ${rl.resetIn}s` },
+        { status: 429, headers: { 'Retry-After': String(rl.resetIn) } }
+      );
+    }
+
+    // Global daily AI cap (shared counter)
+    const daily = checkDailyAiLimit(DAILY_MAX);
+    if (!daily.allowed) {
+      // Fall back to non-AI analysis instead of blocking
+      const body: AnalysisRequest = await req.json();
+      return NextResponse.json(generateFallbackAnalysis(body));
+    }
+
     const body: AnalysisRequest = await req.json();
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      // Return fallback analysis if no API key
       return NextResponse.json(generateFallbackAnalysis(body));
     }
 
@@ -40,13 +69,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(generateFallbackAnalysis(body));
     }
 
-    // Parse JSON from response (handle potential markdown wrapping)
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     try {
       const parsed = JSON.parse(jsonStr);
       return NextResponse.json(parsed);
     } catch {
-      // If JSON parsing fails, return fallback
       return NextResponse.json(generateFallbackAnalysis(body));
     }
   } catch (err) {
