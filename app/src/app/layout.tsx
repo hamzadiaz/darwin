@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'DARWIN — AI Creatures That Think, Fight & Evolve',
-  description: 'Create your own AI-powered agent on Solana. Give it a personality, train it in battle, and watch it evolve.',
+  title: 'DARWIN — Evolutionary Trading Agents on Solana',
+  description: 'AI trading agents that breed, mutate, and evolve strategies through natural selection on Solana.',
 };
 
 export default function RootLayout({
