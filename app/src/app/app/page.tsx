@@ -18,6 +18,16 @@ import { AgentGenome, Generation } from '@/types';
 import { SolanaPanel } from '@/components/SolanaPanel';
 import { LiveTrading } from '@/components/LiveTrading';
 import type { AIBreedingResult } from '@/lib/engine/ai-breeder';
+
+/** Extract user-friendly error from API response */
+async function apiError(res: Response, fallback: string): Promise<string> {
+  try {
+    const json = await res.json();
+    if (json.error) return json.error;
+  } catch {}
+  if (res.status === 429) return 'Slow down — too many requests. Wait a moment and try again.';
+  return `${fallback} (${res.status})`;
+}
 import type { TradingPair } from '@/lib/engine/market';
 import { BattleTestCard } from '@/components/BattleTestCard';
 import { BattleEvolutionDashboard } from '@/components/BattleEvolutionDashboard';
@@ -117,7 +127,7 @@ export default function Dashboard() {
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch('/api/evolution?action=status');
-      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      if (!res.ok) throw new Error(await apiError(res, 'Server error'));
       const json = await res.json();
       if (json.status && json.status !== 'idle') setData(json);
       else if (json.agents) setData(json);
@@ -135,7 +145,7 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'run-all' }),
       });
-      if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
+      if (!res.ok) throw new Error(await apiError(res, 'Evolution failed'));
       const result = await res.json();
       if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
@@ -177,7 +187,7 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair }),
         });
-        if (!res.ok) throw new Error(`Battle evolution failed: ${res.status}`);
+        if (!res.ok) throw new Error(await apiError(res, 'Battle evolution failed'));
         const result = await res.json();
         if (result.snapshot) setData(result.snapshot);
         await fetchStatus();
@@ -189,7 +199,7 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'run-all', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || undefined }),
         });
-        if (!res.ok) throw new Error(`Evolution failed: ${res.status}`);
+        if (!res.ok) throw new Error(await apiError(res, 'Evolution failed'));
         const result = await res.json();
         if (result.snapshot) setData(result.snapshot);
         await fetchStatus();
@@ -234,7 +244,7 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'battle-run-all', populationSize: 20, generations: 50, symbol: selectedPair, seedGenomes: topGenomes }),
         });
-        if (!res.ok) throw new Error(`Failed to continue battle: ${res.status}`);
+        if (!res.ok) throw new Error(await apiError(res, 'Continue battle failed'));
         const result = await res.json();
         if (result.snapshot) setData(result.snapshot);
         await fetchStatus();
@@ -247,7 +257,7 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'continue', populationSize: 20, generations: 50, symbol: selectedPair, period: selectedPeriod || data?.period || undefined, seedGenomes: topGenomes }),
       });
-      if (!res.ok) throw new Error(`Failed to continue: ${res.status}`);
+      if (!res.ok) throw new Error(await apiError(res, 'Continue failed'));
       const result = await res.json();
       if (result.snapshot) setData(result.snapshot);
       await fetchStatus();
@@ -359,11 +369,21 @@ export default function Dashboard() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="rounded-lg px-4 py-2.5 border border-red-500/20 flex items-center gap-3"
-                style={{ background: 'rgba(239,68,68,0.06)' }}
+                className={`rounded-lg px-4 py-2.5 border flex items-center gap-3 ${
+                  error.includes('Rate limited') || error.includes('Slow down') || error.includes('daily') || error.includes('Daily')
+                    ? 'border-[#F59E0B]/20'
+                    : 'border-red-500/20'
+                }`}
+                style={{ background: error.includes('Rate limited') || error.includes('Slow down') || error.includes('daily') || error.includes('Daily')
+                  ? 'rgba(245,158,11,0.06)'
+                  : 'rgba(239,68,68,0.06)' }}
               >
-                <span className="text-red-400 text-[11px] font-medium">{error}</span>
-                <button onClick={() => setError(null)} className="ml-auto text-red-400/40 hover:text-red-400 text-xs cursor-pointer">✕</button>
+                <span className={`text-[11px] font-medium ${
+                  error.includes('Rate limited') || error.includes('Slow down') || error.includes('daily') || error.includes('Daily')
+                    ? 'text-[#F59E0B]/80'
+                    : 'text-red-400'
+                }`}>{error}</span>
+                <button onClick={() => setError(null)} className="ml-auto text-white/20 hover:text-white/40 text-xs cursor-pointer">✕</button>
               </motion.div>
             )}
           </AnimatePresence>
